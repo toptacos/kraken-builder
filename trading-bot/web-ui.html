@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐙 Kraken Trading Bot Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.4.0/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-healthy { background-color: #4CAF50; }
+        .status-warning { background-color: #FF9800; }
+        .status-error { background-color: #F44336; }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-value {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .logs-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .logs-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .log-info { color: #2196F3; }
+        .log-error { color: #F44336; }
+        .log-warning { color: #FF9800; }
+        .log-success { color: #4CAF50; }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #5a6fd8;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .refresh-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .portfolio-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .portfolio-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="header">
+                <h1>🐙 Kraken Trading Bot</h1>
+                <p>Real-time cryptocurrency trading dashboard</p>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" @click="refreshData" :disabled="loading">
+                    <span v-if="loading" class="refresh-indicator"></span>
+                    {{ loading ? 'Refreshing...' : '🔄 Refresh Data' }}
+                </button>
+                <button class="btn btn-secondary" @click="toggleAutoRefresh">
+                    {{ autoRefresh ? '⏸️ Pause Auto-Refresh' : '▶️ Start Auto-Refresh' }}
+                </button>
+                <span class="metric-value">Last updated: {{ lastUpdate }}</span>
+            </div>
+
+            <div v-if="loading && !health" class="loading">
+                <h3>🔄 Connecting to Trading Bot...</h3>
+                <p>Please ensure the bot is running on port 8080</p>
+            </div>
+
+            <div v-else class="dashboard">
+                <!-- Health Status Card -->
+                <div class="card">
+                    <h3>
+                        <span class="status-indicator" :class="healthStatusClass"></span>
+                        System Health
+                    </h3>
+                    <div class="metric">
+                        <span>Status:</span>
+                        <span class="metric-value">{{ health?.status || 'Unknown' }}</span>
+                    </div>
+                    <div class="metric">
+                        <span>Test Mode:</span>
+                        <span class="metric-value">{{ health?.test_mode ? 'Yes' : 'No' }}</span>
+                    </div>
+                    <div class="metric">
+                        <span>Exchanges:</span>
+                        <span class="metric-value">{{ health?.exchanges_configured || 0 }}</span>
+                    </div>
+                    <div class="metric">
+                        <span>Timestamp:</span>
+                        <span class="metric-value">{{ formatTimestamp(health?.timestamp) }}</span>
+                    </div>
+                </div>
+
+                <!-- Portfolio Card -->
+                <div class="card">
+                    <h3>💰 Portfolio</h3>
+                    <div v-if="portfolio.length === 0" class="metric">
+                        <span>No assets</span>
+                        <span class="metric-value">-</span>
+                    </div>
+                    <div v-else v-for="asset in portfolio" :key="asset.symbol" class="portfolio-item">
+                        <span>{{ asset.symbol }}</span>
+                        <span class="metric-value">{{ asset.amount }}</span>
+                    </div>
+                </div>
+
+                <!-- Current Position Card -->
+                <div class="card">
+                    <h3>📊 Current Position</h3>
+                    <div class="metric">
+                        <span>Status:</span>
+                        <span class="metric-value">{{ currentPosition || 'No Position' }}</span>
+                    </div>
+                    <div class="metric">
+                        <span>Balance:</span>
+                        <span class="metric-value">${{ currentBalance || '0.00' }}</span>
+                    </div>
+                    <div class="metric">
+                        <span>Last Signal:</span>
+                        <span class="metric-value">{{ lastSignal || 'None' }}</span>
+                    </div>
+                </div>
+
+                <!-- Trending Coin Card -->
+                <div class="card">
+                    <h3>🔥 Trending Coin</h3>
+                    <div class="metric">
+                        <span>Coin:</span>
+                        <span class="metric-value">{{ trendingCoin || 'Loading...' }}</span>
+                    </div>
+                    <div class="metric">
+                        <span>Symbol:</span>
+                        <span class="metric-value">{{ trendingSymbol || '-' }}</span>
+                    </div>
+                </div>
+
+                <!-- Trend Analysis Card -->
+                <div class="card">
+                    <h3>📊 Trend Analysis</h3>
+                    <div class="metric">
+                        <span>Sources:</span>
+                        <span class="metric-value">{{ trendData?.sources_analyzed?.length || 0 }}/7</span>
+                    </div>
+                    <div class="metric">
+                        <span>Coins Analyzed:</span>
+                        <span class="metric-value">{{ trendData?.total_coins_found || 0 }}</span>
+                    </div>
+                    <div class="metric">
+                        <span>Processing Time:</span>
+                        <span class="metric-value">{{ trendData?.processing_time_seconds?.toFixed(2) || '0.00' }}s</span>
+                    </div>
+                    <div class="metric">
+                        <span>Last Update:</span>
+                        <span class="metric-value">{{ formatTimestamp(trendData?.timestamp) }}</span>
+                    </div>
+                </div>
+
+                <!-- Top Trends Card -->
+                <div class="card">
+                    <h3>🏆 Top 5 Trends</h3>
+                    <div v-if="trendData?.top_trends?.length" v-for="(trend, index) in trendData.top_trends.slice(0, 5)" :key="trend.symbol" class="metric">
+                        <span>#{{ index + 1 }} {{ trend.symbol }}:</span>
+                        <span class="metric-value">{{ trend.composite_score?.toFixed(1) || '0.0' }}</span>
+                    </div>
+                    <div v-else class="metric">
+                        <span>Loading trends...</span>
+                        <span class="metric-value">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Section -->
+            <div class="logs-section">
+                <h3>📋 Recent Activity Logs</h3>
+                <div v-if="logs.length === 0" class="log-entry log-info">
+                    No logs available yet. Start the trading bot to see activity.
+                </div>
+                <div v-else v-for="log in logs.slice(-20)" :key="log.timestamp" class="log-entry" :class="getLogClass(log.level)">
+                    <strong>{{ formatTimestamp(log.timestamp) }}</strong> - {{ log.message }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    health: null,
+                    portfolio: [],
+                    currentPosition: null,
+                    currentBalance: 0,
+                    lastSignal: null,
+                    trendingCoin: null,
+                    trendingSymbol: null,
+                    logs: [],
+                    trendData: null,
+                    loading: false,
+                    autoRefresh: false,
+                    lastUpdate: new Date().toLocaleTimeString(),
+                    refreshInterval: null
+                }
+            },
+
+            computed: {
+                healthStatusClass() {
+                    if (!this.health) return 'status-error';
+                    return this.health.status === 'healthy' ? 'status-healthy' : 'status-warning';
+                }
+            },
+
+            methods: {
+                async refreshData() {
+                    this.loading = true;
+                    try {
+                        // Fetch health data
+                        const healthResponse = await axios.get('http://localhost:8080/health');
+                        this.health = healthResponse.data;
+                        this.lastUpdate = new Date().toLocaleTimeString();
+
+                        // Fetch real logs from the bot
+                        const logsResponse = await axios.get('http://localhost:8080/logs');
+                        this.logs = logsResponse.data.logs || [];
+
+                        // Fetch portfolio data if available
+                        try {
+                            const portfolioResponse = await axios.get('http://localhost:8080/portfolio');
+                            this.portfolio = portfolioResponse.data.portfolio || [];
+                            this.currentBalance = portfolioResponse.data.balance || '0.00';
+                        } catch (portfolioError) {
+                            // Fallback to simulated data if portfolio endpoint fails
+                            this.portfolio = [
+                                { symbol: 'BTC', amount: '0.00000000' },
+                                { symbol: 'ETH', amount: '0.00000000' }
+                            ];
+                            this.currentBalance = '100.00';
+                        }
+
+                        // Fetch signals data if available
+                        try {
+                            const signalsResponse = await axios.get('http://localhost:8080/signals');
+                            this.lastSignal = signalsResponse.data.signal || 'HOLD';
+                            this.currentPosition = signalsResponse.data.position || 'No Position';
+                        } catch (signalsError) {
+                            this.lastSignal = 'HOLD';
+                            this.currentPosition = 'No Position';
+                        }
+
+                        // Fetch trending coin data
+                        try {
+                            const trendingResponse = await axios.get('http://localhost:8080/trending');
+                            this.trendingCoin = trendingResponse.data.coin || 'ASTER';
+                            this.trendingSymbol = trendingResponse.data.symbol || 'ASTER/USDT';
+                        } catch (trendingError) {
+                            this.trendingCoin = 'ASTER';
+                            this.trendingSymbol = 'ASTER/USDT';
+                        }
+
+                        // Fetch trend analysis data
+                        try {
+                            const trendResponse = await axios.get('http://localhost:8081/overnight/status');
+                            this.trendData = trendResponse.data.trend_analysis || null;
+
+                            // Update trending coin from trend analysis if available
+                            if (this.trendData?.top_trends?.length > 0) {
+                                const topTrend = this.trendData.top_trends[0];
+                                this.trendingCoin = topTrend.name || this.trendingCoin;
+                                this.trendingSymbol = `${topTrend.symbol}/USDT`;
+                            }
+                        } catch (trendError) {
+                            console.warn('Trend analysis not available:', trendError);
+                            this.trendData = null;
+                        }
+
+                    } catch (error) {
+                        console.error('Error fetching data:', error);
+                        this.logs.push({
+                            timestamp: new Date().toISOString(),
+                            level: 'error',
+                            message: `Failed to connect to bot: ${error.message}`
+                        });
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                toggleAutoRefresh() {
+                    this.autoRefresh = !this.autoRefresh;
+                    if (this.autoRefresh) {
+                        this.refreshInterval = setInterval(() => {
+                            this.refreshData();
+                        }, 5000); // Refresh every 5 seconds
+                    } else {
+                        if (this.refreshInterval) {
+                            clearInterval(this.refreshInterval);
+                            this.refreshInterval = null;
+                        }
+                    }
+                },
+
+                formatTimestamp(timestamp) {
+                    if (!timestamp) return 'N/A';
+                    return new Date(timestamp).toLocaleString();
+                },
+
+                getLogClass(level) {
+                    const classes = {
+                        'INFO': 'log-info',
+                        'ERROR': 'log-error',
+                        'WARNING': 'log-warning',
+                        'SUCCESS': 'log-success'
+                    };
+                    return classes[level] || 'log-info';
+                }
+            },
+
+            mounted() {
+                // Initial data load
+                this.refreshData();
+
+                // Cleanup on component destroy
+                this.$on('hook:beforeDestroy', () => {
+                    if (this.refreshInterval) {
+                        clearInterval(this.refreshInterval);
+                    }
+                });
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

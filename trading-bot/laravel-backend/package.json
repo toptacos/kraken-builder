@@ -1,0 +1,35 @@
+{
+  "name": "kraken-trading-bot-frontend",
+  "version": "1.0.0",
+  "description": "Vue.js frontend for Kraken Trading Bot with Laravel backend",
+  "main": "resources/js/app.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint resources/js --ext .js,.vue",
+    "lint:fix": "eslint resources/js --ext .js,.vue --fix"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "axios": "^1.6.0",
+    "@vitejs/plugin-vue": "^4.4.0",
+    "vite": "^4.4.0",
+    "laravel-vite-plugin": "^0.8.0"
+  },
+  "devDependencies": {
+    "@vue/eslint-config-prettier": "^8.0.0",
+    "eslint": "^8.49.0",
+    "eslint-plugin-vue": "^9.17.0",
+    "prettier": "^3.0.3"
+  },
+  "keywords": [
+    "vue",
+    "laravel",
+    "trading",
+    "cryptocurrency",
+    "dashboard"
+  ],
+  "author": "Kraken Trading Bot",
+  "license": "MIT"
+}

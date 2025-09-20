@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Advanced Trading Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.0/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-chartjs@5.3.0/dist/index.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --danger-color: #F44336;
+            --dark-bg: #1a1a1a;
+            --light-bg: #f8f9fa;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin: 20px;
+            overflow: hidden;
+        }
+
+        .navbar-custom {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            padding: 1rem;
+        }
+
+        .card-custom {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .card-custom:hover {
+            transform: translateY(-2px);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .status-healthy { background-color: var(--success-color); }
+        .status-warning { background-color: var(--warning-color); }
+        .status-error { background-color: var(--danger-color); }
+
+        .log-entry {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+
+        .log-info { color: #2196F3; }
+        .log-error { color: var(--danger-color); }
+        .log-warning { color: var(--warning-color); }
+        .log-success { color: var(--success-color); }
+
+        .btn-custom {
+            border-radius: 25px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .sidebar {
+            background: var(--dark-bg);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.7);
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background: var(--primary-color);
+        }
+
+        .user-profile {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .trading-signal {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid;
+        }
+
+        .signal-buy { border-left-color: var(--success-color); background: rgba(76, 175, 80, 0.1); }
+        .signal-sell { border-left-color: var(--danger-color); background: rgba(244, 67, 54, 0.1); }
+        .signal-hold { border-left-color: var(--warning-color); background: rgba(255, 152, 0, 0.1); }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Notifications -->
+        <div class="notification" v-if="notifications.length > 0">
+            <div v-for="notification in notifications" :key="notification.id"
+                 class="alert" :class="'alert-' + notification.type" role="alert">
+                <i :class="notification.icon"></i> {{ notification.message }}
+                <button type="button" class="btn-close" @click="removeNotification(notification.id)"></button>
+            </div>
+        </div>
+
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Sidebar -->
+                <div class="col-md-2 sidebar">
+                    <div class="user-profile">
+                        <i class="fas fa-user-circle fa-3x mb-3"></i>
+                        <h5>{{ user.name || 'Trader' }}</h5>
+                        <small>{{ user.role || 'Premium User' }}</small>
+                    </div>
+
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#dashboard" @click="activeTab = 'dashboard'">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link" href="#trading" @click="activeTab = 'trading'">
+                            <i class="fas fa-chart-line"></i> Live Trading
+                        </a>
+                        <a class="nav-link" href="#portfolio" @click="activeTab = 'portfolio'">
+                            <i class="fas fa-wallet"></i> Portfolio
+                        </a>
+                        <a class="nav-link" href="#analytics" @click="activeTab = 'analytics'">
+                            <i class="fas fa-chart-bar"></i> Analytics
+                        </a>
+                        <a class="nav-link" href="#settings" @click="activeTab = 'settings'">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <a class="nav-link" href="#logs" @click="activeTab = 'logs'">
+                            <i class="fas fa-terminal"></i> System Logs
+                        </a>
+                    </nav>
+
+                    <div class="mt-4">
+                        <div class="card bg-dark text-white">
+                            <div class="card-body">
+                                <h6>Quick Actions</h6>
+                                <button class="btn btn-success btn-sm w-100 mb-2" @click="emergencyStop">
+                                    <i class="fas fa-stop"></i> Emergency Stop
+                                </button>
+                                <button class="btn btn-warning btn-sm w-100" @click="restartSystem">
+                                    <i class="fas fa-redo"></i> Restart System
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="col-md-10">
+                    <div class="dashboard-container">
+
+                        <!-- Dashboard Tab -->
+                        <div v-if="activeTab === 'dashboard'">
+                            <nav class="navbar navbar-expand-lg navbar-custom">
+                                <div class="container-fluid">
+                                    <span class="navbar-brand text-white">
+                                        <i class="fas fa-rocket"></i> Advanced Trading Dashboard
+                                    </span>
+                                    <div class="d-flex">
+                                        <span class="badge bg-success me-2" v-if="systemHealth.status === 'healthy'">
+                                            <i class="fas fa-circle"></i> System Healthy
+                                        </span>
+                                        <span class="badge bg-warning me-2" v-else>
+                                            <i class="fas fa-exclamation-triangle"></i> System Issues
+                                        </span>
+                                        <span class="text-white">
+                                            <i class="fas fa-clock"></i> {{ currentTime }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </nav>
+
+                            <div class="container-fluid p-4">
+                                <!-- Key Metrics Row -->
+                                <div class="row mb-4">
+                                    <div class="col-md-3">
+                                        <div class="card card-custom">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
+                                                <h5>Daily P&L</h5>
+                                                <div class="metric-value" :class="dailyPnL >= 0 ? 'text-success' : 'text-danger'">
+                                                    {{ formatCurrency(dailyPnL) }}
+                                                </div>
+                                                <small class="text-muted">{{ dailyPnLPercent }}%</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card card-custom">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-wallet fa-2x text-primary mb-2"></i>
+                                                <h5>Current Balance</h5>
+                                                <div class="metric-value">{{ formatCurrency(currentBalance) }}</div>
+                                                <small class="text-muted">Available</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card card-custom">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-exchange-alt fa-2x text-info mb-2"></i>
+                                                <h5>Active Trades</h5>
+                                                <div class="metric-value">{{ activeTrades }}</div>
+                                                <small class="text-muted">Positions</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card card-custom">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-trophy fa-2x text-warning mb-2"></i>
+                                                <h5>Success Rate</h5>
+                                                <div class="metric-value">{{ successRate }}%</div>
+                                                <small class="text-muted">Last 24h</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Charts Row -->
+                                <div class="row mb-4">
+                                    <div class="col-md-8">
+                                        <div class="card card-custom">
+                                            <div class="card-header">
+                                                <h5><i class="fas fa-chart-line"></i> Performance Chart</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="chart-container">
+                                                    <canvas id="performanceChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card card-custom">
+                                            <div class="card-header">
+                                                <h5><i class="fas fa-signal"></i> Trading Signals</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div v-for="signal in recentSignals" :key="signal.id"
+                                                     class="trading-signal" :class="'signal-' + signal.type.toLowerCase()">
+                                                    <div class="d-flex justify-content-between">
+                                                        <strong>{{ signal.symbol }}</strong>
+                                                        <span class="badge" :class="'bg-' + signal.type.toLowerCase()">
+                                                            {{ signal.type }}
+                                                        </span>
+                                                    </div>
+                                                    <small class="text-muted">{{ signal.exchange }} • {{ formatTime(signal.timestamp) }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- System Status -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card card-custom">
+                                            <div class="card-header">
+                                                <h5><i class="fas fa-server"></i> System Status</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="mb-3">
+                                                            <span class="status-indicator status-healthy"></span>
+                                                            Main Bot: Healthy
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <span class="status-indicator status-healthy"></span>
+                                                            Overnight Trader: Active
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="mb-3">
+                                                            <span class="status-indicator status-healthy"></span>
+                                                            Database: Connected
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <span class="status-indicator status-healthy"></span>
+                                                            Cache: Operational
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card card-custom">
+                                            <div class="card-header">
+                                                <h5><i class="fas fa-bell"></i> Recent Alerts</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div v-for="alert in recentAlerts" :key="alert.id"
+                                                     class="alert mb-2" :class="'alert-' + alert.type">
+                                                    <small>{{ formatTime(alert.timestamp) }}</small>
+                                                    <div>{{ alert.message }}</div>
+                                                </div>
+                                                <div v-if="recentAlerts.length === 0" class="text-muted">
+                                                    <i class="fas fa-check-circle"></i> No recent alerts
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Other tabs would go here -->
+                        <div v-else class="container-fluid p-4">
+                            <div class="text-center">
+                                <i class="fas fa-construction fa-3x text-muted mb-3"></i>
+                                <h4>{{ activeTab.charAt(0).toUpperCase() + activeTab.slice(1) }} Section</h4>
+                                <p class="text-muted">This section is under development</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    activeTab: 'dashboard',
+                    systemHealth: { status: 'loading' },
+                    currentBalance: 1000,
+                    dailyPnL: 0,
+                    dailyPnLPercent: 0,
+                    activeTrades: 0,
+                    successRate: 0,
+                    currentTime: new Date().toLocaleTimeString(),
+                    notifications: [],
+                    user: {
+                        name: 'John Doe',
+                        role: 'Premium Trader'
+                    },
+                    recentSignals: [],
+                    recentAlerts: [],
+                    refreshInterval: null
+                }
+            },
+
+            computed: {
+                dailyPnLPercent() {
+                    if (this.currentBalance === 0) return 0;
+                    return ((this.dailyPnL / this.currentBalance) * 100).toFixed(2);
+                }
+            },
+
+            methods: {
+                async refreshData() {
+                    try {
+                        // Fetch system health
+                        const healthResponse = await axios.get('http://localhost:8080/health');
+                        this.systemHealth = healthResponse.data;
+
+                        // Fetch overnight status
+                        const overnightResponse = await axios.get('http://localhost:8081/overnight/status');
+                        const overnightData = overnightResponse.data;
+
+                        this.currentBalance = overnightData.current_balance || 1000;
+                        this.dailyPnL = overnightData.daily_pnl || 0;
+                        this.activeTrades = overnightData.active_positions || 0;
+
+                        // Update time
+                        this.currentTime = new Date().toLocaleTimeString();
+
+                        // Simulate some data for demo
+                        this.successRate = Math.floor(Math.random() * 20) + 70; // 70-90%
+
+                        // Add sample signals
+                        if (Math.random() > 0.7) {
+                            this.recentSignals.unshift({
+                                id: Date.now(),
+                                symbol: 'BTC/USDT',
+                                type: ['BUY', 'SELL', 'HOLD'][Math.floor(Math.random() * 3)],
+                                exchange: 'Binance',
+                                timestamp: new Date().toISOString()
+                            });
+                            this.recentSignals = this.recentSignals.slice(0, 5);
+                        }
+
+                    } catch (error) {
+                        console.error('Error refreshing data:', error);
+                        this.addNotification('Error connecting to trading system', 'danger', 'fas fa-exclamation-triangle');
+                    }
+                },
+
+                formatCurrency(amount) {
+                    return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                    }).format(amount);
+                },
+
+                formatTime(timestamp) {
+                    return new Date(timestamp).toLocaleTimeString();
+                },
+
+                addNotification(message, type = 'info', icon = 'fas fa-info-circle') {
+                    const notification = {
+                        id: Date.now(),
+                        message,
+                        type,
+                        icon,
+                        timestamp: new Date()
+                    };
+                    this.notifications.unshift(notification);
+
+                    // Auto-remove after 5 seconds
+                    setTimeout(() => {
+                        this.removeNotification(notification.id);
+                    }, 5000);
+                },
+
+                removeNotification(id) {
+                    this.notifications = this.notifications.filter(n => n.id !== id);
+                },
+
+                emergencyStop() {
+                    if (confirm('Are you sure you want to emergency stop all trading?')) {
+                        axios.post('http://localhost:8081/overnight/stop')
+                            .then(() => {
+                                this.addNotification('Emergency stop initiated', 'warning', 'fas fa-stop');
+                            })
+                            .catch(() => {
+                                this.addNotification('Emergency stop failed', 'danger', 'fas fa-exclamation-triangle');
+                            });
+                    }
+                },
+
+                restartSystem() {
+                    if (confirm('Are you sure you want to restart the trading system?')) {
+                        this.addNotification('System restart initiated', 'info', 'fas fa-redo');
+                        // In a real implementation, this would call a restart endpoint
+                    }
+                },
+
+                initCharts() {
+                    // Initialize Chart.js
+                    const ctx = document.getElementById('performanceChart');
+                    if (ctx) {
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                                datasets: [{
+                                    label: 'Portfolio Value',
+                                    data: [1000, 1020, 1015, 1030, 1025, 1040],
+                                    borderColor: '#667eea',
+                                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                    tension: 0.4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: false
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            },
+
+            mounted() {
+                // Initial data load
+                this.refreshData();
+
+                // Set up auto-refresh every 30 seconds
+                this.refreshInterval = setInterval(() => {
+                    this.refreshData();
+                }, 30000);
+
+                // Initialize charts
+                this.$nextTick(() => {
+                    this.initCharts();
+                });
+
+                // Add welcome notification
+                this.addNotification('Welcome to Advanced Trading Dashboard', 'success', 'fas fa-rocket');
+            },
+
+            beforeUnmount() {
+                if (this.refreshInterval) {
+                    clearInterval(this.refreshInterval);
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
