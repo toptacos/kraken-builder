@@ -1,415 +1,265 @@
-# 🚀 **OVERNIGHT TRADING BOT - MAXIMUM PROFIT SYSTEM**
+# Kraken Trading Bot
 
-## 🎯 **Overview**
-This is a professional-grade **overnight cryptocurrency trading system** designed to maximize profits through multi-exchange arbitrage and comprehensive risk management. The system runs 24/7 with minimal intervention, automatically managing risk and optimizing for overnight market conditions.
+A simple and powerful cryptocurrency trading bot with automated strategies.
 
-## ⚠️ **CRITICAL WARNINGS**
-- **REAL MONEY TRADING**: This bot trades with real cryptocurrency
-- **HIGH RISK**: Overnight trading involves significant risk of loss
-- **NO GUARANTEES**: Past performance doesn't predict future results
-- **START SMALL**: Begin with small amounts to test the system
-- **MONITOR CLOSELY**: Always supervise automated trading systems
+## 🚀 Quick Start
 
----
-
-## 🎯 **Key Features**
-
-### 🤖 **Advanced Trading Engine**
-- **Multi-Exchange Arbitrage**: Automatic profit from price differences across 4+ exchanges
-- **Comprehensive Trending Coin Scraping**: Real-time data from CoinGecko & CoinMarketCap
-- **Smart Risk Management**: Daily profit/loss limits with auto-stop functionality
-- **24/7 Operation**: Optimized for overnight market conditions with minimal supervision
-
-### 🛡️ **Enterprise-Grade Safety**
-- **Daily Profit Target**: Automatically stops when target reached ($50 default)
-- **Daily Loss Limit**: Emergency stop on losses (-$100 default)
-- **Balance Protection**: Auto-disable on excessive losses
-- **Emergency Stop**: Instant shutdown capability with single command
-
-### 📊 **Professional Monitoring**
-- **Real-Time Dashboard**: Advanced web interface with live data
-- **Comprehensive Logging**: Full audit trail of all activities
-- **System Health Monitoring**: Automatic alerts for system issues
-- **Performance Analytics**: Detailed trading performance metrics
-
-### 🐳 **Docker-Based Architecture**
-- **One-Click Deployment**: Single command startup
-- **Container Management**: Automatic cleanup and conflict resolution
-- **Resource Optimization**: Efficient resource usage and monitoring
-- **Backup & Recovery**: Complete system backup and restore capabilities
-
----
-
-## 🚀 **QUICK START (5 Minutes)**
-
-### **Step 1: System Requirements**
-```bash
-# Ensure you have Docker and Docker Compose
-docker --version
-docker-compose --version
-```
-
-### **Step 2: Clone and Setup**
-```bash
-# Clone the repository
-git clone https://github.com/your-repo/overnight-trading-bot.git
-cd overnight-trading-bot
-
-# Make scripts executable
-chmod +x *.sh *.py
-```
-
-### **Step 3: Configure API Keys**
-Edit the `.env` file with your exchange API credentials:
+### Option 1: Automated Build and Deploy (Recommended)
 
 ```bash
-# === BASIC SETTINGS ===
-TEST_MODE=false                    # Set to true for testing
-STARTING_BALANCE=1000             # Your starting balance in USD
-DAILY_PROFIT_TARGET=50            # Stop when you make $50 profit
-DAILY_LOSS_LIMIT=-100             # Stop if you lose $100
-TRADE_AMOUNT=25                   # $25 per arbitrage trade
+# 1. Configure API Keys
+# Edit .env file with your exchange API keys
+nano .env
 
-# === EXCHANGE API KEYS ===
-BINANCE_API_KEY=your_binance_api_key
-BINANCE_API_SECRET=your_binance_secret
-KRAKEN_API_KEY=your_kraken_api_key
-KRAKEN_API_SECRET=your_kraken_secret
-COINBASE_API_KEY_NAME=your_coinbase_key
-COINBASE_API_PRIVATE_KEY=your_coinbase_private_key
-KUCOIN_API_KEY=your_kucoin_api_key
-KUCOIN_API_SECRET=your_kucoin_secret
-KUCOIN_API_PASSPHRASE=your_kucoin_passphrase
+# 2. Build and test the application
+./build_and_deploy.sh --build
+
+# 3. Deploy to production
+./build_and_deploy.sh --deploy
+
+# 4. Check status
+./build_and_deploy.sh --status
 ```
 
-### **Step 4: ONE-CLICK STARTUP**
+### Option 2: Manual Setup
+
+#### 1. Setup Environment
 ```bash
-# 🚀 START EVERYTHING WITH ONE COMMAND
-./start_overnight_trading.sh
+# Option 1: Use virtual environment (recommended)
+./setup_venv.sh
+source venv/bin/activate
+
+# Option 2: Use system Python (may need --user flag)
+# Just run scripts directly
 ```
 
-**That's it!** The system will:
-- ✅ Start all Docker services automatically
-- ✅ Configure overnight trading parameters
-- ✅ Begin arbitrage trading immediately
-- ✅ Show live monitoring dashboard
-- ✅ Handle all error recovery automatically
-
----
-
-## 📊 **Access Your Dashboard**
-
-### **Main Trading Dashboard**
-- **URL**: http://localhost:8080/health
-- **Features**: Real-time trading data, portfolio overview, system health
-
-### **Advanced Analytics Dashboard**
-- **URL**: Open `advanced-dashboard.html` in your browser
-- **Features**: Professional UI, charts, notifications, multi-user support
-
-### **Overnight Trading Status**
-- **URL**: http://localhost:8081/overnight/status
-- **Features**: Live P&L, active positions, trading signals
-
----
-
-## 🎛️ **System Management**
-
-### **Daily Operations**
+#### 2. Configure API Keys
+Edit `.env` file with your exchange API keys:
 ```bash
-# Check system status
-docker-compose ps
-
-# View live logs
-docker-compose logs -f trading-bot
-
-# Monitor resources
-docker stats
-
-# Emergency stop
-curl http://localhost:8081/overnight/stop
-```
-
-### **Maintenance Commands**
-```bash
-# Clean up system
-python3 container_manager.py cleanup
-
-# Create backup
-python3 container_manager.py backup
-
-# Monitor system health
-python3 system_monitor.py --alert-webhook https://your-webhook-url
-
-# View comprehensive logs
-python3 container_manager.py logs --lines 200
-```
-
-### **Advanced Monitoring**
-```bash
-# Start system monitoring with alerts
-python3 system_monitor.py --alert-webhook https://hooks.slack.com/your-webhook
-
-# Monitor containers in real-time
-python3 container_manager.py monitor
-
-# Health check all services
-python3 container_manager.py health
-```
-
----
-
-## 📈 **Performance Expectations**
-
-| Risk Level | Daily Target | Loss Limit | Success Rate | Best For |
-|------------|-------------|------------|--------------|----------|
-| **Conservative** | $25-50 | -$50 | 75-85% | Beginners |
-| **Moderate** | $50-100 | -$100 | 70-80% | Intermediate |
-| **Aggressive** | $100-200 | -$200 | 65-75% | Advanced |
-
-### **Real-World Example**
-```
-Day 1: +$47.32 (Conservative mode)
-Day 2: +$73.89 (Moderate mode)
-Day 3: -$12.45 (Auto-stop triggered)
-Day 4: +$89.21 (Recovered and profitable)
-```
-
----
-
-## 🔧 **Configuration Options**
-
-### **Risk Management**
-```bash
-# Conservative (Recommended for beginners)
-DAILY_PROFIT_TARGET=25
-DAILY_LOSS_LIMIT=-50
-TRADE_AMOUNT=10
-MIN_ARB_PROFIT_PCT=1.0
-
-# Moderate (Balanced risk/reward)
-DAILY_PROFIT_TARGET=50
-DAILY_LOSS_LIMIT=-100
-TRADE_AMOUNT=25
-MIN_ARB_PROFIT_PCT=0.8
-
-# Aggressive (For experienced traders)
-DAILY_PROFIT_TARGET=100
-DAILY_LOSS_LIMIT=-200
-TRADE_AMOUNT=50
-MIN_ARB_PROFIT_PCT=0.5
-```
-
-### **Exchange Configuration**
-```bash
-# Primary exchanges (required)
+# Add your keys here
 BINANCE_API_KEY=your_key
 BINANCE_API_SECRET=your_secret
-
-# Secondary exchanges (recommended)
 KRAKEN_API_KEY=your_key
-COINBASE_API_KEY_NAME=your_key
-
-# Additional exchanges (optional)
-KUCOIN_API_KEY=your_key
+KRAKEN_API_SECRET=your_secret
 ```
 
----
-
-## 🚨 **Safety & Best Practices**
-
-### **Before Going Live**
+#### 3. Start Trading
 ```bash
-# Always test first
-TEST_MODE=true
-STARTING_BALANCE=100
-TRADE_AMOUNT=1
+# Start main production bot
+./start_production.sh
 
-# Run for a few hours
-./start_overnight_trading.sh
-
-# Verify everything works
-curl http://localhost:8080/health
-```
-
-### **Production Checklist**
-- [ ] API keys are correct and have proper permissions
-- [ ] Test mode works without errors
-- [ ] Dashboard loads and shows data
-- [ ] Emergency stop mechanisms work
-- [ ] Backup of .env file exists
-- [ ] System monitoring is configured
-
-### **Daily Monitoring Routine**
-```bash
-# Morning check
-curl http://localhost:8081/overnight/status
-
-# Review performance
-docker logs trading-bot --since 6am
-
-# Clean up if needed
-python3 container_manager.py cleanup
-```
-
-### **Emergency Procedures**
-```bash
-# If something goes wrong
-docker-compose down                    # Stop everything
-docker-compose logs > emergency.log    # Save logs
-python3 container_manager.py backup    # Create backup
-# Contact exchange support if needed
-```
-
----
-
-## 🔑 **Getting API Keys**
-
-### **Binance (Most Important)**
-1. Go to: https://www.binance.com/en/my/settings/api-management
-2. Create new API key
-3. Enable: "Enable Spot & Margin Trading"
-4. Set permissions: Read Info, Enable Trading, Enable Futures
-5. **CRITICAL**: Restrict to your IP address
-
-### **Kraken**
-1. Go to: https://www.kraken.com/u/security/api
-2. Create API key with permissions: Query Funds, Create & Modify Orders
-
-### **Coinbase Pro**
-1. Go to: https://pro.coinbase.com/profile/api
-2. Create API key with: View, Trade permissions
-
-### **KuCoin**
-1. Go to: https://www.kucoin.com/account/api
-2. Create API key with: General, Spot Trading permissions
-
----
-
-## 📞 **Support & Troubleshooting**
-
-### **Common Issues**
-
-**"Container name conflict"**
-```bash
-# Clean up old containers
-python3 container_manager.py cleanup
+# Or start overnight trading
 ./start_overnight_trading.sh
 ```
 
-**"No exchanges configured"**
-```bash
-# Check your .env file
-cat .env | grep API_KEY
-# Edit and restart
-nano .env
-./start_overnight_trading.sh --force
+## 📊 Available Scripts
+
+### Build and Deployment
+| Script | Purpose | Usage |
+|--------|---------|-------|
+| `./build_and_deploy.sh` | Complete build and deployment pipeline | `./build_and_deploy.sh --build/--deploy/--restart/--status` |
+| `./test_basic_functionality.py` | Run basic functionality tests | `python3 test_basic_functionality.py` |
+
+### Trading Scripts
+| Script | Purpose | Usage |
+|--------|---------|-------|
+| `./start_production.sh` | Start main trading bot | `./start_production.sh` |
+| `./start_overnight_trading.sh` | Start overnight trading | `./start_overnight_trading.sh` |
+| `./monitor_production.sh` | Monitor bot health | `./monitor_production.sh [--once\|--report]` |
+| `./monitor_system.sh` | Monitor system resources | `./monitor_system.sh [--once\|--report]` |
+| `./setup_venv.sh` | Create virtual environment | `./setup_venv.sh` |
+
+## 🏗️ Project Structure
+
+```
+kraken-trading-bot/
+├── scripts/
+│   └── common.sh          # Shared utilities
+├── trading_bot.py         # Main trading bot
+├── overnight_trader.py    # Overnight trading
+├── requirements.txt       # Python dependencies
+├── Dockerfile            # Docker configuration
+├── .env                  # Environment variables
+└── README.md            # This file
 ```
 
-**"Dashboard not loading"**
+## 🔧 Features
+
+- **Multi-Exchange Support**: Binance, Kraken, Coinbase, KuCoin
+- **Automated Strategies**: Trend following, arbitrage, risk management
+- **Web Dashboard**: Monitor trades at http://localhost:8080
+- **Production Ready**: Health monitoring, error handling, logging
+- **Docker Support**: Easy deployment with Docker
+
+## 📈 Trading Modes
+
+### Production Mode
+- Real money trading
+- Risk management
+- Continuous monitoring
+- Web dashboard
+
+### Overnight Mode
+- Automated overnight trading
+- Daily profit/loss limits
+- Morning auto-stop
+
+## 🛠️ Development
+
+### Prerequisites
+- Python 3.8+
+- pip
+- curl (for health checks)
+
+### Installation
 ```bash
-# Check services
-docker-compose ps
-# Restart if needed
-docker-compose restart
+# Clone repository
+git clone <repository-url>
+cd kraken-trading-bot
+
+# Setup environment
+./setup_venv.sh
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-**"High CPU/memory usage"**
+### Docker Deployment
 ```bash
-# Monitor resources
-docker stats
-# Restart services
-python3 container_manager.py restart
+# Build and run with Docker
+docker build -t kraken-trading-bot .
+docker run -p 8080:8080 kraken-trading-bot
 ```
 
-### **Performance Optimization**
-```bash
-# Clean system
-docker system prune -a
-python3 container_manager.py cleanup
-
-# Optimize settings
-TRADE_AMOUNT=15  # Reduce for lower resource usage
-MAX_TRADES_PER_HOUR=8  # Reduce frequency
-```
-
----
-
-## 🎯 **Advanced Features**
-
-### **Multi-User Support**
-- User authentication system
-- Role-based access control
-- Individual user dashboards
-- Session management
-
-### **Real-Time Alerts**
-- Slack/Discord webhook integration
-- Email notifications
-- SMS alerts for critical issues
-- Custom alert thresholds
-
-### **Analytics & Reporting**
-- Performance charts and graphs
-- Trading history analysis
-- Risk assessment reports
-- Profit/loss trend analysis
-
-### **Backup & Recovery**
-- Automatic daily backups
-- Point-in-time recovery
-- Configuration backup
-- Log archiving
-
----
-
-## 📈 **Success Stories**
-
-### **User Testimonial**
-*"Started with $500, made $47.32 on the first night! The system stopped automatically when it hit the daily target. Best investment I've made."*
-- John D., Crypto Trader
-
-### **Performance Data**
-- **Average Daily Return**: 3.2-8.7% (depending on risk level)
-- **Win Rate**: 65-85% profitable trades
-- **Maximum Drawdown**: Limited to daily loss limit
-- **Uptime**: 99.7% with automatic recovery
-
----
-
-## ⚖️ **Legal & Compliance**
-
-### **Important Disclaimers**
-- This software is for educational and research purposes
-- Cryptocurrency trading involves substantial risk of loss
-- Past performance does not guarantee future results
-- Users are responsible for compliance with local laws
-- The developers are not responsible for financial losses
-
-### **Compliance Checklist**
-- [ ] Verify local cryptocurrency trading regulations
-- [ ] Ensure proper tax reporting for trading profits
-- [ ] Use only licensed exchange accounts
-- [ ] Keep detailed trading records
-- [ ] Report profits to tax authorities as required
-
----
-
-## 🎉 **Ready to Start Trading?**
+### Automated Build and Deploy
+The `build_and_deploy.sh` script provides a complete CI/CD pipeline with support for both Python and PHP implementations:
 
 ```bash
-# 🚀 ONE FINAL COMMAND
-./start_overnight_trading.sh
+# Python Implementation (default)
+./build_and_deploy.sh --python --build
+./build_and_deploy.sh --python --deploy
 
-# Then visit: http://localhost:8080/health
+# PHP Implementation (FrankenPHP)
+./build_and_deploy.sh --php --build
+./build_and_deploy.sh --php --deploy
+
+# Service Management
+./build_and_deploy.sh --restart    # Restart all services
+./build_and_deploy.sh --status     # Check service status
+./build_and_deploy.sh --rollback   # Rollback to previous deployment
+./build_and_deploy.sh --stop       # Stop all services
 ```
 
-**Your automated overnight trading system is now active and will start generating profits immediately!**
+#### Build Process Features:
+- ✅ **Multi-language support** - Python and PHP implementations
+- ✅ **Dependency checking** - Verifies all required tools are installed
+- ✅ **Automated testing** - Runs test suite with coverage reporting
+- ✅ **Docker image building** - Builds optimized Docker images
+- ✅ **Backup creation** - Creates backups before major changes
+- ✅ **Cleanup** - Removes old Docker images and temporary files
 
-**Remember**: Start small, monitor closely, and let the system work its magic overnight. The automated risk management will protect your capital while maximizing profits.
+#### Deployment Features:
+- ✅ **Health checks** - Verifies services are running correctly
+- ✅ **Rollback capability** - Automatic rollback on deployment failure
+- ✅ **Service monitoring** - Continuous health monitoring
+- ✅ **Environment-specific configs** - Supports different environments
+- ✅ **Profit/loss thresholds** - Automatic trading halt when limits reached
 
-**Happy Trading! 📈💰🚀**
+#### PHP Implementation (FrankenPHP):
+```bash
+# Start PHP trading bot directly
+php bin/console start
 
----
+# Check PHP bot status
+php bin/console status
 
-*This system is continuously updated with the latest trading strategies and security enhancements. Check for updates regularly.*
+# Run PHP bot tests
+php bin/console test
+
+# Stop PHP trading bot
+php bin/console stop
+```
+
+## 📊 Monitoring
+
+### Health Endpoints
+- `http://localhost:8080/health` - Bot health status
+- `http://localhost:8080/status` - Trading status
+- `http://localhost:8080/portfolio` - Portfolio overview
+
+### Monitoring Scripts
+```bash
+# Monitor bot health
+./monitor_production.sh
+
+# Monitor system resources
+./monitor_system.sh
+
+# Generate reports
+./monitor_production.sh --report
+./monitor_system.sh --report
+```
+
+## ⚠️ Important Notes
+
+- **Real Money Trading**: This bot trades with real money. Use at your own risk.
+- **API Keys**: Never commit API keys to version control.
+- **Risk Management**: Always set appropriate stop-loss limits.
+- **Testing**: Test with small amounts first.
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**"pip install" fails**
+```bash
+# Try with user flag
+pip install --user -r requirements.txt
+
+# Or use virtual environment
+./setup_venv.sh
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Bot won't start**
+```bash
+# Check Python version
+python3 --version
+
+# Check if .env file exists
+ls -la .env
+
+# Check API keys in .env
+cat .env
+```
+
+**Port already in use**
+```bash
+# Kill process on port 8080
+lsof -ti:8080 | xargs kill -9
+
+# Or use different port
+# Edit scripts to use different port
+```
+
+## 📝 License
+
+This project is for educational purposes. Use at your own risk.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📞 Support
+
+For issues and questions:
+1. Check the troubleshooting section
+2. Review the logs in `logs/` directory
+3. Check the monitoring scripts output
+4. Open an issue with detailed information

@@ -24,8 +24,11 @@ Route::prefix('trading')->group(function () {
     Route::get('/dashboard', [TradingController::class, 'dashboard']);
     Route::get('/logs', [TradingController::class, 'logs']);
     Route::get('/statistics', [TradingController::class, 'statistics']);
+    Route::get('/verified-balance', [TradingController::class, 'verifiedBalance']);
+    Route::get('/settings', [TradingController::class, 'tradingSettings']);
     Route::post('/test-trade', [TradingController::class, 'testTrade']);
     Route::post('/run-cycle', [TradingController::class, 'runCycle']);
+    Route::post('/bank-transfer', [TradingController::class, 'bankTransfer']);
 });
 
 // Health check

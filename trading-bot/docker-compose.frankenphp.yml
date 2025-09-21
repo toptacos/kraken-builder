@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # FrankenPHP - Ultra Fast PHP Server for Trading Bot
+  frankenphp:
+    build:
+      context: .
+      dockerfile: frankenphp.dockerfile
+    container_name: kraken-frankenphp
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/app
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    environment:
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY:-base64:your_app_key_here}
+      - DB_CONNECTION=sqlite
+      - TWITTER_BEARER_TOKEN=${TWITTER_BEARER_TOKEN:-}
+      # Trading Bot Configuration
+      - TEST_MODE=${TEST_MODE:-true}
+      - STARTING_BALANCE=${STARTING_BALANCE:-1000}
+      - TRADE_AMOUNT=${TRADE_AMOUNT:-50}
+      - PROFIT_THRESHOLD=${PROFIT_THRESHOLD:-5}
+      - LOSS_THRESHOLD=${LOSS_THRESHOLD:--2}
+      - MAX_TRADES_PER_HOUR=${MAX_TRADES_PER_HOUR:-12}
+      # Exchange API Keys
+      - BINANCE_API_KEY=${BINANCE_API_KEY:-}
+      - BINANCE_API_SECRET=${BINANCE_API_SECRET:-}
+      - KRAKEN_API_KEY=${KRAKEN_API_KEY:-}
+      - KRAKEN_API_SECRET=${KRAKEN_API_SECRET:-}
+      - COINBASE_API_KEY_NAME=${COINBASE_API_KEY_NAME:-}
+      - COINBASE_API_PRIVATE_KEY=${COINBASE_API_PRIVATE_KEY:-}
+      - KUCOIN_API_KEY=${KUCOIN_API_KEY:-}
+      - KUCOIN_API_SECRET=${KUCOIN_API_SECRET:-}
+      - KUCOIN_API_PASSPHRASE=${KUCOIN_API_PASSPHRASE:-}
+    networks:
+      - kraken-network
+    restart: unless-stopped
+    command: ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
+
+  # Trading Bot Service (PHP implementation)
+  trading-bot:
+    build:
+      context: .
+      dockerfile: frankenphp.dockerfile
+    container_name: kraken-trading-bot
+    volumes:
+      - ./:/app
+    environment:
+      - TEST_MODE=${TEST_MODE:-true}
+      - STARTING_BALANCE=${STARTING_BALANCE:-1000}
+      - TRADE_AMOUNT=${TRADE_AMOUNT:-50}
+      - PROFIT_THRESHOLD=${PROFIT_THRESHOLD:-5}
+      - LOSS_THRESHOLD=${LOSS_THRESHOLD:--2}
+      - MAX_TRADES_PER_HOUR=${MAX_TRADES_PER_HOUR:-12}
+      # Exchange API Keys
+      - BINANCE_API_KEY=${BINANCE_API_KEY:-}
+      - BINANCE_API_SECRET=${BINANCE_API_SECRET:-}
+      - KRAKEN_API_KEY=${KRAKEN_API_KEY:-}
+      - KRAKEN_API_SECRET=${KRAKEN_API_SECRET:-}
+      - COINBASE_API_KEY_NAME=${COINBASE_API_KEY_NAME:-}
+      - COINBASE_API_PRIVATE_KEY=${COINBASE_API_PRIVATE_KEY:-}
+      - KUCOIN_API_KEY=${KUCOIN_API_KEY:-}
+      - KUCOIN_API_SECRET=${KUCOIN_API_SECRET:-}
+      - KUCOIN_API_PASSPHRASE=${KUCOIN_API_PASSPHRASE:-}
+    networks:
+      - kraken-network
+    restart: "no"  # Don't restart automatically, let it run once
+    command: ["php", "bin/console", "start"]
+    depends_on:
+      - frankenphp
+
+  # MySQL Database (optional, for advanced features)
+  mysql:
+    image: mysql:8.0
+    container_name: kraken-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-kraken_root}
+      MYSQL_DATABASE: kraken_trading
+      MYSQL_USER: kraken_user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-kraken_pass}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+    networks:
+      - kraken-network
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Redis for caching and sessions (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: kraken-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - kraken-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  kraken-network:
+    driver: bridge

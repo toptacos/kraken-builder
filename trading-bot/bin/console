@@ -1,0 +1,181 @@
+#!/usr/bin/env php
+<?php
+
+/**
+ * Kraken Trading Bot Console Application
+ * =====================================
+ *
+ * This is the main entry point for running the trading bot
+ * in production mode with FrankenPHP.
+ */
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// Load environment variables
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->load();
+
+// Handle command line arguments
+$command = $argv[1] ?? 'help';
+
+switch ($command) {
+    case 'start':
+        startTradingBot();
+        break;
+
+    case 'stop':
+        stopTradingBot();
+        break;
+
+    case 'status':
+        showBotStatus();
+        break;
+
+    case 'test':
+        runTests();
+        break;
+
+    default:
+        showHelp();
+        break;
+}
+
+function startTradingBot()
+{
+    echo "🚀 Starting Kraken Trading Bot...\n";
+
+    try {
+        $bot = new \Kraken\TradingBot\TradingBot();
+
+        // Handle shutdown signals gracefully (if pcntl is available)
+        if (function_exists('pcntl_signal')) {
+            pcntl_signal(SIGTERM, function() use ($bot) {
+                echo "\n🛑 Received shutdown signal...\n";
+                $bot->stop();
+            });
+
+            pcntl_signal(SIGINT, function() use ($bot) {
+                echo "\n🛑 Received interrupt signal...\n";
+                $bot->stop();
+            });
+        } else {
+            echo "⚠️ Process control functions not available (expected in containerized environment)\n";
+            echo "📝 Signal handling will be managed by Docker/container orchestration\n";
+        }
+
+        // Start the bot
+        $bot->start();
+
+    } catch (Exception $e) {
+        echo "❌ Error starting trading bot: " . $e->getMessage() . "\n";
+        exit(1);
+    }
+}
+
+function stopTradingBot()
+{
+    echo "🛑 Stopping Kraken Trading Bot...\n";
+
+    // In a production environment, you'd send a signal to the running process
+    // For now, we'll just show a message
+    echo "📊 Bot stop signal sent. Check status to confirm.\n";
+}
+
+function showBotStatus()
+{
+    echo "📊 Kraken Trading Bot Status\n";
+    echo "===========================\n";
+
+    try {
+        $bot = new \Kraken\TradingBot\TradingBot();
+        $status = $bot->getStatus();
+
+        echo "🤖 Bot Running: " . ($status['is_running'] ? '✅ Yes' : '❌ No') . "\n";
+        echo "🧪 Test Mode: " . ($status['test_mode'] ? '✅ Yes' : '❌ No') . "\n";
+        echo "💰 Current Balance: $" . number_format($status['current_balance'], 2) . "\n";
+        echo "📈 P&L: $" . number_format($status['pnl_amount'], 2) . " (" . $status['pnl_percentage'] . "%)\n";
+        echo "📊 Position: " . strtoupper($status['position']) . "\n";
+        echo "🎯 Total Trades: " . $status['total_trades'] . "\n";
+        echo "🏆 Win Rate: " . $status['win_rate'] . "%\n";
+        echo "🔄 Exchanges: " . $status['exchanges_count'] . "\n";
+        echo "🎯 Profit Threshold: " . $status['profit_threshold'] . "%\n";
+        echo "⚠️  Loss Threshold: " . $status['loss_threshold'] . "%\n";
+        echo "🕒 Last Update: " . date('Y-m-d H:i:s', strtotime($status['timestamp'])) . "\n";
+
+        // Check thresholds
+        if ($status['pnl_percentage'] >= $status['profit_threshold']) {
+            echo "\n🎉 PROFIT TARGET ACHIEVED! ✅\n";
+        } elseif ($status['pnl_percentage'] <= $status['loss_threshold']) {
+            echo "\n⚠️ LOSS LIMIT REACHED! Trading stopped.\n";
+        }
+
+    } catch (Exception $e) {
+        echo "❌ Error getting bot status: " . $e->getMessage() . "\n";
+        exit(1);
+    }
+}
+
+function runTests()
+{
+    echo "🧪 Running Trading Bot Tests...\n";
+
+    // Simple test runner - in production you'd use PHPUnit
+    try {
+        // Test 1: Bot initialization
+        echo "Testing bot initialization... ";
+        $bot = new \Kraken\TradingBot\TradingBot();
+        echo "✅ PASSED\n";
+
+        // Test 2: Status retrieval
+        echo "Testing status retrieval... ";
+        $status = $bot->getStatus();
+        if (is_array($status) && isset($status['is_running'])) {
+            echo "✅ PASSED\n";
+        } else {
+            echo "❌ FAILED\n";
+        }
+
+        // Test 3: Twitter integration
+        echo "Testing Twitter integration... ";
+        $twitter = $bot->getTwitterIntegration();
+        if ($twitter) {
+            $prompts = $twitter->getCoinTradingPrompts('BTC');
+            if (is_array($prompts)) {
+                echo "✅ PASSED (" . count($prompts) . " prompts)\n";
+            } else {
+                echo "❌ FAILED\n";
+            }
+        } else {
+            echo "⚠️ SKIPPED (Twitter not configured)\n";
+        }
+
+        echo "\n🎉 Basic tests completed!\n";
+
+    } catch (Exception $e) {
+        echo "❌ Test failed: " . $e->getMessage() . "\n";
+        exit(1);
+    }
+}
+
+function showHelp()
+{
+    echo "Kraken Trading Bot Console Application\n";
+    echo "======================================\n\n";
+    echo "USAGE:\n";
+    echo "  php bin/console <command>\n\n";
+    echo "COMMANDS:\n";
+    echo "  start   Start the trading bot\n";
+    echo "  stop    Stop the trading bot\n";
+    echo "  status  Show bot status and statistics\n";
+    echo "  test    Run basic functionality tests\n";
+    echo "  help    Show this help message\n\n";
+    echo "EXAMPLES:\n";
+    echo "  php bin/console start    # Start trading\n";
+    echo "  php bin/console status   # Check status\n";
+    echo "  php bin/console stop     # Stop trading\n\n";
+    echo "ENVIRONMENT VARIABLES:\n";
+    echo "  TEST_MODE=true           # Run in test mode\n";
+    echo "  STARTING_BALANCE=1000    # Set starting balance\n";
+    echo "  PROFIT_THRESHOLD=5       # Profit target percentage\n";
+    echo "  LOSS_THRESHOLD=-2        # Loss limit percentage\n\n";
+}

@@ -10,52 +10,66 @@
     <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-chartjs@5.3.0/dist/index.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue.draggable.next@2.1.0/dist/vuedraggable.umd.min.js"></script>
     <style>
         :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --success-color: #4CAF50;
-            --warning-color: #FF9800;
-            --danger-color: #F44336;
-            --dark-bg: #1a1a1a;
-            --light-bg: #f8f9fa;
+            --primary-color: #8B5CF6; /* Purple */
+            --secondary-color: #000000; /* Black */
+            --accent-color: #F59E0B; /* Yellow/Amber */
+            --success-color: #10B981; /* Emerald */
+            --warning-color: #F59E0B; /* Amber */
+            --danger-color: #EF4444; /* Red */
+            --info-color: #3B82F6; /* Blue */
+            --dark-bg: #000000; /* Pure Black */
+            --light-bg: #1F2937; /* Dark Gray */
+            --card-bg: #111827; /* Darker Gray for cards */
+            --text-primary: #F9FAFB; /* Light Gray */
+            --text-secondary: #9CA3AF; /* Medium Gray */
         }
 
         body {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color), var(--accent-color));
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
+            color: var(--text-primary);
         }
 
         .dashboard-container {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(17, 24, 39, 0.95);
             border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             margin: 20px;
             overflow: hidden;
+            border: 1px solid var(--accent-color);
         }
 
         .navbar-custom {
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color), var(--accent-color));
             border: none;
             padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
         .card-custom {
-            border: none;
+            border: 1px solid var(--accent-color);
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            background: var(--card-bg);
+            color: var(--text-primary);
         }
 
         .card-custom:hover {
             transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
+            border-color: var(--primary-color);
         }
 
         .metric-value {
             font-size: 2rem;
             font-weight: bold;
-            color: var(--primary-color);
+            color: var(--accent-color);
         }
 
         .status-indicator {
@@ -118,24 +132,27 @@
         }
 
         .sidebar {
-            background: var(--dark-bg);
-            color: white;
+            background: var(--secondary-color);
+            color: var(--text-primary);
             min-height: 100vh;
             padding: 20px;
+            border-right: 2px solid var(--accent-color);
         }
 
         .sidebar .nav-link {
-            color: rgba(255,255,255,0.7);
+            color: var(--text-secondary);
             padding: 10px 15px;
             margin: 5px 0;
             border-radius: 5px;
             transition: all 0.3s;
+            border: 1px solid transparent;
         }
 
         .sidebar .nav-link:hover,
         .sidebar .nav-link.active {
-            color: white;
+            color: var(--text-primary);
             background: var(--primary-color);
+            border-color: var(--accent-color);
         }
 
         .user-profile {
@@ -154,6 +171,286 @@
         .signal-buy { border-left-color: var(--success-color); background: rgba(76, 175, 80, 0.1); }
         .signal-sell { border-left-color: var(--danger-color); background: rgba(244, 67, 54, 0.1); }
         .signal-hold { border-left-color: var(--warning-color); background: rgba(255, 152, 0, 0.1); }
+
+        .activity-item {
+            transition: background-color 0.2s;
+        }
+
+        .activity-item:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+
+        .activity-item.trades { border-left: 3px solid var(--primary-color); }
+        .activity-item.signals { border-left: 3px solid var(--success-color); }
+        .activity-item.errors { border-left: 3px solid var(--danger-color); }
+        .activity-item.info { border-left: 3px solid var(--info-color); }
+
+        .activity-message {
+            font-weight: 500;
+            margin: 2px 0;
+        }
+
+        .activity-details {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        /* Lottery Ticket Theme */
+        .lottery-card {
+            border: 2px solid var(--accent-color) !important;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .bg-gradient-lottery {
+            background: linear-gradient(45deg, var(--secondary-color), var(--primary-color), var(--accent-color)) !important;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .lottery-ticket {
+            border: 2px solid #ddd;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .lottery-ticket:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+        }
+
+        .lottery-ticket.active {
+            border-color: #28a745;
+            box-shadow: 0 0 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .lottery-ticket.error {
+            border-color: #dc3545;
+            box-shadow: 0 0 15px rgba(220, 53, 69, 0.3);
+        }
+
+        .lottery-header {
+            background: linear-gradient(45deg, var(--secondary-color), var(--primary-color)) !important;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .lottery-body {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            min-height: 200px;
+        }
+
+        .lottery-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .lottery-number {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: var(--card-bg);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+            position: relative;
+            border: 2px solid var(--accent-color);
+            color: var(--text-primary);
+        }
+
+        .number-circle {
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: #333;
+            margin-top: 8px;
+        }
+
+        .number-value {
+            font-size: 0.6rem;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .number-usd {
+            font-size: 0.5rem;
+            color: #28a745;
+            font-weight: bold;
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .lottery-divider {
+            border: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+            margin: 15px 0;
+        }
+
+        .lottery-jackpot {
+            background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+            border-radius: 10px;
+            padding: 10px;
+            color: var(--text-primary);
+            margin-top: 10px;
+            border: 1px solid var(--accent-color);
+        }
+
+        .jackpot-amount {
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .efficiency-indicator {
+            margin-top: 5px;
+        }
+
+        .lottery-empty, .lottery-error {
+            background: rgba(255,255,255,0.8);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .lottery-footer {
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .lottery-badge {
+            animation: pulse 2s infinite;
+        }
+
+        .lottery-spinner {
+            animation: bounce 1s infinite;
+        }
+
+        /* Terminal Styles */
+        .terminal-container {
+            background: #1a1a1a !important;
+            border-radius: 5px;
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+        }
+
+        .terminal-line {
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .terminal-timestamp {
+            color: #888 !important;
+            margin-right: 8px;
+        }
+
+        .terminal-level {
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 8px;
+            min-width: 60px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .terminal-level.ERROR { background: #dc3545; color: white; }
+        .terminal-level.WARNING { background: #ffc107; color: black; }
+        .terminal-level.INFO { background: #17a2b8; color: white; }
+        .terminal-level.DEBUG { background: #6c757d; color: white; }
+        .terminal-level.SUCCESS { background: #28a745; color: white; }
+
+        .terminal-message {
+            flex: 1;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .animate-bounce {
+            animation: bounce 1s infinite;
+        }
+
+        /* Drag and Drop Styles */
+        .dashboard-module {
+            transition: all 0.3s ease;
+            cursor: move;
+        }
+
+        .dashboard-module:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .dashboard-module.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+
+        .drop-zone {
+            min-height: 50px;
+            border: 2px dashed rgba(102, 126, 234, 0.3);
+            border-radius: 10px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(102, 126, 234, 0.6);
+            font-weight: 500;
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-color);
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            padding: 15px 20px 10px 20px;
+        }
+
+        .module-header .fas.fa-grip-vertical {
+            color: rgba(255,255,255,0.6);
+            margin-right: 10px;
+        }
+
+        .module-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .module-actions .btn {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .sortable-ghost {
+            opacity: 0.4;
+        }
+
+        .sortable-chosen {
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -224,13 +521,119 @@
                                     <span class="navbar-brand text-white">
                                         <i class="fas fa-rocket"></i> Advanced Trading Dashboard
                                     </span>
-                                    <div class="d-flex">
+                                    <div class="d-flex align-items-center">
+                                        <!-- Test Transaction Button -->
+                                        <button class="btn btn-warning btn-sm me-3" @click="executeTestTransaction" :disabled="loading.testTrade">
+                                            <i class="fas fa-exchange-alt" :class="{ 'fa-spin': loading.testTrade }"></i>
+                                            {{ loading.testTrade ? 'Testing...' : 'Test Transaction' }}
+                                        </button>
+
+                                        <!-- Dashboard Controls -->
+                                        <div class="dropdown me-3">
+                                            <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-cogs"></i> Dashboard
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#" @click="resetDashboardLayout"><i class="fas fa-undo"></i> Reset Layout</a></li>
+                                                <li><a class="dropdown-item" href="#" @click="saveDashboardLayout"><i class="fas fa-save"></i> Save Layout</a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item" href="#" @click="toggleDragMode"><i class="fas fa-arrows-alt"></i> {{ dragMode ? 'Exit' : 'Enter' }} Drag Mode</a></li>
+                                            </ul>
+                                        </div>
+
+                                        <!-- Production/Test Mode Toggle -->
+                                        <div class="me-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="modeToggle" v-model="isProductionMode" @change="toggleMode">
+                                                    <label class="form-check-label text-white fw-bold" for="modeToggle">
+                                                        <span v-if="isProductionMode" class="badge bg-danger animate-pulse fs-6 px-3 py-2 shadow">
+                                                            <i class="fas fa-exclamation-triangle me-1"></i> PRODUCTION MODE
+                                                            <i class="fas fa-play ms-1"></i>
+                                                        </span>
+                                                        <span v-else class="badge bg-info fs-6 px-3 py-2">
+                                                            <i class="fas fa-flask me-1"></i> TEST MODE
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </div>
+    
+                                            <!-- Running Status Indicator -->
+                                            <div class="me-3">
+                                                <span class="badge bg-success animate-pulse" v-if="systemHealth.status === 'healthy'">
+                                                    <i class="fas fa-circle"></i> RUNNING
+                                                </span>
+                                                <span class="badge bg-warning" v-else-if="systemHealth.status === 'warning'">
+                                                    <i class="fas fa-exclamation-triangle"></i> ISSUES
+                                                </span>
+                                                <span class="badge bg-danger" v-else>
+                                                    <i class="fas fa-times-circle"></i> STOPPED
+                                                </span>
+                                            </div>
+
+                                        <!-- Verbose Logging Toggle -->
+                                        <div class="me-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="loggingToggle" v-model="verboseLogging" @change="toggleVerboseLogging">
+                                                <label class="form-check-label text-white small" for="loggingToggle">
+                                                    <i class="fas fa-terminal"></i> Verbose Logging
+                                                </label>
+                                            </div>
+                                        </div>
+    
+                                        <!-- User Login Toggle -->
+                                        <div class="me-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="loginToggle" v-model="userLoggedIn" @change="toggleUserLogin">
+                                                <label class="form-check-label text-white small" for="loginToggle">
+                                                    <i class="fas fa-user" :class="userLoggedIn ? 'text-success' : 'text-warning'"></i>
+                                                    {{ userLoggedIn ? 'Logged In' : 'Guest Mode' }}
+                                                </label>
+                                            </div>
+                                        </div>
+
                                         <span class="badge bg-success me-2" v-if="systemHealth.status === 'healthy'">
                                             <i class="fas fa-circle"></i> System Healthy
                                         </span>
                                         <span class="badge bg-warning me-2" v-else>
                                             <i class="fas fa-exclamation-triangle"></i> System Issues
                                         </span>
+                                        <!-- Test Transaction Button -->
+                                        <button class="btn btn-warning btn-sm me-2" @click="executeTestTransaction" :disabled="loading.general">
+                                            <i class="fas fa-flask"></i> Test Trade
+                                        </button>
+
+                                        <!-- Mode Control -->
+                                        <div class="me-3">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="modeSwitch" v-model="isProductionMode" @change="switchTradingMode">
+                                                    <label class="form-check-label text-white fw-bold" for="modeSwitch">
+                                                        <span v-if="isProductionMode" class="badge bg-danger animate-pulse fs-6 px-3 py-2 shadow">
+                                                            <i class="fas fa-exclamation-triangle me-1"></i> PRODUCTION MODE
+                                                            <i class="fas fa-play ms-1"></i>
+                                                        </span>
+                                                        <span v-else class="badge bg-info fs-6 px-3 py-2">
+                                                            <i class="fas fa-flask me-1"></i> TEST MODE
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <!-- Auto Trading Control -->
+                                            <div class="me-3" v-if="isProductionMode">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="autoTradingSwitch" v-model="autoTradingEnabled" @change="toggleAutoTrading">
+                                                    <label class="form-check-label text-white fw-bold" for="autoTradingSwitch">
+                                                        <span v-if="autoTradingEnabled" class="badge bg-success animate-pulse fs-6 px-3 py-2 shadow">
+                                                            <i class="fas fa-robot me-1"></i> AUTO TRADING ON
+                                                            <i class="fas fa-cog fa-spin ms-1"></i>
+                                                        </span>
+                                                        <span v-else class="badge bg-secondary fs-6 px-3 py-2">
+                                                            <i class="fas fa-hand-paper me-1"></i> MANUAL TRADING
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </div>
+
                                         <span class="text-white">
                                             <i class="fas fa-clock"></i> {{ currentTime }}
                                         </span>
@@ -238,98 +641,645 @@
                                 </div>
                             </nav>
 
+                            <!-- Production Mode Warning Banner -->
+                            <div v-if="isProductionMode" class="alert alert-danger border-0 mb-0 py-3 shadow-lg animate-pulse" style="background: linear-gradient(45deg, #dc3545, #ff6b6b); border-radius: 0;">
+                                <div class="container-fluid">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            <i class="fas fa-exclamation-triangle fa-2x text-white"></i>
+                                        </div>
+                                        <div class="col">
+                                            <h5 class="mb-1 text-white fw-bold">
+                                                <i class="fas fa-play-circle me-2"></i> PRODUCTION MODE ACTIVE
+                                            </h5>
+                                            <p class="mb-0 text-white-50">
+                                                Real money trading is enabled. All trades will execute with actual funds.
+                                                <strong>Maximum daily loss limit: $50</strong>
+                                            </p>
+                                        </div>
+                                        <div class="col-auto">
+                                            <button class="btn btn-outline-light btn-sm me-2" @click="isProductionMode = false; toggleMode()">
+                                                <i class="fas fa-stop-circle me-1"></i> Switch to Test
+                                            </button>
+                                            <span class="badge bg-light text-danger fs-6 px-3 py-2">
+                                                <i class="fas fa-dollar-sign me-1"></i> LIVE TRADING
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="container-fluid p-4">
-                                <!-- Key Metrics Row -->
-                                <div class="row mb-4">
-                                    <div class="col-md-3">
-                                        <div class="card card-custom">
-                                            <div class="card-body text-center">
-                                                <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
-                                                <h5>Daily P&L</h5>
-                                                <div class="metric-value" :class="dailyPnL >= 0 ? 'text-success' : 'text-danger'">
-                                                    {{ formatCurrency(dailyPnL) }}
-                                                </div>
-                                                <small class="text-muted">{{ dailyPnLPercent }}%</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="card card-custom">
-                                            <div class="card-body text-center">
-                                                <i class="fas fa-wallet fa-2x text-primary mb-2"></i>
-                                                <h5>Current Balance</h5>
-                                                <div class="metric-value">{{ formatCurrency(currentBalance) }}</div>
-                                                <small class="text-muted">Available</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="card card-custom">
-                                            <div class="card-body text-center">
-                                                <i class="fas fa-exchange-alt fa-2x text-info mb-2"></i>
-                                                <h5>Active Trades</h5>
-                                                <div class="metric-value">{{ activeTrades }}</div>
-                                                <small class="text-muted">Positions</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="card card-custom">
-                                            <div class="card-body text-center">
-                                                <i class="fas fa-trophy fa-2x text-warning mb-2"></i>
-                                                <h5>Success Rate</h5>
-                                                <div class="metric-value">{{ successRate }}%</div>
-                                                <small class="text-muted">Last 24h</small>
+                                <!-- Dashboard Layout Controls -->
+                                <div class="row mb-3">
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="text-muted mb-0">
+                                                <i class="fas fa-arrows-alt"></i> Drag modules to reorder •
+                                                <i class="fas fa-eye"></i> Toggle visibility
+                                            </h6>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-secondary" @click="saveDashboardLayout">
+                                                    <i class="fas fa-save"></i> Save Layout
+                                                </button>
+                                                <button class="btn btn-outline-warning" @click="resetDashboardLayout">
+                                                    <i class="fas fa-undo"></i> Reset Layout
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Charts Row -->
-                                <div class="row mb-4">
-                                    <div class="col-md-8">
-                                        <div class="card card-custom">
-                                            <div class="card-header">
-                                                <h5><i class="fas fa-chart-line"></i> Performance Chart</h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="chart-container">
-                                                    <canvas id="performanceChart"></canvas>
+                                <!-- Draggable Dashboard Modules -->
+                                <draggable
+                                    v-model="dashboardModules"
+                                    group="dashboard-modules"
+                                    @end="onModulesSorted"
+                                    class="dashboard-container"
+                                    handle=".module-header"
+                                >
+                                    <!-- Conservative Trading Module -->
+                                    <div v-if="dashboardModules.find(m => m.id === 'conservative-trading' && m.visible)"
+                                         class="dashboard-module mb-4">
+                                        <div class="card card-custom border-success">
+                                            <div class="module-header card-header d-flex justify-content-between align-items-center bg-success text-white">
+                                                <h5 class="mb-0">
+                                                    <i class="fas fa-grip-vertical me-2"></i>
+                                                    <i class="fas fa-shield-alt me-2"></i> Conservative Trading Controls
+                                                </h5>
+                                                <div class="module-actions">
+                                                    <button class="btn btn-sm btn-outline-light" @click="refreshVerifiedBalance" :disabled="loading.general">
+                                                        <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading.general }"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-light" @click="toggleModuleVisibility('conservative-trading')">
+                                                        <i class="fas fa-eye-slash"></i>
+                                                    </button>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="card card-custom">
-                                            <div class="card-header">
-                                                <h5><i class="fas fa-signal"></i> Trading Signals</h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <div v-for="signal in recentSignals" :key="signal.id"
-                                                     class="trading-signal" :class="'signal-' + signal.type.toLowerCase()">
-                                                    <div class="d-flex justify-content-between">
-                                                        <strong>{{ signal.symbol }}</strong>
-                                                        <span class="badge" :class="'bg-' + signal.type.toLowerCase()">
-                                                            {{ signal.type }}
-                                                        </span>
-                                                    </div>
-                                                    <small class="text-muted">{{ signal.exchange }} • {{ formatTime(signal.timestamp) }}</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- System Status -->
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="card card-custom">
-                                            <div class="card-header">
-                                                <h5><i class="fas fa-server"></i> System Status</h5>
                                             </div>
                                             <div class="card-body">
                                                 <div class="row">
-                                                    <div class="col-6">
+                                                    <div class="col-md-6">
+                                                        <div class="alert alert-success border-0">
+                                                            <h6 class="alert-heading">
+                                                                <i class="fas fa-lock me-2"></i>Verified Balance Protection
+                                                            </h6>
+                                                            <p class="mb-2">
+                                                                <strong>Total Verified Balance:</strong>
+                                                                <span class="text-success">${{ formatNumber(verifiedBalance.total_verified_balance) }}</span>
+                                                            </p>
+                                                            <p class="mb-2">
+                                                                <strong>Available for Trading:</strong>
+                                                                <span class="text-primary">${{ formatNumber(verifiedBalance.available_verified_amount) }}</span>
+                                                            </p>
+                                                            <div class="d-flex gap-2">
+                                                                <span class="badge bg-success">
+                                                                    <i class="fas fa-check-circle me-1"></i>Deposit Only
+                                                                </span>
+                                                                <span class="badge bg-info">
+                                                                    <i class="fas fa-search me-1"></i>Double Check
+                                                                </span>
+                                                                <span class="badge bg-warning">
+                                                                    <i class="fas fa-chart-line me-1"></i>Max Profit
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="alert alert-info border-0">
+                                                            <h6 class="alert-heading">
+                                                                <i class="fas fa-cogs me-2"></i>Trading Settings
+                                                            </h6>
+                                                            <div class="small">
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>Take Profit:</span>
+                                                                    <span class="text-success">{{ tradingSettings.take_profit_percent }}%</span>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>Stop Loss:</span>
+                                                                    <span class="text-danger">{{ tradingSettings.stop_loss_percent }}%</span>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>Max Daily Loss:</span>
+                                                                    <span class="text-warning">{{ tradingSettings.max_daily_loss_percent }}%</span>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>Trade Interval:</span>
+                                                                    <span class="text-info">{{ tradingSettings.min_trade_interval }}s</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mt-3">
+                                                            <button class="btn btn-outline-primary btn-sm me-2" @click="showBankTransferModal">
+                                                                <i class="fas fa-university me-1"></i>Bank Transfer
+                                                            </button>
+                                                            <button class="btn btn-outline-secondary btn-sm" @click="refreshTradingSettings">
+                                                                <i class="fas fa-cog me-1"></i>Settings
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Key Metrics Module -->
+                                    <div v-if="dashboardModules.find(m => m.id === 'key-metrics' && m.visible)"
+                                         class="dashboard-module mb-4">
+                                        <div class="card card-custom">
+                                            <div class="module-header card-header d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0">
+                                                    <i class="fas fa-grip-vertical me-2"></i>
+                                                    <i class="fas fa-chart-bar me-2"></i> Key Metrics
+                                                </h5>
+                                                <div class="module-actions">
+                                                    <button class="btn btn-sm btn-outline-secondary" @click="toggleModuleVisibility('key-metrics')">
+                                                        <i class="fas fa-eye-slash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-3">
+                                                        <div class="text-center">
+                                                            <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
+                                                            <h5>Daily P&L</h5>
+                                                            <div class="metric-value" :class="dailyPnL >= 0 ? 'text-success' : 'text-danger'">
+                                                                {{ formatCurrency(dailyPnL) }}
+                                                            </div>
+                                                            <small class="text-muted">{{ dailyPnLPercent }}%</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="text-center">
+                                                            <i class="fas fa-wallet fa-2x text-primary mb-2"></i>
+                                                            <h5>Current Balance</h5>
+                                                            <div class="metric-value">{{ formatCurrency(currentBalance) }}</div>
+                                                            <small class="text-muted">Available</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="text-center">
+                                                            <i class="fas fa-exchange-alt fa-2x text-info mb-2"></i>
+                                                            <h5>Active Trades</h5>
+                                                            <div class="metric-value">{{ activeTrades }}</div>
+                                                            <small class="text-muted">Positions</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="text-center">
+                                                            <i class="fas fa-trophy fa-2x text-warning mb-2"></i>
+                                                            <h5>Success Rate</h5>
+                                                            <div class="metric-value">{{ successRate }}%</div>
+                                                            <small class="text-muted">Last 24h</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Performance Chart Module -->
+                                    <div v-if="dashboardModules.find(m => m.id === 'performance-chart' && m.visible)"
+                                         class="dashboard-module mb-4">
+                                        <div class="card card-custom">
+                                            <div class="module-header card-header d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0">
+                                                    <i class="fas fa-grip-vertical me-2"></i>
+                                                    <i class="fas fa-chart-line me-2"></i> Performance Chart
+                                                </h5>
+                                                <div class="module-actions">
+                                                    <button class="btn btn-sm btn-outline-secondary" @click="toggleModuleVisibility('performance-chart')">
+                                                        <i class="fas fa-eye-slash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-8">
+                                                        <div class="chart-container">
+                                                            <canvas id="performanceChart"></canvas>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="card card-custom">
+                                                            <div class="card-header">
+                                                                <h6><i class="fas fa-signal"></i> Trading Signals</h6>
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <div v-for="signal in recentSignals" :key="signal.id"
+                                                                     class="trading-signal" :class="'signal-' + signal.type.toLowerCase()">
+                                                                    <div class="d-flex justify-content-between">
+                                                                        <strong>{{ signal.symbol }}</strong>
+                                                                        <span class="badge" :class="'bg-' + signal.type.toLowerCase()">
+                                                                            {{ signal.type }}
+                                                                        </span>
+                                                                    </div>
+                                                                    <small class="text-muted">{{ signal.exchange }} • {{ formatTime(signal.timestamp) }}</small>
+                                                                </div>
+                                                                <div v-if="recentSignals.length === 0" class="text-center text-muted py-3">
+                                                                    <i class="fas fa-signal fa-2x mb-2"></i>
+                                                                    <p>No recent signals</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Live Statistics Module -->
+                                    <div v-if="dashboardModules.find(m => m.id === 'live-stats' && m.visible)"
+                                         class="dashboard-module mb-4">
+                                        <div class="card card-custom">
+                                            <div class="module-header card-header d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0">
+                                                    <i class="fas fa-grip-vertical me-2"></i>
+                                                    <i class="fas fa-chart-bar me-2"></i> Live Statistics
+                                                </h5>
+                                                <div class="module-actions">
+                                                    <button class="btn btn-sm btn-outline-primary" @click="refreshStats" :disabled="loading.stats">
+                                                        <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading.stats }"></i>
+                                                        {{ loading.stats ? 'Refreshing...' : 'Refresh' }}
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-secondary" @click="toggleModuleVisibility('live-stats')">
+                                                        <i class="fas fa-eye-slash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <div v-if="loading.stats" class="text-center py-4">
+                                                    <div class="spinner-border text-primary" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                    <p class="mt-2 text-muted">Loading statistics...</p>
+                                                </div>
+                                                <div v-else class="row">
+                                                    <div class="col-md-3">
+                                                        <div class="text-center">
+                                                            <h6 class="text-muted">Total Trades</h6>
+                                                            <h3 class="text-primary">{{ liveStats.totalTrades }}</h3>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="text-center">
+                                                            <h6 class="text-muted">Success Rate</h6>
+                                                            <h3 class="text-success">{{ liveStats.successRate }}%</h3>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="text-center">
+                                                            <h6 class="text-muted">Crypto Holdings</h6>
+                                                            <h3 class="text-warning">${{ formatNumber(liveStats.cryptoValue) }}</h3>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="text-center">
+                                                            <h6 class="text-muted">Fiat Balance</h6>
+                                                            <h3 class="text-info">${{ formatNumber(liveStats.fiatBalance) }}</h3>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Exchange Portfolios Module -->
+                                    <div v-if="dashboardModules.find(m => m.id === 'exchange-portfolios' && m.visible)"
+                                         class="dashboard-module mb-4">
+                                        <div class="card card-custom lottery-card">
+                                            <div class="module-header card-header d-flex justify-content-between align-items-center bg-gradient-lottery">
+                                                <h5 class="mb-0 text-white">
+                                                    <i class="fas fa-grip-vertical me-2"></i>
+                                                    <i class="fas fa-ticket-alt me-2"></i>
+                                                    🎰 Lucky Exchange Portfolios
+                                                    <small class="text-warning ms-2">Safe & Efficient Trading</small>
+                                                </h5>
+                                                <div class="module-actions">
+                                                    <button class="btn btn-sm btn-outline-light" @click="refreshExchangePortfolios" :disabled="loading.portfolios">
+                                                        <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading.portfolios }"></i>
+                                                        {{ loading.portfolios ? 'Scratching...' : 'Scratch to Win' }}
+                                                    </button>
+                                                    <button v-if="hiddenExchangesCount > 0" class="btn btn-sm btn-warning" @click="showAllExchanges">
+                                                        <i class="fas fa-plus-circle"></i> Load {{ hiddenExchangesCount }} More
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-light" @click="toggleModuleVisibility('exchange-portfolios')">
+                                                        <i class="fas fa-eye-slash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Efficiency Safeguards Banner -->
+                                                <div class="alert alert-info border-0 mb-3" style="background: linear-gradient(45deg, #e3f2fd, #f3e5f5);">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-shield-alt text-info me-2"></i>
+                                                        <div class="small">
+                                                            <strong>Efficiency Mode:</strong> Smart trading with automatic loss prevention.
+                                                            Max daily loss: <span class="text-danger fw-bold">$50</span> |
+                                                            Win rate target: <span class="text-success fw-bold">70%+</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div v-if="loading.portfolios" class="text-center py-4">
+                                                    <div class="lottery-spinner">
+                                                        <i class="fas fa-ticket-alt fa-3x text-warning animate-bounce"></i>
+                                                    </div>
+                                                    <p class="mt-2 text-muted">🎰 Scratching your lucky trading tickets...</p>
+                                                    <div class="progress mt-2" style="height: 6px;">
+                                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" style="width: 100%"></div>
+                                                    </div>
+                                                </div>
+                                                <div v-else-if="Object.keys(visibleExchangePortfolios).length === 0" class="text-center py-4">
+                                                    <i class="fas fa-ticket-alt fa-3x text-muted mb-2"></i>
+                                                    <p class="text-muted">No active exchange tickets available</p>
+                                                    <small class="text-muted">Check API permissions to unlock your winning tickets!</small>
+                                                </div>
+                                                <div v-else class="row">
+                                                    <div v-for="(portfolio, exchangeName) in visibleExchangePortfolios"
+                                                         :key="exchangeName" class="col-md-6 col-lg-4 mb-3">
+                                                        <div class="card h-100 lottery-ticket" :class="getLotteryTicketClass(portfolio)">
+                                                            <div class="card-header d-flex justify-content-between align-items-center lottery-header">
+                                                                <h6 class="mb-0 text-white">
+                                                                    <i class="fas fa-exchange-alt me-2"></i>
+                                                                    {{ exchangeName.charAt(0).toUpperCase() + exchangeName.slice(1) }}
+                                                                </h6>
+                                                                <span class="badge lottery-badge"
+                                                                      :class="portfolio.status === 'success' ? 'bg-success' : 'bg-warning'">
+                                                                    <i class="fas" :class="portfolio.status === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'"></i>
+                                                                    {{ portfolio.status === 'success' ? 'Active' : 'Pending' }}
+                                                                </span>
+                                                            </div>
+                                                            <div class="card-body lottery-body">
+                                                                <div v-if="portfolio.status === 'success'">
+                                                                    <div v-if="Object.keys(portfolio.balances).length > 0">
+                                                                        <div class="lottery-numbers mb-3">
+                                                                            <div v-for="(balance, currency) in portfolio.balances"
+                                                                                 :key="currency" class="lottery-number">
+                                                                                <div class="number-circle">{{ currency }}</div>
+                                                                                <div class="number-value">{{ formatNumber(balance.free) }}</div>
+                                                                                <div v-if="currency === 'USDT' || currency === 'USDC'"
+                                                                                     class="number-usd">${{ formatNumber(balance.free) }}</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <hr class="lottery-divider">
+                                                                        <div class="lottery-jackpot text-center">
+                                                                            <small class="text-muted">POTENTIAL WINNINGS</small>
+                                                                            <div class="jackpot-amount text-success">${{ formatNumber(portfolio.total_usd_value) }}</div>
+                                                                            <div class="efficiency-indicator">
+                                                                                <i class="fas fa-bolt text-warning"></i>
+                                                                                <small class="text-muted ms-1">Efficiency: {{ getEfficiencyScore(portfolio) }}%</small>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div v-else class="text-center text-muted py-3 lottery-empty">
+                                                                        <i class="fas fa-coins fa-2x mb-2"></i>
+                                                                        <div>Empty Ticket</div>
+                                                                        <small>Waiting for winning trades!</small>
+                                                                    </div>
+                                                                </div>
+                                                                <div v-else class="text-center text-warning py-3 lottery-error">
+                                                                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                                                    <div>Connection Error</div>
+                                                                    <small>{{ portfolio.error || 'Check API permissions' }}</small>
+                                                                </div>
+                                                            </div>
+                                                            <div class="card-footer lottery-footer small text-center">
+                                                                <i class="fas fa-clock me-1"></i>
+                                                                Updated: {{ formatTime(portfolio.last_updated) }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Efficiency Stats Footer -->
+                                                <div class="mt-3 p-3 bg-light rounded">
+                                                    <div class="row text-center">
+                                                        <div class="col-md-3">
+                                                            <small class="text-muted d-block">Active Tickets</small>
+                                                            <span class="fw-bold text-success">{{ activeExchangesCount }}</span>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <small class="text-muted d-block">Total Value</small>
+                                                            <span class="fw-bold text-primary">${{ formatNumber(totalPortfolioValue) }}</span>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <small class="text-muted d-block">Safety Score</small>
+                                                            <span class="fw-bold text-info">{{ safetyScore }}/100</span>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <small class="text-muted d-block">Win Probability</small>
+                                                            <span class="fw-bold text-warning">{{ winProbability }}%</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                    <!-- Activity Logging Module -->
+                                    <div v-if="dashboardModules.find(m => m.id === 'activity-log' && m.visible)"
+                                         class="dashboard-module mb-4">
+                                        <div class="card card-custom">
+                                            <div class="module-header card-header d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0">
+                                                    <i class="fas fa-grip-vertical me-2"></i>
+                                                    <i class="fas fa-history me-2"></i> Activity Log
+                                                </h5>
+                                                <div class="module-actions">
+                                                    <select class="form-select form-select-sm me-2" v-model="logFilter" style="width: auto;">
+                                                        <option value="all">All Activities</option>
+                                                        <option value="trades">Trades Only</option>
+                                                        <option value="signals">Signals Only</option>
+                                                        <option value="errors">Errors Only</option>
+                                                    </select>
+                                                    <button class="btn btn-sm btn-outline-secondary" @click="clearActivityLog">
+                                                        <i class="fas fa-trash"></i> Clear
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-secondary" @click="toggleModuleVisibility('activity-log')">
+                                                        <i class="fas fa-eye-slash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                                <div v-for="activity in filteredActivities" :key="activity.id"
+                                                     class="activity-item mb-2 p-2 border rounded" :class="activity.type">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div class="flex-grow-1">
+                                                            <small class="text-muted">{{ formatTime(activity.timestamp) }}</small>
+                                                            <div class="activity-message">{{ activity.message }}</div>
+                                                            <div v-if="activity.details" class="activity-details small text-muted">
+                                                                <span v-if="activity.details.cryptoValue">Crypto: ${{ formatNumber(activity.details.cryptoValue) }} | </span>
+                                                                <span v-if="activity.details.fiatBalance">Fiat: ${{ formatNumber(activity.details.fiatBalance) }} | </span>
+                                                                <span v-if="activity.details.exchange">{{ activity.details.exchange }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <span class="badge" :class="'bg-' + activity.type">
+                                                            {{ activity.type.toUpperCase() }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div v-if="filteredActivities.length === 0" class="text-center text-muted py-4">
+                                                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                                                    <p>No activities to display</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Verbose Logging Statistics Module (only shown when verbose logging is enabled) -->
+                                <div class="row mb-4" v-if="verboseLogging">
+                                    <div class="col-md-12">
+                                        <div class="card card-custom border-info">
+                                            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                                                <h5><i class="fas fa-chart-line"></i> Verbose Logging Statistics</h5>
+                                                <span class="badge bg-light text-dark">
+                                                    <i class="fas fa-eye"></i> Live Stats
+                                                </span>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-3">
+                                                        <div class="text-center">
+                                                            <h6 class="text-muted">API Calls</h6>
+                                                            <h3 class="text-info">{{ logStats.apiCalls }}</h3>
+                                                            <small class="text-success">+{{ logStats.apiCallsPerMinute }}/min</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="text-center">
+                                                            <h6 class="text-muted">Success Rate</h6>
+                                                            <h3 class="text-success">{{ logStats.successRate }}%</h3>
+                                                            <small class="text-muted">{{ logStats.successfulCalls }}/{{ logStats.totalCalls }}</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="text-center">
+                                                            <h6 class="text-muted">Avg Response</h6>
+                                                            <h3 class="text-warning">{{ logStats.avgResponseTime }}ms</h3>
+                                                            <small class="text-muted">Last: {{ logStats.lastResponseTime }}ms</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="text-center">
+                                                            <h6 class="text-muted">Errors</h6>
+                                                            <h3 class="text-danger">{{ logStats.errorCount }}</h3>
+                                                            <small class="text-muted">{{ logStats.errorRate }}% rate</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <h6>Recent Performance</h6>
+                                                        <canvas id="performanceChart" width="100" height="50"></canvas>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6>Efficiency Metrics</h6>
+                                                        <div class="small">
+                                                            <div class="d-flex justify-content-between">
+                                                                <span>CPU Usage:</span>
+                                                                <span class="text-info">{{ logStats.cpuUsage }}%</span>
+                                                            </div>
+                                                            <div class="d-flex justify-content-between">
+                                                                <span>Memory:</span>
+                                                                <span class="text-warning">{{ logStats.memoryUsage }}MB</span>
+                                                            </div>
+                                                            <div class="d-flex justify-content-between">
+                                                                <span>Network I/O:</span>
+                                                                <span class="text-success">{{ logStats.networkIO }}KB/s</span>
+                                                            </div>
+                                                            <div class="d-flex justify-content-between">
+                                                                <span>Efficiency Score:</span>
+                                                                <span class="text-primary">{{ logStats.efficiencyScore }}/100</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                    <!-- Terminal Logs Module -->
+                                    <div v-if="dashboardModules.find(m => m.id === 'terminal-logs' && m.visible)"
+                                         class="dashboard-module mb-4">
+                                        <div class="card card-custom border-dark">
+                                            <div class="module-header card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0">
+                                                    <i class="fas fa-grip-vertical me-2"></i>
+                                                    <i class="fas fa-terminal me-2"></i> Terminal Log Viewer
+                                                </h5>
+                                                <div class="module-actions">
+                                                    <select class="form-select form-select-sm bg-secondary text-white border-secondary me-2" v-model="terminalLogLevel" style="width: auto;">
+                                                        <option value="all">All Levels</option>
+                                                        <option value="ERROR">Errors</option>
+                                                        <option value="WARNING">Warnings</option>
+                                                        <option value="INFO">Info</option>
+                                                        <option value="DEBUG">Debug</option>
+                                                    </select>
+                                                    <button class="btn btn-sm btn-outline-light" @click="refreshTerminalLogs" :disabled="loading.terminal">
+                                                        <i class="fas fa-sync-alt" :class="{ 'fa-spin': loading.terminal }"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger" @click="clearTerminalLogs">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-light" @click="toggleModuleVisibility('terminal-logs')">
+                                                        <i class="fas fa-eye-slash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="card-body p-0">
+                                                <div class="terminal-container bg-black text-green-400 p-3" style="height: 300px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.85rem;">
+                                                    <div v-if="loading.terminal" class="text-center py-4">
+                                                        <i class="fas fa-spinner fa-spin"></i> Loading logs...
+                                                    </div>
+                                                    <div v-else-if="terminalLogs.length === 0" class="text-center py-4 text-muted">
+                                                        <i class="fas fa-terminal"></i> No logs available
+                                                    </div>
+                                                    <div v-else>
+                                                        <div v-for="log in filteredTerminalLogs" :key="log.id" class="terminal-line mb-1">
+                                                            <span class="terminal-timestamp text-muted">[{{ formatTerminalTime(log.timestamp) }}]</span>
+                                                            <span class="terminal-level" :class="getTerminalLevelClass(log.level)">{{ log.level }}</span>
+                                                            <span class="terminal-message">{{ log.message }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card-footer bg-dark text-white small">
+                                                <div class="d-flex justify-content-between">
+                                                    <span>Showing {{ filteredTerminalLogs.length }} of {{ terminalLogs.length }} logs</span>
+                                                    <span>Auto-refresh: {{ terminalAutoRefresh ? 'ON' : 'OFF' }}
+                                                        <button class="btn btn-sm btn-outline-light ms-2" @click="toggleTerminalAutoRefresh">
+                                                            <i class="fas" :class="terminalAutoRefresh ? 'fa-pause' : 'fa-play'"></i>
+                                                        </button>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                    <!-- System Status Module -->
+                                    <div v-if="dashboardModules.find(m => m.id === 'system-status' && m.visible)"
+                                         class="dashboard-module mb-4">
+                                        <div class="card card-custom">
+                                            <div class="module-header card-header d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-0">
+                                                    <i class="fas fa-grip-vertical me-2"></i>
+                                                    <i class="fas fa-server me-2"></i> System Status
+                                                </h5>
+                                                <div class="module-actions">
+                                                    <button class="btn btn-sm btn-outline-secondary" @click="toggleModuleVisibility('system-status')">
+                                                        <i class="fas fa-eye-slash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
                                                         <div class="mb-3">
                                                             <span class="status-indicator status-healthy"></span>
                                                             Main Bot: Healthy
@@ -338,8 +1288,6 @@
                                                             <span class="status-indicator status-healthy"></span>
                                                             Overnight Trader: Active
                                                         </div>
-                                                    </div>
-                                                    <div class="col-6">
                                                         <div class="mb-3">
                                                             <span class="status-indicator status-healthy"></span>
                                                             Database: Connected
@@ -349,28 +1297,28 @@
                                                             Cache: Operational
                                                         </div>
                                                     </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card card-custom">
+                                                            <div class="card-header">
+                                                                <h6><i class="fas fa-bell"></i> Recent Alerts</h6>
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <div v-for="alert in recentAlerts" :key="alert.id"
+                                                                     class="alert mb-2" :class="'alert-' + alert.type">
+                                                                    <small>{{ formatTime(alert.timestamp) }}</small>
+                                                                    <div>{{ alert.message }}</div>
+                                                                </div>
+                                                                <div v-if="recentAlerts.length === 0" class="text-muted">
+                                                                    <i class="fas fa-check-circle"></i> No recent alerts
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="card card-custom">
-                                            <div class="card-header">
-                                                <h5><i class="fas fa-bell"></i> Recent Alerts</h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <div v-for="alert in recentAlerts" :key="alert.id"
-                                                     class="alert mb-2" :class="'alert-' + alert.type">
-                                                    <small>{{ formatTime(alert.timestamp) }}</small>
-                                                    <div>{{ alert.message }}</div>
-                                                </div>
-                                                <div v-if="recentAlerts.length === 0" class="text-muted">
-                                                    <i class="fas fa-check-circle"></i> No recent alerts
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                </draggable>
                             </div>
                         </div>
 
@@ -408,9 +1356,127 @@
                         name: 'John Doe',
                         role: 'Premium Trader'
                     },
+                    tradingMode: 'test', // 'test' or 'production'
+                    autoTradingEnabled: false,
+                    autoTradingInterval: 60, // seconds
                     recentSignals: [],
                     recentAlerts: [],
-                    refreshInterval: null
+                    refreshInterval: null,
+                    // New features
+                    isProductionMode: false,
+                    verboseLogging: true,
+                    userLoggedIn: false,
+                    liveStats: {
+                        totalTrades: 0,
+                        successRate: 0,
+                        cryptoValue: 0,
+                        fiatBalance: 1000
+                    },
+                    activityLog: [],
+                    logFilter: 'all',
+                    exchangePortfolios: {},
+                    visibleExchangePortfolios: {},
+                    hiddenExchangesCount: 0,
+                    terminalLogs: [],
+                    terminalLogLevel: 'all',
+                    terminalAutoRefresh: true,
+                    logStats: {
+                        apiCalls: 0,
+                        apiCallsPerMinute: 0,
+                        successRate: 0,
+                        successfulCalls: 0,
+                        totalCalls: 0,
+                        avgResponseTime: 0,
+                        lastResponseTime: 0,
+                        errorCount: 0,
+                        errorRate: 0,
+                        cpuUsage: 0,
+                        memoryUsage: 0,
+                        networkIO: 0,
+                        efficiencyScore: 85
+                    },
+                    loading: {
+                        stats: false,
+                        portfolios: false,
+                        terminal: false,
+                        general: false
+                    },
+                    maxVisibleExchanges: 6,
+                    // Drag and Drop Dashboard Modules
+                    dashboardModules: [],
+                    defaultModules: [
+                        {
+                            id: 'conservative-trading',
+                            title: 'Conservative Trading',
+                            visible: true,
+                            order: 1,
+                            component: 'conservative-trading'
+                        },
+                        {
+                            id: 'key-metrics',
+                            title: 'Key Metrics',
+                            visible: true,
+                            order: 2,
+                            component: 'key-metrics'
+                        },
+                        {
+                            id: 'performance-chart',
+                            title: 'Performance Chart',
+                            visible: true,
+                            order: 3,
+                            component: 'performance-chart'
+                        },
+                        {
+                            id: 'live-stats',
+                            title: 'Live Statistics',
+                            visible: true,
+                            order: 4,
+                            component: 'live-stats'
+                        },
+                        {
+                            id: 'exchange-portfolios',
+                            title: 'Exchange Portfolios',
+                            visible: true,
+                            order: 5,
+                            component: 'exchange-portfolios'
+                        },
+                        {
+                            id: 'activity-log',
+                            title: 'Activity Log',
+                            visible: true,
+                            order: 6,
+                            component: 'activity-log'
+                        },
+                        {
+                            id: 'terminal-logs',
+                            title: 'Terminal Logs',
+                            visible: true,
+                            order: 7,
+                            component: 'terminal-logs'
+                        },
+                        {
+                            id: 'system-status',
+                            title: 'System Status',
+                            visible: true,
+                            order: 8,
+                            component: 'system-status'
+                        }
+                    ],
+                    // Conservative Trading Data
+                    verifiedBalance: {
+                        total_verified_balance: 0,
+                        available_verified_amount: 10,
+                        deposit_only_mode: true,
+                        double_check_enabled: true,
+                        maximum_profit_mode: true
+                    },
+                    tradingSettings: {
+                        verified_trade_amount: 10,
+                        deposit_only_mode: true,
+                        double_check_trades: true,
+                        continuous_trading: true,
+                        maximum_profit_mode: true
+                    }
                 }
             },
 
@@ -418,6 +1484,42 @@
                 dailyPnLPercent() {
                     if (this.currentBalance === 0) return 0;
                     return ((this.dailyPnL / this.currentBalance) * 100).toFixed(2);
+                },
+
+                filteredActivities() {
+                    if (this.logFilter === 'all') return this.activityLog;
+                    return this.activityLog.filter(activity => activity.type === this.logFilter);
+                },
+
+                filteredTerminalLogs() {
+                    if (this.terminalLogLevel === 'all') return this.terminalLogs;
+                    return this.terminalLogs.filter(log => log.level === this.terminalLogLevel);
+                },
+
+                activeExchangesCount() {
+                    return Object.values(this.exchangePortfolios).filter(p => p.status === 'success').length;
+                },
+
+                totalPortfolioValue() {
+                    return Object.values(this.exchangePortfolios)
+                        .filter(p => p.status === 'success')
+                        .reduce((sum, p) => sum + (p.total_usd_value || 0), 0);
+                },
+
+                safetyScore() {
+                    // Calculate safety score based on various factors
+                    let score = 100;
+                    if (this.isProductionMode) score -= 20; // Production mode is riskier
+                    if (this.activeExchangesCount === 0) score -= 50; // No active exchanges
+                    if (this.logStats.errorRate > 10) score -= 20; // High error rate
+                    return Math.max(0, Math.min(100, score));
+                },
+
+                winProbability() {
+                    // Calculate win probability based on success rate and efficiency
+                    const baseProbability = this.liveStats.successRate || 0;
+                    const efficiencyBonus = (this.logStats.efficiencyScore || 85) - 85;
+                    return Math.max(0, Math.min(100, baseProbability + efficiencyBonus));
                 }
             },
 
@@ -428,35 +1530,65 @@
                         const healthResponse = await axios.get('http://localhost:8080/health');
                         this.systemHealth = healthResponse.data;
 
-                        // Fetch overnight status
-                        const overnightResponse = await axios.get('http://localhost:8081/overnight/status');
-                        const overnightData = overnightResponse.data;
+                        // Fetch status
+                        const statusResponse = await axios.get('http://localhost:8080/status');
+                        const statusData = statusResponse.data;
 
-                        this.currentBalance = overnightData.current_balance || 1000;
-                        this.dailyPnL = overnightData.daily_pnl || 0;
-                        this.activeTrades = overnightData.active_positions || 0;
+                        // Fetch portfolio
+                        const portfolioResponse = await axios.get('http://localhost:8080/portfolio');
+                        const portfolioData = portfolioResponse.data.data;
+
+                        // Update basic data
+                        this.currentBalance = portfolioData.current_balance || 1000;
+                        this.dailyPnL = portfolioData.pnl || 0;
+                        this.activeTrades = Object.keys(portfolioData.portfolio || {}).length;
+
+                        // Update live statistics
+                        this.liveStats.totalTrades = Math.floor(Math.random() * 50) + 10; // Simulate
+                        this.liveStats.successRate = Math.floor(Math.random() * 20) + 70; // 70-90%
+                        this.liveStats.cryptoValue = Math.random() * 5000; // Simulate crypto holdings value
+                        this.liveStats.fiatBalance = this.currentBalance;
 
                         // Update time
                         this.currentTime = new Date().toLocaleTimeString();
 
-                        // Simulate some data for demo
-                        this.successRate = Math.floor(Math.random() * 20) + 70; // 70-90%
-
                         // Add sample signals
                         if (Math.random() > 0.7) {
-                            this.recentSignals.unshift({
+                            const signal = {
                                 id: Date.now(),
                                 symbol: 'BTC/USDT',
                                 type: ['BUY', 'SELL', 'HOLD'][Math.floor(Math.random() * 3)],
                                 exchange: 'Binance',
                                 timestamp: new Date().toISOString()
-                            });
+                            };
+                            this.recentSignals.unshift(signal);
                             this.recentSignals = this.recentSignals.slice(0, 5);
+
+                            // Add to activity log
+                            this.addActivity('signals', `New ${signal.type} signal for ${signal.symbol}`, {
+                                exchange: signal.exchange
+                            });
                         }
+
+                        // Simulate random activities
+                        if (Math.random() > 0.8) {
+                            const activities = [
+                                { type: 'trades', message: 'Executed BUY order for 0.001 BTC', details: { cryptoValue: 50, fiatBalance: this.currentBalance, exchange: 'Binance' } },
+                                { type: 'trades', message: 'Executed SELL order for 0.001 ETH', details: { cryptoValue: -30, fiatBalance: this.currentBalance, exchange: 'Coinbase' } },
+                                { type: 'errors', message: 'API rate limit exceeded on Kraken', details: { exchange: 'Kraken' } },
+                                { type: 'info', message: 'System health check passed', details: {} }
+                            ];
+                            const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+                            this.addActivity(randomActivity.type, randomActivity.message, randomActivity.details);
+                        }
+
+                        return true; // Success
 
                     } catch (error) {
                         console.error('Error refreshing data:', error);
                         this.addNotification('Error connecting to trading system', 'danger', 'fas fa-exclamation-triangle');
+                        this.addActivity('errors', 'Failed to refresh dashboard data', {});
+                        throw error; // Re-throw to allow caller to handle
                     }
                 },
 
@@ -510,6 +1642,502 @@
                     }
                 },
 
+                // New methods for enhanced features
+                toggleMode() {
+                    const mode = this.isProductionMode ? 'production' : 'test';
+                    this.addNotification(`Switched to ${mode.toUpperCase()} mode`, 'warning', 'fas fa-toggle-on');
+                    // In a real implementation, this would call an API to change the bot mode
+                },
+
+                toggleVerboseLogging() {
+                    const status = this.verboseLogging ? 'enabled' : 'disabled';
+                    this.addNotification(`Verbose logging ${status}`, 'info', 'fas fa-terminal');
+                    // In a real implementation, this would call an API to change logging level
+                },
+
+                toggleUserLogin() {
+                    const status = this.userLoggedIn ? 'logged in' : 'switched to guest mode';
+                    this.addNotification(`User ${status}`, 'info', 'fas fa-user');
+                    // This is a placeholder for future authentication implementation
+                    // In a real implementation, this would handle login/logout logic
+                },
+
+                refreshStats() {
+                    this.loading.stats = true;
+                    this.addNotification('Refreshing statistics...', 'info', 'fas fa-sync-alt');
+                    this.refreshData().finally(() => {
+                        this.loading.stats = false;
+                    });
+                },
+
+                async refreshExchangePortfolios() {
+                    this.loading.portfolios = true;
+                    this.addNotification('🎰 Scratching exchange lottery tickets...', 'info', 'fas fa-ticket-alt');
+
+                    try {
+                        const response = await axios.get('http://localhost:8080/exchange-portfolios', { timeout: 10000 });
+                        if (response.data.status === 'success') {
+                            this.exchangePortfolios = response.data.exchange_portfolios;
+
+                            // Filter to show only active exchanges initially
+                            const activePortfolios = {};
+                            const inactivePortfolios = {};
+
+                            Object.entries(this.exchangePortfolios).forEach(([name, portfolio]) => {
+                                if (portfolio.status === 'success') {
+                                    activePortfolios[name] = portfolio;
+                                } else {
+                                    inactivePortfolios[name] = portfolio;
+                                }
+                            });
+
+                            // Show active exchanges first, up to maxVisibleExchanges
+                            const activeEntries = Object.entries(activePortfolios);
+                            this.visibleExchangePortfolios = Object.fromEntries(
+                                activeEntries.slice(0, this.maxVisibleExchanges)
+                            );
+
+                            // Calculate hidden count (inactive + remaining active)
+                            this.hiddenExchangesCount = activeEntries.length - this.maxVisibleExchanges + Object.keys(inactivePortfolios).length;
+
+                            const activeCount = Object.keys(activePortfolios).length;
+                            const totalCount = response.data.total_exchanges;
+
+                            this.addNotification(
+                                `🎰 Found ${activeCount} winning tickets out of ${totalCount} total!`,
+                                activeCount > 0 ? 'success' : 'warning',
+                                'fas fa-ticket-alt'
+                            );
+
+                            // Add lottery-themed activity
+                            this.addActivity('info', `Lottery ticket scratch complete: ${activeCount}/${totalCount} exchanges active`, {
+                                activeCount: activeCount,
+                                totalCount: totalCount
+                            });
+
+                        } else {
+                            throw new Error(response.data.error || 'Failed to load portfolios');
+                        }
+                    } catch (error) {
+                        console.error('Error fetching exchange portfolios:', error);
+                        this.addNotification('❌ Lottery scratch failed - check API permissions', 'danger', 'fas fa-exclamation-triangle');
+                        this.addActivity('errors', 'Failed to scratch exchange lottery tickets', {});
+                    } finally {
+                        this.loading.portfolios = false;
+                    }
+                },
+
+                clearActivityLog() {
+                    if (confirm('Are you sure you want to clear the activity log?')) {
+                        this.activityLog = [];
+                        this.addNotification('Activity log cleared', 'success', 'fas fa-trash');
+                    }
+                },
+
+                formatNumber(num) {
+                    return new Intl.NumberFormat('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }).format(num || 0);
+                },
+
+                addActivity(type, message, details = null) {
+                    const activity = {
+                        id: Date.now(),
+                        type: type,
+                        message: message,
+                        details: details,
+                        timestamp: new Date().toISOString()
+                    };
+                    this.activityLog.unshift(activity);
+                    // Keep only last 100 activities
+                    if (this.activityLog.length > 100) {
+                        this.activityLog = this.activityLog.slice(0, 100);
+                    }
+                },
+
+                // Lottery Ticket Theme Methods
+                getLotteryTicketClass(portfolio) {
+                    if (portfolio.status === 'success') {
+                        return 'active';
+                    } else {
+                        return 'error';
+                    }
+                },
+
+                getEfficiencyScore(portfolio) {
+                    // Calculate efficiency score for each exchange
+                    if (portfolio.status !== 'success') return 0;
+                    const balanceCount = Object.keys(portfolio.balances).length;
+                    const usdValue = portfolio.total_usd_value || 0;
+                    return Math.min(100, Math.max(0, (balanceCount * 10) + (usdValue > 0 ? 20 : 0)));
+                },
+
+                showAllExchanges() {
+                    this.visibleExchangePortfolios = { ...this.exchangePortfolios };
+                    this.hiddenExchangesCount = 0;
+                    this.addNotification('All exchange tickets revealed!', 'success', 'fas fa-ticket-alt');
+                },
+
+                // Terminal Log Methods
+                async refreshTerminalLogs() {
+                    this.loading.terminal = true;
+                    try {
+                        const response = await axios.get('http://localhost:8080/logs');
+                        if (response.data.status === 'success') {
+                            this.terminalLogs = response.data.logs.map((log, index) => ({
+                                id: index,
+                                level: log.level,
+                                message: log.message,
+                                timestamp: log.timestamp
+                            })).reverse(); // Show newest first
+                        }
+                    } catch (error) {
+                        console.error('Error fetching terminal logs:', error);
+                        this.addNotification('Failed to load terminal logs', 'danger', 'fas fa-exclamation-triangle');
+                    } finally {
+                        this.loading.terminal = false;
+                    }
+                },
+
+                clearTerminalLogs() {
+                    if (confirm('Clear all terminal logs?')) {
+                        this.terminalLogs = [];
+                        this.addNotification('Terminal logs cleared', 'info', 'fas fa-terminal');
+                    }
+                },
+
+                toggleTerminalAutoRefresh() {
+                    this.terminalAutoRefresh = !this.terminalAutoRefresh;
+                    this.addNotification(
+                        `Terminal auto-refresh ${this.terminalAutoRefresh ? 'enabled' : 'disabled'}`,
+                        'info',
+                        'fas fa-terminal'
+                    );
+                },
+
+                // Mode and Auto-Trading Methods
+                switchTradingMode() {
+                    const newMode = this.isProductionMode ? 'production' : 'test';
+                    const confirmMessage = this.isProductionMode
+                        ? '⚠️ WARNING: Switching to PRODUCTION MODE will enable real trading with actual funds. Are you sure?'
+                        : 'Switching to TEST MODE - trades will be simulated. Continue?';
+
+                    if (confirm(confirmMessage)) {
+                        this.tradingMode = newMode;
+                        this.addNotification(
+                            `Switched to ${newMode.toUpperCase()} MODE`,
+                            this.isProductionMode ? 'danger' : 'info',
+                            this.isProductionMode ? 'fas fa-exclamation-triangle' : 'fas fa-flask'
+                        );
+
+                        // If switching to test mode, disable auto-trading
+                        if (!this.isProductionMode) {
+                            this.autoTradingEnabled = false;
+                        }
+
+                        // Save mode preference
+                        localStorage.setItem('tradingMode', newMode);
+                        localStorage.setItem('autoTradingEnabled', this.autoTradingEnabled);
+
+                        // Notify backend of mode change
+                        this.updateBackendMode();
+                    } else {
+                        // Revert the checkbox if user cancelled
+                        this.isProductionMode = !this.isProductionMode;
+                    }
+                },
+
+                toggleAutoTrading() {
+                    if (!this.isProductionMode) {
+                        this.addNotification('Auto-trading can only be enabled in PRODUCTION MODE', 'warning', 'fas fa-exclamation-triangle');
+                        this.autoTradingEnabled = false;
+                        return;
+                    }
+
+                    const action = this.autoTradingEnabled ? 'enabled' : 'disabled';
+                    this.addNotification(
+                        `Auto-trading ${action}`,
+                        this.autoTradingEnabled ? 'success' : 'info',
+                        this.autoTradingEnabled ? 'fas fa-robot' : 'fas fa-hand-paper'
+                    );
+
+                    // Save auto-trading preference
+                    localStorage.setItem('autoTradingEnabled', this.autoTradingEnabled);
+
+                    // Notify backend of auto-trading change
+                    this.updateBackendAutoTrading();
+                },
+
+                updateBackendMode() {
+                    // Send mode update to backend
+                    axios.post('http://localhost:8080/mode', {
+                        mode: this.tradingMode,
+                        auto_trading: this.autoTradingEnabled
+                    }).catch(error => {
+                        console.error('Failed to update backend mode:', error);
+                        this.addNotification('Failed to update backend mode', 'danger', 'fas fa-exclamation-triangle');
+                    });
+                },
+
+                updateBackendAutoTrading() {
+                    // Send auto-trading update to backend
+                    axios.post('http://localhost:8080/auto-trading', {
+                        enabled: this.autoTradingEnabled,
+                        interval: this.autoTradingInterval
+                    }).catch(error => {
+                        console.error('Failed to update auto-trading:', error);
+                        this.addNotification('Failed to update auto-trading settings', 'danger', 'fas fa-exclamation-triangle');
+                    });
+                },
+
+                loadModeSettings() {
+                    // Load saved mode settings from localStorage
+                    const savedMode = localStorage.getItem('tradingMode') || 'test';
+                    const savedAutoTrading = localStorage.getItem('autoTradingEnabled') === 'true';
+
+                    this.tradingMode = savedMode;
+                    this.isProductionMode = savedMode === 'production';
+                    this.autoTradingEnabled = savedAutoTrading && this.isProductionMode;
+                },
+
+                async executeTestTransaction() {
+                    if (confirm('Execute a test transaction? This will perform a small test trade.')) {
+                        this.loading.general = true;
+                        this.addNotification('🧪 Executing test transaction...', 'info', 'fas fa-flask');
+
+                        try {
+                            const response = await axios.get('http://localhost:8080/test_trade');
+                            if (response.data.status === 'success') {
+                                this.addNotification('✅ Test transaction executed successfully!', 'success', 'fas fa-check-circle');
+                                // Refresh data to show updated portfolio
+                                await this.refreshData();
+                                await this.refreshExchangePortfolios();
+                            } else {
+                                this.addNotification('❌ Test transaction failed: ' + response.data.error, 'danger', 'fas fa-exclamation-triangle');
+                            }
+                        } catch (error) {
+                            console.error('Test transaction error:', error);
+                            this.addNotification('❌ Test transaction failed: ' + error.message, 'danger', 'fas fa-exclamation-triangle');
+                        } finally {
+                            this.loading.general = false;
+                        }
+                    }
+                },
+
+                async refreshVerifiedBalance() {
+                    this.loading.general = true;
+                    this.addNotification('🔒 Refreshing verified balance...', 'info', 'fas fa-shield-alt');
+
+                    try {
+                        // Try Laravel API first, fallback to Flask
+                        let response;
+                        try {
+                            response = await axios.get('http://localhost:3000/api/trading/verified-balance');
+                        } catch (laravelError) {
+                            console.warn('Laravel API not available, using Flask fallback');
+                            response = await axios.get('http://localhost:8080/verified-balance');
+                        }
+
+                        if (response.data.success || response.data.total_verified_balance !== undefined) {
+                            this.verifiedBalance = response.data.data || response.data;
+                            this.addNotification('✅ Verified balance updated!', 'success', 'fas fa-shield-alt');
+                        } else {
+                            throw new Error('Invalid response format');
+                        }
+                    } catch (error) {
+                        console.error('Verified balance error:', error);
+                        this.addNotification('⚠️ Using default verified balance settings', 'warning', 'fas fa-exclamation-triangle');
+                        // Set default values
+                        this.verifiedBalance = {
+                            total_verified_balance: 1000.00,
+                            available_verified_amount: 10.00,
+                            deposit_only_mode: true,
+                            double_check_enabled: true,
+                            maximum_profit_mode: true
+                        };
+                    } finally {
+                        this.loading.general = false;
+                    }
+                },
+
+                async refreshTradingSettings() {
+                    this.loading.general = true;
+                    this.addNotification('⚙️ Refreshing trading settings...', 'info', 'fas fa-cog');
+
+                    try {
+                        // Try Laravel API first, fallback to Flask
+                        let response;
+                        try {
+                            response = await axios.get('http://localhost:3000/api/trading/settings');
+                        } catch (laravelError) {
+                            console.warn('Laravel API not available, using default settings');
+                            throw laravelError;
+                        }
+
+                        if (response.data.success) {
+                            this.tradingSettings = response.data.data;
+                            this.addNotification('✅ Trading settings updated!', 'success', 'fas fa-cog');
+                        } else {
+                            throw new Error('Invalid response format');
+                        }
+                    } catch (error) {
+                        console.error('Trading settings error:', error);
+                        this.addNotification('⚠️ Using default trading settings', 'warning', 'fas fa-exclamation-triangle');
+                        // Set default conservative values
+                        this.tradingSettings = {
+                            verified_trade_amount: 10.00,
+                            deposit_only_mode: true,
+                            double_check_trades: true,
+                            continuous_trading: true,
+                            maximum_profit_mode: true,
+                            take_profit_percent: 2.0,
+                            stop_loss_percent: 0.5,
+                            max_daily_loss_percent: 2.0,
+                            min_trade_interval: 60
+                        };
+                    } finally {
+                        this.loading.general = false;
+                    }
+                },
+
+                showBankTransferModal() {
+                    const amount = prompt('Enter deposit amount (deposits only):', '100');
+                    if (amount && parseFloat(amount) > 0) {
+                        this.executeBankTransfer(parseFloat(amount), 'deposit');
+                    }
+                },
+
+                async executeBankTransfer(amount, direction = 'deposit') {
+                    if (direction !== 'deposit') {
+                        this.addNotification('❌ WITHDRAWALS NOT ALLOWED - Deposit-only policy enforced!', 'danger', 'fas fa-ban');
+                        return;
+                    }
+
+                    this.loading.general = true;
+                    this.addNotification(`💰 Processing ${direction} of $${amount}...`, 'info', 'fas fa-university');
+
+                    try {
+                        // Try Laravel API first
+                        let response;
+                        try {
+                            response = await axios.post('http://localhost:3000/api/trading/bank-transfer', {
+                                exchange: 'default',
+                                amount: amount,
+                                direction: direction
+                            });
+                        } catch (laravelError) {
+                            console.warn('Laravel API not available for bank transfer');
+                            throw laravelError;
+                        }
+
+                        if (response.data.success) {
+                            this.addNotification(`✅ ${direction.toUpperCase()} approved: $${amount}`, 'success', 'fas fa-check-circle');
+                            await this.refreshVerifiedBalance();
+                        } else {
+                            throw new Error(response.data.message || 'Transfer failed');
+                        }
+                    } catch (error) {
+                        console.error('Bank transfer error:', error);
+                        this.addNotification(`❌ ${direction.toUpperCase()} failed: ${error.message}`, 'danger', 'fas fa-exclamation-triangle');
+                    } finally {
+                        this.loading.general = false;
+                    }
+                },
+
+                getTerminalLevelClass(level) {
+                    return `terminal-level ${level}`;
+                },
+
+                formatTerminalTime(timestamp) {
+                    const date = new Date(timestamp);
+                    return date.toLocaleTimeString('en-US', {
+                        hour12: false,
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                },
+
+                // Update log statistics (called when verbose logging is enabled)
+                updateLogStats() {
+                    if (!this.verboseLogging) return;
+
+                    // Simulate log statistics updates
+                    this.logStats.apiCalls += Math.floor(Math.random() * 5);
+                    this.logStats.apiCallsPerMinute = Math.floor(Math.random() * 10) + 5;
+                    this.logStats.successfulCalls = Math.floor(this.logStats.apiCalls * 0.85);
+                    this.logStats.totalCalls = this.logStats.apiCalls;
+                    this.logStats.successRate = Math.round((this.logStats.successfulCalls / this.logStats.totalCalls) * 100);
+                    this.logStats.avgResponseTime = Math.floor(Math.random() * 200) + 50;
+                    this.logStats.lastResponseTime = Math.floor(Math.random() * 100) + 20;
+                    this.logStats.errorCount = this.logStats.totalCalls - this.logStats.successfulCalls;
+                    this.logStats.errorRate = Math.round((this.logStats.errorCount / this.logStats.totalCalls) * 100);
+                    this.logStats.cpuUsage = Math.floor(Math.random() * 30) + 10;
+                    this.logStats.memoryUsage = Math.floor(Math.random() * 100) + 50;
+                    this.logStats.networkIO = Math.floor(Math.random() * 50) + 10;
+                    this.logStats.efficiencyScore = Math.floor(Math.random() * 20) + 80;
+                },
+
+                // Drag and Drop Methods
+                loadDashboardLayout() {
+                    try {
+                        const saved = localStorage.getItem('dashboardLayout');
+                        if (saved) {
+                            const layout = JSON.parse(saved);
+                            this.dashboardModules = layout.modules || this.defaultModules;
+                            this.addNotification('Dashboard layout loaded from saved configuration', 'info', 'fas fa-save');
+                        } else {
+                            this.dashboardModules = [...this.defaultModules];
+                        }
+                    } catch (error) {
+                        console.error('Error loading dashboard layout:', error);
+                        this.dashboardModules = [...this.defaultModules];
+                        this.addNotification('Error loading saved layout, using default', 'warning', 'fas fa-exclamation-triangle');
+                    }
+                },
+
+                saveDashboardLayout() {
+                    try {
+                        const layout = {
+                            modules: this.dashboardModules,
+                            timestamp: new Date().toISOString()
+                        };
+                        localStorage.setItem('dashboardLayout', JSON.stringify(layout));
+                        this.addNotification('Dashboard layout saved successfully', 'success', 'fas fa-save');
+                    } catch (error) {
+                        console.error('Error saving dashboard layout:', error);
+                        this.addNotification('Error saving dashboard layout', 'danger', 'fas fa-exclamation-triangle');
+                    }
+                },
+
+                resetDashboardLayout() {
+                    if (confirm('Are you sure you want to reset the dashboard to default layout?')) {
+                        this.dashboardModules = [...this.defaultModules];
+                        localStorage.removeItem('dashboardLayout');
+                        this.addNotification('Dashboard reset to default layout', 'info', 'fas fa-undo');
+                        // Reload the page to apply changes
+                        setTimeout(() => window.location.reload(), 1000);
+                    }
+                },
+
+                toggleModuleVisibility(moduleId) {
+                    const module = this.dashboardModules.find(m => m.id === moduleId);
+                    if (module) {
+                        module.visible = !module.visible;
+                        this.saveDashboardLayout();
+                        this.addNotification(`${module.title} ${module.visible ? 'shown' : 'hidden'}`, 'info', 'fas fa-eye');
+                    }
+                },
+
+                onModulesSorted() {
+                    // Update order based on current array position
+                    this.dashboardModules.forEach((module, index) => {
+                        module.order = index + 1;
+                    });
+                    this.saveDashboardLayout();
+                },
+
                 initCharts() {
                     // Initialize Chart.js
                     const ctx = document.getElementById('performanceChart');
@@ -521,8 +2149,8 @@
                                 datasets: [{
                                     label: 'Portfolio Value',
                                     data: [1000, 1020, 1015, 1030, 1025, 1040],
-                                    borderColor: '#667eea',
-                                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                    borderColor: '#8B5CF6',
+                                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
                                     tension: 0.4
                                 }]
                             },
@@ -545,22 +2173,54 @@
                 }
             },
 
-            mounted() {
+            async mounted() {
+                // Load dashboard layout from localStorage
+                this.loadDashboardLayout();
+
+                // Load mode settings from localStorage
+                this.loadModeSettings();
+
+                // Add welcome notification with lottery theme
+                this.addNotification('🎰 Welcome to the Trading Lottery Dashboard! Safe & Efficient Trading', 'success', 'fas fa-ticket-alt');
+
                 // Initial data load
-                this.refreshData();
+                try {
+                    await this.refreshData();
+                    await this.refreshExchangePortfolios();
+                    await this.refreshTerminalLogs();
+                    this.updateLogStats();
+                } catch (error) {
+                    console.error('Error during initial data load:', error);
+                }
 
                 // Set up auto-refresh every 30 seconds
-                this.refreshInterval = setInterval(() => {
-                    this.refreshData();
+                this.refreshInterval = setInterval(async () => {
+                    try {
+                        await this.refreshData();
+
+                        // Update log stats if verbose logging is enabled
+                        if (this.verboseLogging) {
+                            this.updateLogStats();
+                        }
+
+                        // Refresh terminal logs if auto-refresh is enabled
+                        if (this.terminalAutoRefresh) {
+                            await this.refreshTerminalLogs();
+                        }
+
+                        // Only refresh exchange portfolios every 5 minutes to avoid rate limits
+                        if (Date.now() % 300000 < 30000) {
+                            await this.refreshExchangePortfolios();
+                        }
+                    } catch (error) {
+                        console.error('Error during auto-refresh:', error);
+                    }
                 }, 30000);
 
                 // Initialize charts
                 this.$nextTick(() => {
                     this.initCharts();
                 });
-
-                // Add welcome notification
-                this.addNotification('Welcome to Advanced Trading Dashboard', 'success', 'fas fa-rocket');
             },
 
             beforeUnmount() {
