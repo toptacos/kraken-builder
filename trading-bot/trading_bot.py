@@ -1921,7 +1921,7 @@ def execute_buy():
 @app.route('/trade/sell', methods=['POST'])
 @limiter.limit("10 per minute")
 def execute_sell():
-    """Execute a sell trade"""
+    """Execute a sell trade with fee alerts"""
     if 'bot' not in globals():
         return {'error': 'Bot not initialized'}, 500
 
@@ -1931,7 +1931,7 @@ def execute_sell():
             return {'error': 'No JSON data provided'}, 400
 
         symbol = sanitize_input(data.get('symbol', 'BTC/USDT'))
-        amount = float(data.get('amount', 0))  # 0 means sell all
+        crypto_amount = float(data.get('amount', 0))  # Crypto amount to sell (0 means sell all)
         exchange_name = sanitize_input(data.get('exchange', 'binance'))
 
         if exchange_name not in bot.exchanges:
@@ -1947,21 +1947,46 @@ def execute_sell():
             return {'error': f'No {coin} assets available to sell'}, 400
 
         # Determine amount to sell
-        if amount <= 0:
-            amount = coin_balance
-        elif amount > coin_balance:
-            return {'error': f'Insufficient {coin} balance: {coin_balance:.6f} < {amount:.6f}'}, 400
+        if crypto_amount <= 0:
+            crypto_amount = coin_balance
+        elif crypto_amount > coin_balance:
+            return {'error': f'Insufficient {coin} balance: {coin_balance:.6f} < {crypto_amount:.6f}'}, 400
+
+        # Get current price and calculate fees
+        ticker = exchange.fetch_ticker(symbol)
+        current_price = ticker['last']
+        usd_value = crypto_amount * current_price
+
+        # Estimate fees (typical exchange fees: 0.1% for makers, 0.1% for takers)
+        estimated_fee_usd = usd_value * 0.001  # 0.1% fee
+        estimated_fee_crypto = crypto_amount * 0.001
+
+        # Alert about transaction fees
+        fee_alert = {
+            'estimated_fee_usd': estimated_fee_usd,
+            'estimated_fee_crypto': estimated_fee_crypto,
+            'fee_percentage': 0.1,
+            'usd_received': usd_value - estimated_fee_usd,
+            'crypto_sold': crypto_amount
+        }
+
+        logger.info(f"💸 SELL ORDER FEE ALERT: ${estimated_fee_usd:.4f} ({0.1:.1f}%) - Net received: ${usd_value - estimated_fee_usd:.2f}")
 
         # Execute trade
-        success = bot.execute_trade(exchange, symbol, 'sell', amount)
+        success = bot.execute_trade(exchange, symbol, 'sell', crypto_amount)
 
         if success:
             return {
                 'status': 'success',
                 'message': f'Sell order executed for {symbol}',
-                'amount': amount,
+                'crypto_amount': crypto_amount,
+                'usd_value': usd_value,
+                'price_per_unit': current_price,
                 'symbol': symbol,
-                'exchange': exchange_name
+                'exchange': exchange_name,
+                'fee_alert': fee_alert,
+                'net_received': usd_value - estimated_fee_usd,
+                'warning': f'Transaction fees: ${estimated_fee_usd:.4f} ({0.1:.1f}%)'
             }
         else:
             return {'error': 'Trade execution failed'}, 500

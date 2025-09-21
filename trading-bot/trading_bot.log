@@ -1,0 +1,47 @@
+2025-09-21 18:10:23,539 - INFO - Environment variables loaded from .env file
+2025-09-21 18:10:23,569 - INFO - 🚀 PRODUCTION MODE ENABLED - VERBOSE LOGGING ACTIVE
+2025-09-21 18:10:23,569 - INFO - 📊 Log Level: DEBUG
+2025-09-21 18:10:23,569 - INFO - 🔍 Detailed function-level logging enabled
+2025-09-21 18:10:23,595 - INFO - === TradingBot initialization started ===
+2025-09-21 18:10:23,595 - INFO - Current working directory: /Users/mcachran/Projects/Kraken/trading-bot
+2025-09-21 18:10:23,596 - INFO - Python path: ['/Users/mcachran/Projects/Kraken/trading-bot', '/usr/local/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python313.zip', '/usr/local/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13', '/usr/local/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13/lib-dynload', '/usr/local/lib/python3.13/site-packages']
+2025-09-21 18:10:23,596 - INFO - Test mode: True
+2025-09-21 18:10:23,596 - INFO - === Environment Variables Debug ===
+2025-09-21 18:10:23,596 - INFO - BINANCE_API_KEY: testnet123456789
+2025-09-21 18:10:23,596 - INFO - BINANCE_API_SECRET: [REDACTED - length 16]
+2025-09-21 18:10:23,596 - INFO - KRAKEN_API_KEY: 
+2025-09-21 18:10:23,596 - INFO - KRAKEN_API_SECRET: [REDACTED - length 0]
+2025-09-21 18:10:23,596 - INFO - COINBASE_API_KEY_NAME: organizations/f27482b8-e773-420e-81a5-7bbbac84d01c/apiKeys/37d1eb89-2e90-4bcc-8539-d5cf58cce294
+2025-09-21 18:10:23,596 - INFO - COINBASE_API_PRIVATE_KEY: [REDACTED - length 227]
+2025-09-21 18:10:23,596 - INFO - KUCOIN_API_KEY: 
+2025-09-21 18:10:23,596 - INFO - KUCOIN_API_SECRET: [REDACTED - length 0]
+2025-09-21 18:10:23,596 - INFO - KUCOIN_API_PASSPHRASE: [REDACTED - length 0]
+2025-09-21 18:10:23,596 - INFO - === End Environment Variables Debug ===
+2025-09-21 18:10:23,597 - INFO - ✅ Binance exchange configured (demo mode)
+2025-09-21 18:10:23,598 - WARNING - Failed to initialize kraken: kraken does not have a sandbox URL
+2025-09-21 18:10:23,599 - WARNING - Failed to initialize coinbase: coinbase does not have a sandbox URL
+2025-09-21 18:10:23,601 - WARNING - Failed to initialize kucoin: kucoin does not have a sandbox URL
+2025-09-21 18:10:23,608 - INFO - ✅ Okx exchange configured (demo mode)
+2025-09-21 18:10:23,611 - WARNING - Failed to initialize huobi: huobi does not have a sandbox URL
+2025-09-21 18:10:23,618 - INFO - ✅ Gate exchange configured (demo mode)
+2025-09-21 18:10:23,625 - INFO - ✅ Bybit exchange configured (demo mode)
+2025-09-21 18:10:23,626 - WARNING - Failed to initialize bitfinex: bitfinex does not have a sandbox URL
+2025-09-21 18:10:23,631 - INFO - ✅ Poloniex exchange configured (demo mode)
+2025-09-21 18:10:23,632 - WARNING - Failed to initialize bitstamp: bitstamp does not have a sandbox URL
+2025-09-21 18:10:23,637 - INFO - ✅ Gemini exchange configured (demo mode)
+2025-09-21 18:10:23,637 - INFO - 🎯 Initialized 6 exchanges: binance, okx, gate, bybit, poloniex, gemini
+2025-09-21 18:10:23,637 - INFO - 🔍 Scraping Twitter for trading prompts...
+2025-09-21 18:10:23,637 - INFO - 🧵 Started Twitter background scraping thread
+2025-09-21 18:10:23,642 - INFO - 🐦 Twitter integration initialized
+2025-09-21 18:10:23,643 - INFO - 🐦 Twitter integration initialized successfully
+2025-09-21 18:10:23,643 - INFO - 🎯 Trading Bot initialized. Test mode: True
+2025-09-21 18:10:23,643 - INFO - 💰 Starting balance: $1000.0, Trade amount: $50.0
+2025-09-21 18:10:23,643 - INFO - 🌐 Web UI: Enabled
+2025-09-21 18:10:23,643 - INFO - 📈 Mode: Exchange Trading
+2025-09-21 18:10:23,643 - INFO - ⏱️  Override timeout: 30s
+2025-09-21 18:10:23,647 - INFO - Crypto Trend Analyzer initialized
+2025-09-21 18:10:23,647 - INFO - 🔍 Scraping Twitter for trading prompts...
+2025-09-21 18:10:23,647 - INFO - 🧵 Started Twitter background scraping thread
+2025-09-21 18:10:23,652 - INFO - 🐦 Twitter integration initialized
+2025-09-21 18:10:27,759 - INFO - Environment variables loaded from .env file
+2025-09-21 18:10:28,970 - INFO - Environment variables loaded from .env file
