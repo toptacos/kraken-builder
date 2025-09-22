@@ -14,56 +14,116 @@
     <script src="https://cdn.jsdelivr.net/npm/vue.draggable.next@2.1.0/dist/vuedraggable.umd.min.js"></script>
     <style>
         :root {
-            --primary-color: #8B5CF6; /* Purple */
-            --secondary-color: #000000; /* Black */
-            --accent-color: #F59E0B; /* Yellow/Amber */
+            --primary-color: #6366F1; /* Indigo */
+            --secondary-color: #0F0F23; /* Deep Dark Blue-Black */
+            --accent-color: #FBBF24; /* Bright Amber */
             --success-color: #10B981; /* Emerald */
             --warning-color: #F59E0B; /* Amber */
             --danger-color: #EF4444; /* Red */
-            --info-color: #3B82F6; /* Blue */
-            --dark-bg: #000000; /* Pure Black */
-            --light-bg: #1F2937; /* Dark Gray */
-            --card-bg: #111827; /* Darker Gray for cards */
-            --text-primary: #F9FAFB; /* Light Gray */
-            --text-secondary: #9CA3AF; /* Medium Gray */
+            --info-color: #06B6D4; /* Cyan */
+            --dark-bg: #0F0F23; /* Deep Dark */
+            --light-bg: #1E1B4B; /* Dark Blue-Gray */
+            --card-bg: #1F2937; /* Medium Dark Gray */
+            --text-primary: #F8FAFC; /* Off-White */
+            --text-secondary: #CBD5E1; /* Light Gray */
+            --glow-primary: rgba(99, 102, 241, 0.5);
+            --glow-accent: rgba(251, 191, 36, 0.4);
+            --gradient-primary: linear-gradient(135deg, #6366F1, #8B5CF6, #EC4899);
+            --gradient-secondary: linear-gradient(135deg, #0F0F23, #1E1B4B, #312E81);
+            --gradient-accent: linear-gradient(135deg, #FBBF24, #F59E0B, #D97706);
         }
 
         body {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color), var(--accent-color));
+            background: var(--gradient-secondary);
+            background-attachment: fixed;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             color: var(--text-primary);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 50%, var(--glow-primary) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, var(--glow-accent) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, var(--glow-primary) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
         }
 
         .dashboard-container {
-            background: rgba(17, 24, 39, 0.95);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            background: rgba(31, 41, 55, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow:
+                0 20px 40px rgba(0,0,0,0.3),
+                0 0 20px var(--glow-primary);
             margin: 20px;
             overflow: hidden;
             border: 1px solid var(--accent-color);
+            position: relative;
+        }
+
+        .dashboard-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-primary);
         }
 
         .navbar-custom {
-            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color), var(--accent-color));
+            background: var(--gradient-primary);
             border: none;
             padding: 1rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+            backdrop-filter: blur(10px);
         }
 
         .card-custom {
-            border: 1px solid var(--accent-color);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 15px;
+            box-shadow:
+                0 8px 25px rgba(0,0,0,0.2),
+                0 0 15px rgba(99, 102, 241, 0.1);
+            transition: all 0.3s ease;
             background: var(--card-bg);
             color: var(--text-primary);
+            backdrop-filter: blur(5px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-custom::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-accent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .card-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
-            border-color: var(--primary-color);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow:
+                0 15px 35px rgba(0,0,0,0.3),
+                0 0 25px var(--glow-primary);
+            border-color: var(--accent-color);
+        }
+
+        .card-custom:hover::before {
+            opacity: 1;
         }
 
         .metric-value {
@@ -541,98 +601,74 @@
                                             </ul>
                                         </div>
 
-                                        <!-- Production/Test Mode Toggle -->
-                                        <div class="me-3">
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="modeToggle" v-model="isProductionMode" @change="toggleMode">
-                                                    <label class="form-check-label text-white fw-bold" for="modeToggle">
-                                                        <span v-if="isProductionMode" class="badge bg-danger animate-pulse fs-6 px-3 py-2 shadow">
-                                                            <i class="fas fa-exclamation-triangle me-1"></i> PRODUCTION MODE
-                                                            <i class="fas fa-play ms-1"></i>
-                                                        </span>
-                                                        <span v-else class="badge bg-info fs-6 px-3 py-2">
-                                                            <i class="fas fa-flask me-1"></i> TEST MODE
-                                                        </span>
-                                                    </label>
-                                                </div>
-                                            </div>
-    
-                                            <!-- Running Status Indicator -->
-                                            <div class="me-3">
-                                                <span class="badge bg-success animate-pulse" v-if="systemHealth.status === 'healthy'">
-                                                    <i class="fas fa-circle"></i> RUNNING
-                                                </span>
-                                                <span class="badge bg-warning" v-else-if="systemHealth.status === 'warning'">
-                                                    <i class="fas fa-exclamation-triangle"></i> ISSUES
-                                                </span>
-                                                <span class="badge bg-danger" v-else>
-                                                    <i class="fas fa-times-circle"></i> STOPPED
-                                                </span>
-                                            </div>
+                                        <!-- Unified Trading Control Panel -->
+                                        <div class="btn-group me-3" role="group">
+                                            <!-- Test Mode Button -->
+                                            <button class="btn btn-outline-info btn-sm"
+                                                    :class="{ 'active': !isProductionMode }"
+                                                    @click="switchToTestMode"
+                                                    :disabled="loading.general">
+                                                <i class="fas fa-flask me-1"></i>
+                                                <span class="d-none d-md-inline">TEST</span>
+                                            </button>
 
-                                        <!-- Verbose Logging Toggle -->
-                                        <div class="me-3">
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="loggingToggle" v-model="verboseLogging" @change="toggleVerboseLogging">
-                                                <label class="form-check-label text-white small" for="loggingToggle">
-                                                    <i class="fas fa-terminal"></i> Verbose Logging
-                                                </label>
-                                            </div>
+                                            <!-- Production Mode Button -->
+                                            <button class="btn btn-outline-danger btn-sm"
+                                                    :class="{ 'active': isProductionMode }"
+                                                    @click="switchToProductionMode"
+                                                    :disabled="loading.general">
+                                                <i class="fas fa-rocket me-1"></i>
+                                                <span class="d-none d-md-inline">PRODUCTION</span>
+                                            </button>
+
+                                            <!-- Auto Trading Toggle (only in production) -->
+                                            <button v-if="isProductionMode"
+                                                    class="btn btn-sm"
+                                                    :class="autoTradingEnabled ? 'btn-success' : 'btn-outline-secondary'"
+                                                    @click="toggleAutoTrading"
+                                                    :disabled="loading.general">
+                                                <i class="fas" :class="autoTradingEnabled ? 'fa-robot fa-spin' : 'fa-hand-paper'"></i>
+                                                <span class="d-none d-md-inline ms-1">{{ autoTradingEnabled ? 'AUTO' : 'MANUAL' }}</span>
+                                            </button>
                                         </div>
-    
-                                        <!-- User Login Toggle -->
+
+                                        <!-- System Status Indicator -->
                                         <div class="me-3">
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="loginToggle" v-model="userLoggedIn" @change="toggleUserLogin">
-                                                <label class="form-check-label text-white small" for="loginToggle">
-                                                    <i class="fas fa-user" :class="userLoggedIn ? 'text-success' : 'text-warning'"></i>
-                                                    {{ userLoggedIn ? 'Logged In' : 'Guest Mode' }}
-                                                </label>
+                                            <div class="d-flex align-items-center">
+                                                <div class="status-indicator me-2"
+                                                     :class="getSystemStatusClass()"></div>
+                                                <span class="badge fs-7"
+                                                      :class="getSystemStatusBadgeClass()">
+                                                    <i :class="getSystemStatusIcon()"></i>
+                                                    <span class="d-none d-md-inline ms-1">{{ getSystemStatusText() }}</span>
+                                                </span>
                                             </div>
                                         </div>
 
-                                        <span class="badge bg-success me-2" v-if="systemHealth.status === 'healthy'">
-                                            <i class="fas fa-circle"></i> System Healthy
-                                        </span>
-                                        <span class="badge bg-warning me-2" v-else>
-                                            <i class="fas fa-exclamation-triangle"></i> System Issues
-                                        </span>
-                                        <!-- Test Transaction Button -->
-                                        <button class="btn btn-warning btn-sm me-2" @click="executeTestTransaction" :disabled="loading.general">
-                                            <i class="fas fa-flask"></i> Test Trade
-                                        </button>
-
-                                        <!-- Mode Control -->
-                                        <div class="me-3">
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="modeSwitch" v-model="isProductionMode" @change="switchTradingMode">
-                                                    <label class="form-check-label text-white fw-bold" for="modeSwitch">
-                                                        <span v-if="isProductionMode" class="badge bg-danger animate-pulse fs-6 px-3 py-2 shadow">
-                                                            <i class="fas fa-exclamation-triangle me-1"></i> PRODUCTION MODE
-                                                            <i class="fas fa-play ms-1"></i>
-                                                        </span>
-                                                        <span v-else class="badge bg-info fs-6 px-3 py-2">
-                                                            <i class="fas fa-flask me-1"></i> TEST MODE
-                                                        </span>
-                                                    </label>
-                                                </div>
-                                            </div>
-
-                                            <!-- Auto Trading Control -->
-                                            <div class="me-3" v-if="isProductionMode">
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input" type="checkbox" id="autoTradingSwitch" v-model="autoTradingEnabled" @change="toggleAutoTrading">
-                                                    <label class="form-check-label text-white fw-bold" for="autoTradingSwitch">
-                                                        <span v-if="autoTradingEnabled" class="badge bg-success animate-pulse fs-6 px-3 py-2 shadow">
-                                                            <i class="fas fa-robot me-1"></i> AUTO TRADING ON
-                                                            <i class="fas fa-cog fa-spin ms-1"></i>
-                                                        </span>
-                                                        <span v-else class="badge bg-secondary fs-6 px-3 py-2">
-                                                            <i class="fas fa-hand-paper me-1"></i> MANUAL TRADING
-                                                        </span>
-                                                    </label>
-                                                </div>
-                                            </div>
+                                        <!-- Quick Actions Dropdown -->
+                                        <div class="dropdown me-3">
+                                            <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-bolt"></i>
+                                                <span class="d-none d-md-inline ms-1">Actions</span>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="#" @click="executeTestTransaction">
+                                                    <i class="fas fa-exchange-alt text-warning me-2"></i>Test Transaction
+                                                </a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item" href="#" @click="emergencyStop">
+                                                    <i class="fas fa-stop-circle text-danger me-2"></i>Emergency Stop
+                                                </a></li>
+                                                <li><a class="dropdown-item" href="#" @click="restartSystem">
+                                                    <i class="fas fa-redo text-primary me-2"></i>Restart System
+                                                </a></li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item" href="#" @click="toggleVerboseLogging">
+                                                    <i class="fas fa-terminal me-2" :class="verboseLogging ? 'text-success' : 'text-muted'"></i>
+                                                    Verbose Logging {{ verboseLogging ? 'ON' : 'OFF' }}
+                                                </a></li>
+                                            </ul>
+                                        </div>
 
                                         <span class="text-white">
                                             <i class="fas fa-clock"></i> {{ currentTime }}
@@ -1262,6 +1298,106 @@
                                     </div>
                                 </div>
 
+                                    <!-- Failsafe & Profit Optimization Module -->
+                                    <div v-if="dashboardModules.find(m => m.id === 'failsafe-profit' && m.visible)"
+                                         class="dashboard-module mb-4">
+                                        <div class="card card-custom border-warning">
+                                            <div class="module-header card-header d-flex justify-content-between align-items-center bg-warning text-dark">
+                                                <h5 class="mb-0">
+                                                    <i class="fas fa-grip-vertical me-2"></i>
+                                                    <i class="fas fa-shield-alt me-2"></i> Failsafe & Profit Optimization
+                                                    <span class="badge bg-danger ms-2">MAX PROFIT</span>
+                                                </h5>
+                                                <div class="module-actions">
+                                                    <button class="btn btn-sm btn-outline-dark" @click="toggleModuleVisibility('failsafe-profit')">
+                                                        <i class="fas fa-eye-slash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <h6 class="text-warning mb-3">
+                                                            <i class="fas fa-shield-alt me-2"></i>Failsafe Controls
+                                                        </h6>
+                                                        <div class="mb-3">
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox" id="circuitBreaker" v-model="failsafeSettings.circuitBreakerEnabled">
+                                                                <label class="form-check-label" for="circuitBreaker">
+                                                                    <i class="fas fa-bolt text-warning me-2"></i>Circuit Breaker
+                                                                    <small class="text-muted d-block">Auto-stop after {{ failsafeSettings.maxConsecutiveLosses }} losses</small>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox" id="profitLock" v-model="failsafeSettings.profitLockEnabled">
+                                                                <label class="form-check-label" for="profitLock">
+                                                                    <i class="fas fa-lock text-success me-2"></i>Profit Lock
+                                                                    <small class="text-muted d-block">Lock in profits above target</small>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox" id="autoRestart" v-model="failsafeSettings.autoRestartEnabled">
+                                                                <label class="form-check-label" for="autoRestart">
+                                                                    <i class="fas fa-redo text-info me-2"></i>Auto Restart
+                                                                    <small class="text-muted d-block">Automatically restart after failures</small>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="alert alert-danger border-0">
+                                                            <small>
+                                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                                Emergency Stop Loss: <strong>${{ failsafeSettings.emergencyStopLoss }}</strong>
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6 class="text-success mb-3">
+                                                            <i class="fas fa-chart-line me-2"></i>Profit Optimization
+                                                        </h6>
+                                                        <div class="mb-3">
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox" id="aggressiveMode" v-model="profitOptimization.aggressiveMode" @change="toggleAggressiveMode">
+                                                                <label class="form-check-label" for="aggressiveMode">
+                                                                    <i class="fas fa-rocket text-danger me-2"></i>Aggressive Mode
+                                                                    <small class="text-muted d-block">Higher risk, higher reward</small>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox" id="highFreq" v-model="profitOptimization.highFrequencyTrading" @change="toggleHighFrequency">
+                                                                <label class="form-check-label" for="highFreq">
+                                                                    <i class="fas fa-tachometer-alt text-primary me-2"></i>High Frequency
+                                                                    <small class="text-muted d-block">Rapid trade execution</small>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <div class="form-check form-switch">
+                                                                <input class="form-check-input" type="checkbox" id="arbitrage" v-model="profitOptimization.multiExchangeArbitrage" @change="toggleArbitrage">
+                                                                <label class="form-check-label" for="arbitrage">
+                                                                    <i class="fas fa-exchange-alt text-info me-2"></i>Cross-Exchange Arbitrage
+                                                                    <small class="text-muted d-block">Exploit price differences</small>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label small">Risk Multiplier: {{ profitOptimization.riskMultiplier }}x</label>
+                                                            <input type="range" class="form-range" min="0.5" max="3.0" step="0.1" v-model="profitOptimization.riskMultiplier">
+                                                        </div>
+                                                        <button class="btn btn-success btn-sm w-100" @click="applyProfitOptimizations">
+                                                            <i class="fas fa-magic me-1"></i>Apply Max Profit Settings
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <!-- System Status Module -->
                                     <div v-if="dashboardModules.find(m => m.id === 'system-status' && m.visible)"
                                          class="dashboard-module mb-4">
@@ -1402,6 +1538,8 @@
                         general: false
                     },
                     maxVisibleExchanges: 6,
+                    realTimeStats: null,
+                    statsRefreshInterval: null,
                     // Drag and Drop Dashboard Modules
                     dashboardModules: [],
                     defaultModules: [
@@ -1455,10 +1593,17 @@
                             component: 'terminal-logs'
                         },
                         {
+                            id: 'failsafe-profit',
+                            title: 'Failsafe & Profit Optimization',
+                            visible: true,
+                            order: 8,
+                            component: 'failsafe-profit'
+                        },
+                        {
                             id: 'system-status',
                             title: 'System Status',
                             visible: true,
-                            order: 8,
+                            order: 9,
                             component: 'system-status'
                         }
                     ],
@@ -1476,6 +1621,22 @@
                         double_check_trades: true,
                         continuous_trading: true,
                         maximum_profit_mode: true
+                    },
+                    // Failsafe and Profit Optimization
+                    failsafeSettings: {
+                        circuitBreakerEnabled: true,
+                        maxConsecutiveLosses: 3,
+                        emergencyStopLoss: 50, // $50 max loss
+                        autoRestartEnabled: false,
+                        profitLockEnabled: true,
+                        dynamicPositionSizing: true
+                    },
+                    profitOptimization: {
+                        aggressiveMode: false,
+                        highFrequencyTrading: false,
+                        multiExchangeArbitrage: false,
+                        aiPredictionEnabled: false,
+                        riskMultiplier: 1.0
                     }
                 }
             },
@@ -1670,6 +1831,35 @@
                     });
                 },
 
+                async refreshRealTimeStats() {
+                    try {
+                        const response = await axios.get('http://localhost:8080/statistics');
+                        if (response.data.status === 'success') {
+                            this.realTimeStats = response.data;
+                            this.updateDashboardFromStats();
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch real-time statistics:', error);
+                    }
+                },
+
+                updateDashboardFromStats() {
+                    if (this.realTimeStats) {
+                        // Update key metrics from real-time stats
+                        this.currentBalance = this.realTimeStats.current_balance || this.currentBalance;
+                        this.dailyPnL = this.realTimeStats.daily_pnl || this.dailyPnL;
+                        this.successRate = this.realTimeStats.win_rate || this.successRate;
+
+                        // Update live statistics
+                        this.liveStats.totalTrades = this.realTimeStats.total_trades || 0;
+                        this.liveStats.successRate = this.realTimeStats.win_rate || 0;
+
+                        // Update mode indicators
+                        this.isProductionMode = this.realTimeStats.trading_mode === 'production';
+                        this.autoTradingEnabled = this.realTimeStats.auto_trading_enabled || false;
+                    }
+                },
+
                 async refreshExchangePortfolios() {
                     this.loading.portfolios = true;
                     this.addNotification('🎰 Scratching exchange lottery tickets...', 'info', 'fas fa-ticket-alt');
@@ -1816,35 +2006,139 @@
                     );
                 },
 
-                // Mode and Auto-Trading Methods
-                switchTradingMode() {
-                    const newMode = this.isProductionMode ? 'production' : 'test';
-                    const confirmMessage = this.isProductionMode
-                        ? '⚠️ WARNING: Switching to PRODUCTION MODE will enable real trading with actual funds. Are you sure?'
-                        : 'Switching to TEST MODE - trades will be simulated. Continue?';
-
-                    if (confirm(confirmMessage)) {
-                        this.tradingMode = newMode;
-                        this.addNotification(
-                            `Switched to ${newMode.toUpperCase()} MODE`,
-                            this.isProductionMode ? 'danger' : 'info',
-                            this.isProductionMode ? 'fas fa-exclamation-triangle' : 'fas fa-flask'
-                        );
-
-                        // If switching to test mode, disable auto-trading
-                        if (!this.isProductionMode) {
+                // Unified Trading Control Methods
+                switchToTestMode() {
+                    if (this.isProductionMode) {
+                        if (confirm('Switch to TEST MODE? All auto-trading will be disabled and trades will be simulated.')) {
+                            this.isProductionMode = false;
                             this.autoTradingEnabled = false;
+                            this.tradingMode = 'test';
+                            this.saveTradingSettings();
+                            this.updateBackendMode();
+                            this.addNotification('Switched to TEST MODE', 'info', 'fas fa-flask');
                         }
+                    }
+                },
 
-                        // Save mode preference
-                        localStorage.setItem('tradingMode', newMode);
-                        localStorage.setItem('autoTradingEnabled', this.autoTradingEnabled);
+                switchToProductionMode() {
+                    if (!this.isProductionMode) {
+                        const confirmMessage = '⚠️ WARNING: PRODUCTION MODE enables real trading with actual funds!\n\n' +
+                                             '• Auto-trading can be enabled\n' +
+                                             '• Real money will be used for trades\n' +
+                                             '• Maximum daily loss limit: $50\n\n' +
+                                             'Are you absolutely sure?';
 
-                        // Notify backend of mode change
-                        this.updateBackendMode();
+                        if (confirm(confirmMessage)) {
+                            this.isProductionMode = true;
+                            this.tradingMode = 'production';
+                            this.saveTradingSettings();
+                            this.updateBackendMode();
+                            this.addNotification('Switched to PRODUCTION MODE', 'danger', 'fas fa-exclamation-triangle');
+                        }
+                    }
+                },
+
+                saveTradingSettings() {
+                    localStorage.setItem('tradingMode', this.tradingMode);
+                    localStorage.setItem('autoTradingEnabled', this.autoTradingEnabled);
+                },
+
+                // System Status Methods
+                getSystemStatusClass() {
+                    switch (this.systemHealth.status) {
+                        case 'healthy': return 'status-healthy';
+                        case 'warning': return 'status-warning';
+                        default: return 'status-error';
+                    }
+                },
+
+                getSystemStatusBadgeClass() {
+                    switch (this.systemHealth.status) {
+                        case 'healthy': return 'bg-success';
+                        case 'warning': return 'bg-warning';
+                        default: return 'bg-danger';
+                    }
+                },
+
+                getSystemStatusIcon() {
+                    switch (this.systemHealth.status) {
+                        case 'healthy': return 'fas fa-circle';
+                        case 'warning': return 'fas fa-exclamation-triangle';
+                        default: return 'fas fa-times-circle';
+                    }
+                },
+
+                getSystemStatusText() {
+                    switch (this.systemHealth.status) {
+                        case 'healthy': return 'HEALTHY';
+                        case 'warning': return 'WARNING';
+                        default: return 'ERROR';
+                    }
+                },
+
+                // Profit Optimization Methods
+                toggleAggressiveMode() {
+                    if (this.profitOptimization.aggressiveMode) {
+                        if (confirm('⚠️ AGGRESSIVE MODE increases risk significantly!\n\n• Higher position sizes\n• Tighter stop losses\n• More frequent trades\n\nContinue?')) {
+                            this.applyAggressiveSettings();
+                            this.addNotification('Aggressive Mode ENABLED - High Risk/High Reward', 'danger', 'fas fa-rocket');
+                        } else {
+                            this.profitOptimization.aggressiveMode = false;
+                        }
                     } else {
-                        // Revert the checkbox if user cancelled
-                        this.isProductionMode = !this.isProductionMode;
+                        this.applyConservativeSettings();
+                        this.addNotification('Switched to Conservative Mode', 'info', 'fas fa-shield-alt');
+                    }
+                },
+
+                toggleHighFrequency() {
+                    if (this.profitOptimization.highFrequencyTrading) {
+                        if (confirm('High Frequency Trading will execute trades very rapidly. This may incur high fees and increase risk.')) {
+                            this.addNotification('High Frequency Trading ENABLED', 'warning', 'fas fa-tachometer-alt');
+                        } else {
+                            this.profitOptimization.highFrequencyTrading = false;
+                        }
+                    } else {
+                        this.addNotification('High Frequency Trading DISABLED', 'info', 'fas fa-pause');
+                    }
+                },
+
+                toggleArbitrage() {
+                    if (this.profitOptimization.multiExchangeArbitrage) {
+                        if (confirm('Cross-exchange arbitrage will trade between multiple exchanges simultaneously. Requires API access to multiple exchanges.')) {
+                            this.addNotification('Cross-Exchange Arbitrage ENABLED', 'success', 'fas fa-exchange-alt');
+                        } else {
+                            this.profitOptimization.multiExchangeArbitrage = false;
+                        }
+                    } else {
+                        this.addNotification('Cross-Exchange Arbitrage DISABLED', 'info', 'fas fa-times');
+                    }
+                },
+
+                applyAggressiveSettings() {
+                    // Apply maximum profitability settings
+                    this.profitOptimization.riskMultiplier = 2.5;
+                    this.profitOptimization.highFrequencyTrading = true;
+                    this.profitOptimization.multiExchangeArbitrage = true;
+                    this.failsafeSettings.circuitBreakerEnabled = false; // Override failsafes for max profit
+                    this.failsafeSettings.emergencyStopLoss = 200; // Higher risk tolerance
+                },
+
+                applyConservativeSettings() {
+                    // Reset to safe settings
+                    this.profitOptimization.riskMultiplier = 1.0;
+                    this.profitOptimization.highFrequencyTrading = false;
+                    this.profitOptimization.multiExchangeArbitrage = false;
+                    this.failsafeSettings.circuitBreakerEnabled = true;
+                    this.failsafeSettings.emergencyStopLoss = 50;
+                },
+
+                applyProfitOptimizations() {
+                    if (confirm('🎯 Apply MAXIMUM PROFITABILITY settings?\n\nThis will:\n• Enable all profit optimization features\n• Override safety limits\n• Maximize risk for maximum returns\n\n⚠️ HIGH RISK - Only for experienced traders!')) {
+                        this.applyAggressiveSettings();
+                        this.profitOptimization.aggressiveMode = true;
+                        this.addNotification('🚀 MAXIMUM PROFITABILITY MODE ACTIVATED!', 'danger', 'fas fa-rocket');
+                        this.addNotification('⚠️ All safety limits overridden for maximum gains', 'warning', 'fas fa-exclamation-triangle');
                     }
                 },
 
@@ -2217,6 +2511,15 @@
                     }
                 }, 30000);
 
+                // Set up real-time statistics refresh every 10 seconds
+                this.statsRefreshInterval = setInterval(async () => {
+                    try {
+                        await this.refreshRealTimeStats();
+                    } catch (error) {
+                        console.error('Error during stats refresh:', error);
+                    }
+                }, 10000);
+
                 // Initialize charts
                 this.$nextTick(() => {
                     this.initCharts();
@@ -2226,6 +2529,9 @@
             beforeUnmount() {
                 if (this.refreshInterval) {
                     clearInterval(this.refreshInterval);
+                }
+                if (this.statsRefreshInterval) {
+                    clearInterval(this.statsRefreshInterval);
                 }
             }
         }).mount('#app');

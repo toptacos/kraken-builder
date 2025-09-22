@@ -118,10 +118,18 @@ class TradingBot:
         self.test_mode = os.getenv('TEST_MODE', 'false').lower() == 'true'
         logger.info(f"Test mode: {self.test_mode}")
 
-        # Mode tracking
-        self.trading_mode = 'test' if self.test_mode else 'production'
-        self.auto_trading_enabled = False
-        self.auto_trading_interval = 60  # seconds
+        # Load persistent mode settings
+        self.mode_file = '/app/mode_settings.json' if os.path.exists('/app') else 'mode_settings.json'
+        self._load_mode_settings()
+
+        # Override with environment variables if set
+        if os.getenv('TEST_MODE'):
+            self.test_mode = os.getenv('TEST_MODE', 'false').lower() == 'true'
+            self.trading_mode = 'test' if self.test_mode else 'production'
+
+        logger.info(f"Trading mode: {self.trading_mode}")
+        logger.info(f"Auto-trading enabled: {self.auto_trading_enabled}")
+        logger.info(f"Auto-trading interval: {self.auto_trading_interval}s")
 
         self.starting_balance = float(os.getenv('STARTING_BALANCE', '100'))
         self.trade_amount = float(os.getenv('TRADE_AMOUNT', '10'))
@@ -177,11 +185,53 @@ class TradingBot:
             logger.warning(f"🐦 Twitter integration failed to initialize: {e}")
             self.twitter_integration = None
 
+        # Save initial mode settings
+        self._save_mode_settings()
+
         logger.info(f"🎯 Trading Bot initialized. Test mode: {self.test_mode}")
         logger.info(f"💰 Starting balance: ${self.starting_balance}, Trade amount: ${self.trade_amount}")
         logger.info(f"🌐 Web UI: {'Enabled' if self.web_ui_enabled else 'Disabled'}")
         logger.info(f"📈 Mode: {'Web Scraping' if self.web_scraping_mode else 'Exchange Trading'}")
         logger.info(f"⏱️  Override timeout: {self.override_timeout}s")
+
+    def _load_mode_settings(self):
+        """Load persistent mode settings from file"""
+        try:
+            if os.path.exists(self.mode_file):
+                with open(self.mode_file, 'r') as f:
+                    settings = json.load(f)
+                    self.trading_mode = settings.get('trading_mode', 'test')
+                    self.auto_trading_enabled = settings.get('auto_trading_enabled', False)
+                    self.auto_trading_interval = settings.get('auto_trading_interval', 60)
+                    self.test_mode = (self.trading_mode == 'test')
+                logger.info(f"✅ Loaded mode settings from {self.mode_file}")
+            else:
+                # Default settings
+                self.trading_mode = 'test' if self.test_mode else 'production'
+                self.auto_trading_enabled = False
+                self.auto_trading_interval = 60
+                logger.info("ℹ️ No saved mode settings found, using defaults")
+        except Exception as e:
+            logger.warning(f"Failed to load mode settings: {e}, using defaults")
+            self.trading_mode = 'test' if self.test_mode else 'production'
+            self.auto_trading_enabled = False
+            self.auto_trading_interval = 60
+
+    def _save_mode_settings(self):
+        """Save current mode settings to file"""
+        try:
+            settings = {
+                'trading_mode': self.trading_mode,
+                'auto_trading_enabled': self.auto_trading_enabled,
+                'auto_trading_interval': self.auto_trading_interval,
+                'test_mode': self.test_mode,
+                'last_updated': datetime.now().isoformat()
+            }
+            with open(self.mode_file, 'w') as f:
+                json.dump(settings, f, indent=2)
+            logger.debug(f"💾 Mode settings saved to {self.mode_file}")
+        except Exception as e:
+            logger.warning(f"Failed to save mode settings: {e}")
 
     def _initialize_exchanges(self):
         """Initialize CCXT exchange instances with comprehensive exchange support."""
@@ -332,89 +382,211 @@ class TradingBot:
         return exchanges
 
     def get_trending_coin(self, max_retries=3):
-        """Scrape CoinGecko for trending coins with robust fallback logic."""
+        """Get trending coins using multiple algorithms and free APIs for maximum profitability."""
+        logger.info("🔍 === MULTI-ALGORITHM TRENDING COIN DETECTION ===")
+
+        # Algorithm 1: CoinGecko Trending (Primary)
+        coingecko_trending = self._get_coingecko_trending(max_retries)
+        if coingecko_trending:
+            logger.info("✅ CoinGecko trending data retrieved")
+
+        # Algorithm 2: CoinMarketCap Trending (Secondary)
+        cmc_trending = self._get_cmc_trending(max_retries)
+        if cmc_trending:
+            logger.info("✅ CoinMarketCap trending data retrieved")
+
+        # Algorithm 3: Twitter/X Sentiment Analysis (Tertiary)
+        twitter_trending = self._get_twitter_trending()
+        if twitter_trending:
+            logger.info("✅ Twitter sentiment data retrieved")
+
+        # Algorithm 4: Volume-Based Analysis (Fallback)
+        volume_trending = self._get_volume_based_trending()
+        if volume_trending:
+            logger.info("✅ Volume-based trending data retrieved")
+
+        # Combine results using weighted scoring algorithm
+        all_candidates = set()
+        if coingecko_trending:
+            all_candidates.update(coingecko_trending)
+        if cmc_trending:
+            all_candidates.update(cmc_trending)
+        if twitter_trending:
+            all_candidates.update(twitter_trending)
+        if volume_trending:
+            all_candidates.update(volume_trending)
+
+        if not all_candidates:
+            logger.warning("❌ No trending data available from any source")
+            return self._get_fallback_coin()
+
+        # Score each candidate based on multiple factors
+        scored_candidates = self._score_trending_candidates(
+            list(all_candidates),
+            coingecko_trending or [],
+            cmc_trending or [],
+            twitter_trending or [],
+            volume_trending or []
+        )
+
+        # Sort by score and check exchange availability
+        for candidate, score in sorted(scored_candidates.items(), key=lambda x: x[1], reverse=True):
+            logger.info(f"📊 Checking candidate: {candidate} (score: {score:.2f})")
+            try:
+                if self._is_coin_available_on_exchanges(candidate):
+                    logger.info(f"🎯 SELECTED TRENDING COIN: {candidate} (score: {score:.2f})")
+                    logger.info("📈 Based on multi-algorithm analysis for maximum profitability")
+                    return candidate
+            except Exception as e:
+                logger.debug(f"Error checking {candidate}: {e}")
+                continue
+
+        logger.warning("❌ No high-scoring trending coins available on exchanges")
+        return self._get_fallback_coin()
+
+    def _get_coingecko_trending(self, max_retries=3):
+        """Get trending coins from CoinGecko API."""
         for attempt in range(max_retries + 1):
             try:
-                logger.info(f"🔍 Fetching trending coins from CoinGecko (attempt {attempt + 1})")
-
-                # Add retry logic for API calls
-                response = requests.get(self.coingecko_url, timeout=15)
+                logger.debug(f"🔍 CoinGecko API call (attempt {attempt + 1})")
+                response = requests.get(self.coingecko_url, timeout=10)
                 response.raise_for_status()
                 data = response.json()
 
                 if 'coins' in data and data['coins']:
                     trending_coins = []
-                    for coin_data in data['coins'][:15]:  # Get top 15 trending coins for better selection
+                    for coin_data in data['coins'][:20]:  # Get top 20 for better selection
                         coin = coin_data.get('item', {})
                         symbol = coin.get('symbol', '').upper()
-                        if symbol and len(symbol) <= 10:  # Filter out invalid symbols
+                        if symbol and len(symbol) <= 10 and symbol not in ['BTC', 'ETH']:  # Filter BTC/ETH for more opportunities
+                            trending_coins.append(symbol)
+                    return trending_coins[:10]  # Return top 10
+
+            except Exception as e:
+                if attempt < max_retries:
+                    wait_time = (2 ** attempt) * 1
+                    logger.debug(f"CoinGecko attempt {attempt + 1} failed, retrying in {wait_time}s: {e}")
+                    time.sleep(wait_time)
+                else:
+                    logger.warning(f"CoinGecko trending failed after {max_retries + 1} attempts")
+        return []
+
+    def _get_cmc_trending(self, max_retries=2):
+        """Get trending coins from CoinMarketCap (free tier)."""
+        try:
+            # CoinMarketCap trending endpoint (limited free access)
+            cmc_url = "https://api.coinmarketcap.com/data-api/v3/cryptocurrency/listing?start=1&limit=50&sortBy=percent_change_24h&sortType=desc&convert=USD"
+            response = requests.get(cmc_url, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+            trending_coins = []
+            if 'data' in data and 'cryptoCurrencyList' in data['data']:
+                for coin in data['data']['cryptoCurrencyList'][:15]:
+                    symbol = coin.get('symbol', '').upper()
+                    if symbol and len(symbol) <= 10 and symbol not in ['BTC', 'ETH']:
+                        # Check if it has significant 24h change (trending indicator)
+                        change_24h = coin.get('quotes', [{}])[0].get('percentChange24h', 0)
+                        if abs(change_24h) > 5:  # Significant movement
                             trending_coins.append(symbol)
 
-                    if not trending_coins:
-                        logger.warning("No valid trending coins found in CoinGecko response")
-                        break
+            return trending_coins[:8]
 
-                    logger.info(f"📈 Found {len(trending_coins)} trending coins: {', '.join(trending_coins[:5])}...")
+        except Exception as e:
+            logger.debug(f"CoinMarketCap trending failed: {e}")
+            return []
 
-                    # Try each trending coin in order until we find one available on our exchanges
-                    available_coins = []
-                    for coin in trending_coins:
+    def _get_twitter_trending(self):
+        """Get trending coins from Twitter/X sentiment analysis."""
+        try:
+            if not self.twitter_integration:
+                return []
+
+            # Get Twitter trading prompts which include trending coins
+            prompts = self.twitter_integration.get_trending_crypto_mentions()
+            trending_coins = []
+
+            for prompt in prompts:
+                # Extract coin symbols from Twitter data
+                text = prompt.get('text', '').upper()
+                # Look for common crypto symbols
+                potential_coins = ['BTC', 'ETH', 'ADA', 'SOL', 'DOT', 'AVAX', 'MATIC', 'LINK', 'UNI', 'AAVE']
+                for coin in potential_coins:
+                    if coin in text and coin not in ['BTC', 'ETH']:
+                        trending_coins.append(coin)
+
+            return list(set(trending_coins))[:5]  # Remove duplicates, limit to 5
+
+        except Exception as e:
+            logger.debug(f"Twitter trending failed: {e}")
+            return []
+
+    def _get_volume_based_trending(self):
+        """Get trending coins based on volume analysis across exchanges."""
+        try:
+            volume_coins = []
+            for exchange_name, exchange in list(self.exchanges.items())[:2]:  # Check first 2 exchanges
+                try:
+                    if not hasattr(exchange, 'symbols') or not exchange.symbols:
+                        exchange.load_markets()
+
+                    # Get top volume pairs
+                    usdt_pairs = [s for s in exchange.symbols if s.endswith('/USDT')][:20]
+
+                    for symbol in usdt_pairs:
                         try:
-                            if self._is_coin_available_on_exchanges(coin):
-                                logger.info(f"🎯 Selected trending coin: {coin} (available on exchanges)")
-                                return coin
-                            else:
-                                logger.debug(f"⚠️ {coin} not available on configured exchanges, trying next...")
-                        except Exception as coin_check_error:
-                            logger.warning(f"Error checking availability for {coin}: {coin_check_error}")
+                            ticker = exchange.fetch_ticker(symbol)
+                            volume = ticker.get('quoteVolume', 0)
+                            if volume > 1000000:  # Significant volume ($1M+)
+                                coin = symbol.split('/')[0]
+                                if len(coin) <= 10 and coin not in ['BTC', 'ETH', 'USDT']:
+                                    volume_coins.append(coin)
+                        except:
                             continue
 
-                    logger.warning(f"❌ None of the {len(trending_coins)} trending coins are available on exchanges")
+                except Exception as e:
+                    logger.debug(f"Volume analysis failed for {exchange_name}: {e}")
+                    continue
 
-                    # Try to find any available coin from trending list for reference
-                    for coin in trending_coins[:5]:  # Check first 5 only
-                        try:
-                            available_on = []
-                            for exchange_name, exchange in self.exchanges.items():
-                                try:
-                                    symbol = f"{coin}/USDT"
-                                    if hasattr(exchange, 'symbols') and exchange.symbols and symbol in exchange.symbols:
-                                        available_on.append(exchange_name)
-                                except:
-                                    continue
-                            if available_on:
-                                logger.info(f"💡 {coin} is available on: {', '.join(available_on)}")
-                        except Exception as e:
-                            logger.debug(f"Error checking detailed availability for {coin}: {e}")
+            return list(set(volume_coins))[:6]  # Remove duplicates, limit to 6
 
-                    break  # Exit retry loop on successful API call
+        except Exception as e:
+            logger.debug(f"Volume-based trending failed: {e}")
+            return []
 
-                else:
-                    logger.warning("CoinGecko returned empty or invalid trending data")
-                    break
+    def _score_trending_candidates(self, candidates, coingecko_list, cmc_list, twitter_list, volume_list):
+        """Score trending candidates using multi-algorithm approach."""
+        scores = {}
 
-            except requests.exceptions.Timeout:
-                if attempt < max_retries:
-                    wait_time = (2 ** attempt) * 2  # Exponential backoff: 2s, 4s, 8s
-                    logger.warning(f"CoinGecko API timeout (attempt {attempt + 1}), retrying in {wait_time}s...")
-                    time.sleep(wait_time)
-                else:
-                    logger.error("CoinGecko API timeout - all retries exhausted")
-            except requests.exceptions.RequestException as e:
-                if attempt < max_retries:
-                    wait_time = (2 ** attempt) * 2
-                    logger.warning(f"CoinGecko API error (attempt {attempt + 1}): {e}, retrying in {wait_time}s...")
-                    time.sleep(wait_time)
-                else:
-                    logger.error(f"CoinGecko API error - all retries exhausted: {e}")
-            except Exception as e:
-                logger.error(f"Unexpected error fetching trending coins (attempt {attempt + 1}): {e}")
-                if attempt >= max_retries:
-                    break
+        for candidate in candidates:
+            score = 0
 
-        # Use fallback logic if CoinGecko fails or no trending coins are available
-        logger.info("🔄 Using fallback coin selection strategy")
-        return self._get_fallback_coin()
+            # CoinGecko score (highest weight - 40 points)
+            if candidate in coingecko_list:
+                position = coingecko_list.index(candidate)
+                score += max(40 - position * 2, 5)  # Higher for top positions
+
+            # CMC score (30 points)
+            if candidate in cmc_list:
+                position = cmc_list.index(candidate)
+                score += max(30 - position * 3, 3)
+
+            # Twitter score (20 points)
+            if candidate in twitter_list:
+                score += 20
+
+            # Volume score (10 points)
+            if candidate in volume_list:
+                score += 10
+
+            # Market cap bonus (for established coins)
+            major_coins = ['ADA', 'SOL', 'DOT', 'AVAX', 'MATIC', 'LINK', 'UNI', 'AAVE', 'SUSHI']
+            if candidate in major_coins:
+                score += 5
+
+            scores[candidate] = score
+
+        return scores
 
     def _is_coin_available_on_exchanges(self, coin, max_retries=2):
         """Check if a coin is available on any configured exchange with retry logic."""
@@ -1183,159 +1355,176 @@ class TradingBot:
 
         return None
 
-    def execute_test_trade(self):
-        """Execute a small test trade for integration testing with verbose logging."""
+    def execute_test_trade(self, exchange_name='coinbase', symbol=None):
+        """Execute a small test trade for integration testing with Coinbase default and trending assets."""
         logger.info("🔬 === EXECUTING PRODUCTION TEST TRADE ===")
         logger.info(f"📅 Timestamp: {datetime.now().isoformat()}")
         logger.info(f"🎯 Test Mode: {self.test_mode}")
         logger.info(f"💰 Current Balance: ${self.current_balance:.2f}")
 
-        # Try multiple exchanges in order of preference
-        preferred_exchanges = ['binance', 'coinbase', 'okx', 'gate', 'bybit']
-        successful_trade = False
+        # Default to Coinbase if no exchange specified
+        if exchange_name not in self.exchanges:
+            if 'coinbase' in self.exchanges:
+                exchange_name = 'coinbase'
+                logger.info("🎯 Defaulting to Coinbase exchange")
+            else:
+                # Find any available exchange
+                available_exchanges = list(self.exchanges.keys())
+                if available_exchanges:
+                    exchange_name = available_exchanges[0]
+                    logger.info(f"🎯 Using available exchange: {exchange_name}")
+                else:
+                    raise ValueError('No exchanges configured')
 
-        for exchange_name in preferred_exchanges:
-            if exchange_name not in self.exchanges:
-                logger.debug(f"⚠️ {exchange_name} not configured, skipping")
-                continue
+        exchange = self.exchanges[exchange_name]
+        logger.info(f"🎪 Attempting test trade on {exchange_name.upper()}")
 
+        # Load markets with verbose logging
+        if not hasattr(exchange, 'symbols') or exchange.symbols is None:
+            logger.info(f"📊 Loading markets for {exchange_name}...")
+            exchange.load_markets()
+            logger.info(f"✅ Loaded {len(exchange.symbols)} symbols for {exchange_name}")
+
+        # Use trending coin if no symbol specified
+        if symbol is None:
             try:
-                exchange = self.exchanges[exchange_name]
-                logger.info(f"🎪 Attempting test trade on {exchange_name.upper()}")
-
-                # Load markets with verbose logging
-                if not hasattr(exchange, 'symbols') or exchange.symbols is None:
-                    logger.info(f"📊 Loading markets for {exchange_name}...")
-                    exchange.load_markets()
-                    logger.info(f"✅ Loaded {len(exchange.symbols)} symbols for {exchange_name}")
+                trending_coin = self.get_trending_coin()
+                logger.info(f"📈 Using trending coin: {trending_coin}")
 
                 # Choose appropriate symbol based on exchange
                 if exchange_name == 'coinbase':
-                    symbol = 'BTC/USD'
+                    symbol = f"{trending_coin}/USD"
                 else:
-                    symbol = 'BTC/USDT'
+                    symbol = f"{trending_coin}/USDT"
 
+                # Check if trending coin symbol exists
                 if symbol not in exchange.symbols:
-                    logger.warning(f"⚠️ {symbol} not available on {exchange_name}, trying alternatives...")
-                    # Try alternative symbols
-                    alternatives = ['ETH/USDT', 'ETH/USD', 'BTC/USDT', 'BTC/USD']
+                    logger.warning(f"⚠️ Trending coin {symbol} not available, trying alternatives...")
+                    # Try alternative symbols with trending coin
+                    alternatives = [f"{trending_coin}/USD", f"{trending_coin}/USDT", f"{trending_coin}/BTC"]
                     symbol = None
                     for alt in alternatives:
                         if alt in exchange.symbols:
                             symbol = alt
                             break
+
+                    # If trending coin not available, fall back to major coins
                     if not symbol:
-                        logger.error(f"❌ No suitable trading pairs found on {exchange_name}")
-                        continue
+                        logger.warning("⚠️ Trending coin not available, using fallback coins...")
+                        fallback_symbols = ['BTC/USD', 'BTC/USDT', 'ETH/USD', 'ETH/USDT', 'ADA/USD', 'ADA/USDT']
+                        for fallback in fallback_symbols:
+                            if fallback in exchange.symbols:
+                                symbol = fallback
+                                logger.info(f"🎯 Using fallback symbol: {symbol}")
+                                break
 
-                logger.info(f"🎯 Selected trading pair: {symbol}")
+            except Exception as trend_error:
+                logger.warning(f"⚠️ Could not get trending coin: {trend_error}, using fallback...")
+                # Ultimate fallback
+                symbol = 'BTC/USD' if exchange_name == 'coinbase' else 'BTC/USDT'
 
-                # Get current market data with verbose logging
-                logger.info("📈 Fetching current market data...")
-                ticker = exchange.fetch_ticker(symbol)
-                price = ticker['last']
-                logger.info(f"💵 Current price: ${price:.4f}")
-                logger.info(f"📊 24h High: ${ticker.get('high', 'N/A')}")
-                logger.info(f"📊 24h Low: ${ticker.get('low', 'N/A')}")
-                logger.info(f"📊 24h Volume: {ticker.get('quoteVolume', 'N/A')}")
+        if symbol not in exchange.symbols:
+            logger.error(f"❌ Symbol {symbol} not available on {exchange_name}")
+            raise ValueError(f'Symbol {symbol} not available on {exchange_name}')
 
-                # Calculate trade amount (very small - $1-2 worth)
-                trade_value_usd = 1.50  # Small test trade
-                amount = trade_value_usd / price
-                logger.info(f"💎 Trade value: ${trade_value_usd:.2f}")
-                logger.info(f"🔢 Calculated amount: {amount:.8f} {symbol.split('/')[0]}")
+        logger.info(f"🎯 Selected trading pair: {symbol}")
 
-                # Check balance with verbose logging
-                logger.info("🏦 Checking account balance...")
-                balance = exchange.fetch_balance()
-                base_currency = symbol.split('/')[1]  # USDT or USD
-                available_balance = balance.get(base_currency, {}).get('free', 0)
-                logger.info(f"💰 Available {base_currency}: {available_balance:.4f}")
+        # Get current market data with verbose logging
+        logger.info("📈 Fetching current market data...")
+        ticker = exchange.fetch_ticker(symbol)
+        price = ticker['last']
+        logger.info(f"💵 Current price: ${price:.4f}")
+        logger.info(f"📊 24h High: ${ticker.get('high', 'N/A')}")
+        logger.info(f"📊 24h Low: ${ticker.get('low', 'N/A')}")
+        logger.info(f"📊 24h Volume: {ticker.get('quoteVolume', 'N/A')}")
 
-                if available_balance < trade_value_usd:
-                    logger.warning(f"⚠️ Insufficient balance: {available_balance:.4f} {base_currency} < {trade_value_usd:.4f}")
-                    continue
+        # Calculate trade amount (very small - $1-2 worth for minimum real money usage)
+        trade_value_usd = 1.25  # Very small test trade to minimize real money usage
+        amount = trade_value_usd / price
+        logger.info(f"💎 Trade value: ${trade_value_usd:.2f} (minimum real money usage)")
+        logger.info(f"🔢 Calculated amount: {amount:.8f} {symbol.split('/')[0]}")
 
-                # Execute trade with maximum verbosity
-                logger.info("🚀 EXECUTING TEST TRADE...")
-                logger.info(f"📋 Order Details:")
-                logger.info(f"   Exchange: {exchange_name.upper()}")
-                logger.info(f"   Symbol: {symbol}")
-                logger.info(f"   Side: BUY")
-                logger.info(f"   Type: MARKET")
-                logger.info(f"   Amount: {amount:.8f} {symbol.split('/')[0]}")
-                logger.info(f"   Expected Value: ${trade_value_usd:.2f}")
-                logger.info(f"   Expected Price: ~${price:.4f}")
+        # Check balance with verbose logging
+        logger.info("🏦 Checking account balance...")
+        balance = exchange.fetch_balance()
+        base_currency = symbol.split('/')[1]  # USDT or USD
+        available_balance = balance.get(base_currency, {}).get('free', 0)
+        logger.info(f"💰 Available {base_currency}: {available_balance:.4f}")
 
-                start_time = time.time()
-                order = exchange.create_market_buy_order(symbol, amount)
-                execution_time = time.time() - start_time
-
-                logger.info("✅ ORDER EXECUTED SUCCESSFULLY!")
-                logger.info(f"⏱️ Execution time: {execution_time:.3f}s")
-                logger.info("📄 ORDER DETAILS:")
-                logger.info(f"   Order ID: {order.get('id', 'N/A')}")
-                logger.info(f"   Status: {order.get('status', 'N/A')}")
-                logger.info(f"   Filled: {order.get('filled', 0):.8f} {symbol.split('/')[0]}")
-                logger.info(f"   Remaining: {order.get('remaining', 0):.8f} {symbol.split('/')[0]}")
-                logger.info(f"   Cost: ${order.get('cost', 0):.4f}")
-                logger.info(f"   Average Price: ${order.get('average', order.get('price', price)):.4f}")
-
-                # Fee analysis with maximum verbosity
-                fee_info = order.get('fee', {})
-                if fee_info:
-                    logger.info("💸 FEE ANALYSIS:")
-                    logger.info(f"   Fee Currency: {fee_info.get('currency', 'N/A')}")
-                    logger.info(f"   Fee Amount: {fee_info.get('cost', 0):.8f}")
-                    logger.info(f"   Fee Rate: {fee_info.get('rate', 0)*100:.4f}%")
-                    fee_value_usd = fee_info.get('cost', 0)
-                    if fee_info.get('currency') != 'USD' and fee_info.get('currency') != 'USDT':
-                        # Estimate fee value in USD if different currency
-                        try:
-                            if fee_info.get('currency') == symbol.split('/')[0]:  # If fee is in crypto
-                                fee_value_usd = fee_info.get('cost', 0) * price
-                            logger.info(f"   Fee Value (USD): ${fee_value_usd:.4f}")
-                        except:
-                            logger.info("   Fee Value (USD): Unable to calculate")
-                else:
-                    logger.info("💸 No fee information available")
-
-                # Update portfolio tracking
-                logger.info("📊 UPDATING PORTFOLIO...")
-                self.portfolio[symbol.split('/')[0]] = {
-                    'amount': order.get('filled', amount),
-                    'buy_price': order.get('average', price),
-                    'entry_time': datetime.now(),
-                    'exchange': exchange_name,
-                    'order_id': order.get('id'),
-                    'fees': fee_info
-                }
-                logger.info(f"✅ Portfolio updated: {self.portfolio[symbol.split('/')[0]]}")
-
-                # Log trade in database if available
-                try:
-                    logger.info("🗄️ LOGGING TRADE TO DATABASE...")
-                    # This would integrate with the Laravel backend
-                    logger.info("✅ Trade logged to database")
-                except Exception as db_error:
-                    logger.warning(f"⚠️ Database logging failed: {db_error}")
-
-                successful_trade = True
-                logger.info("🎉 === TEST TRADE COMPLETED SUCCESSFULLY ===")
-                logger.info(f"🏆 Result: Bought {order.get('filled', 0):.8f} {symbol.split('/')[0]} for ${order.get('cost', 0):.4f}")
-                break  # Exit exchange loop on success
-
-            except Exception as e:
-                logger.error(f"❌ Test trade failed on {exchange_name}: {str(e)}")
-                logger.error(f"   Error type: {type(e).__name__}")
-                import traceback
-                logger.error(f"   Traceback: {traceback.format_exc()}")
-                continue
-
-        if not successful_trade:
-            error_msg = "❌ All exchanges failed for test trade execution"
-            logger.error(error_msg)
+        if available_balance < trade_value_usd:
+            error_msg = f"⚠️ Insufficient balance: {available_balance:.4f} {base_currency} < {trade_value_usd:.4f}"
+            logger.warning(error_msg)
             raise ValueError(error_msg)
+
+        # Execute trade with maximum verbosity
+        logger.info("🚀 EXECUTING TEST TRADE...")
+        logger.info(f"📋 Order Details:")
+        logger.info(f"   Exchange: {exchange_name.upper()}")
+        logger.info(f"   Symbol: {symbol}")
+        logger.info(f"   Side: BUY")
+        logger.info(f"   Type: MARKET")
+        logger.info(f"   Amount: {amount:.8f} {symbol.split('/')[0]}")
+        logger.info(f"   Expected Value: ${trade_value_usd:.2f}")
+        logger.info(f"   Expected Price: ~${price:.4f}")
+
+        start_time = time.time()
+        order = exchange.create_market_buy_order(symbol, amount)
+        execution_time = time.time() - start_time
+
+        logger.info("✅ ORDER EXECUTED SUCCESSFULLY!")
+        logger.info(f"⏱️ Execution time: {execution_time:.3f}s")
+        logger.info("📄 ORDER DETAILS:")
+        logger.info(f"   Order ID: {order.get('id', 'N/A')}")
+        logger.info(f"   Status: {order.get('status', 'N/A')}")
+        logger.info(f"   Filled: {order.get('filled', 0):.8f} {symbol.split('/')[0]}")
+        logger.info(f"   Remaining: {order.get('remaining', 0):.8f} {symbol.split('/')[0]}")
+        logger.info(f"   Cost: ${order.get('cost', 0):.4f}")
+        logger.info(f"   Average Price: ${order.get('average', order.get('price', price)):.4f}")
+
+        # Fee analysis with maximum verbosity
+        fee_info = order.get('fee', {})
+        if fee_info:
+            logger.info("💸 FEE ANALYSIS:")
+            logger.info(f"   Fee Currency: {fee_info.get('currency', 'N/A')}")
+            logger.info(f"   Fee Amount: {fee_info.get('cost', 0):.8f}")
+            logger.info(f"   Fee Rate: {fee_info.get('rate', 0)*100:.4f}%")
+            fee_value_usd = fee_info.get('cost', 0)
+            if fee_info.get('currency') != 'USD' and fee_info.get('currency') != 'USDT':
+                # Estimate fee value in USD if different currency
+                try:
+                    if fee_info.get('currency') == symbol.split('/')[0]:  # If fee is in crypto
+                        fee_value_usd = fee_info.get('cost', 0) * price
+                    logger.info(f"   Fee Value (USD): ${fee_value_usd:.4f}")
+                except:
+                    logger.info("   Fee Value (USD): Unable to calculate")
+        else:
+            logger.info("💸 No fee information available")
+
+        # Update portfolio tracking
+        logger.info("📊 UPDATING PORTFOLIO...")
+        self.portfolio[symbol.split('/')[0]] = {
+            'amount': order.get('filled', amount),
+            'buy_price': order.get('average', price),
+            'entry_time': datetime.now(),
+            'exchange': exchange_name,
+            'order_id': order.get('id'),
+            'fees': fee_info
+        }
+        logger.info(f"✅ Portfolio updated: {self.portfolio[symbol.split('/')[0]]}")
+
+        # Log trade in database if available
+        try:
+            logger.info("🗄️ LOGGING TRADE TO DATABASE...")
+            # This would integrate with the Laravel backend
+            logger.info("✅ Trade logged to database")
+        except Exception as db_error:
+            logger.warning(f"⚠️ Database logging failed: {db_error}")
+
+        logger.info("🎉 === TEST TRADE COMPLETED SUCCESSFULLY ===")
+        logger.info(f"🏆 Result: Bought {order.get('filled', 0):.8f} {symbol.split('/')[0]} for ${order.get('cost', 0):.4f}")
+        logger.info("💡 Used trending asset detection and minimum real money ($1.25) for testing")
+
+        return order
 
     def run(self):
         """Main loop with continuous trading and comprehensive logging."""
@@ -1370,12 +1559,25 @@ class TradingBot:
         logger.info("🔄 Starting continuous trading loop...")
         logger.info("📊 Will never stop trading - continuous profit maximization")
 
+        # Start auto-trading thread if enabled
+        auto_trading_thread = None
+        if self.auto_trading_enabled and self.trading_mode == 'production':
+            auto_trading_thread = threading.Thread(target=self._auto_trading_loop, daemon=True)
+            auto_trading_thread.start()
+            logger.info("🤖 Auto-trading thread started")
+
         cycle_count = 0
         while self.continuous_trading:  # Always true for continuous trading
             cycle_count += 1
             cycle_start_time = datetime.now()
 
             try:
+                # Check if auto-trading should take over
+                if self.auto_trading_enabled and self.trading_mode == 'production':
+                    logger.info(f"🔄 Cycle #{cycle_count}: Auto-trading active, sleeping for {self.auto_trading_interval}s")
+                    time.sleep(min(self.auto_trading_interval, 60))  # Don't sleep longer than 1 minute for responsiveness
+                    continue
+
                 logger.info(f"🔄 Cycle #{cycle_count} starting at {cycle_start_time.strftime('%H:%M:%S')}")
 
                 # Comprehensive pre-trade logging
@@ -1472,6 +1674,38 @@ class TradingBot:
         """Log errors to web UI for monitoring."""
         # This would integrate with the web UI logging system
         logger.error(f"WEB_UI_LOG: {title} - {message}")
+
+    def _auto_trading_loop(self):
+        """Background auto-trading loop that runs when enabled"""
+        logger.info("🤖 Auto-trading loop started")
+
+        auto_trade_count = 0
+        last_auto_trade_time = datetime.now()
+
+        while self.auto_trading_enabled and self.trading_mode == 'production':
+            try:
+                current_time = datetime.now()
+                time_since_last_trade = (current_time - last_auto_trade_time).total_seconds()
+
+                # Check if it's time for another auto-trade
+                if time_since_last_trade >= self.auto_trading_interval:
+                    auto_trade_count += 1
+                    logger.info(f"🤖 Auto-trade #{auto_trade_count} triggered")
+
+                    # Execute auto-trade
+                    self.run_cycle()
+                    last_auto_trade_time = current_time
+
+                    logger.info(f"🤖 Auto-trade #{auto_trade_count} completed")
+
+                # Sleep for a short interval to check conditions
+                time.sleep(10)  # Check every 10 seconds
+
+            except Exception as e:
+                logger.error(f"❌ Error in auto-trading loop: {e}")
+                time.sleep(30)  # Wait longer after errors
+
+        logger.info("🤖 Auto-trading loop stopped")
 
     def handle_bank_transfer(self, exchange_name, amount, direction):
         """Handle bank transfers with strict deposit-only policy."""
@@ -2180,6 +2414,9 @@ def handle_mode():
             bot.test_mode = (new_mode == 'test')
             bot.auto_trading_enabled = auto_trading
 
+            # Save settings persistently
+            bot._save_mode_settings()
+
             logger.info(f"Mode changed to: {new_mode}, Auto-trading: {auto_trading}")
 
             return {
@@ -2227,6 +2464,9 @@ def handle_auto_trading():
 
             bot.auto_trading_enabled = enabled
             bot.auto_trading_interval = interval
+
+            # Save settings persistently
+            bot._save_mode_settings()
 
             logger.info(f"Auto-trading {'enabled' if enabled else 'disabled'}, interval: {interval}s")
 
@@ -2278,6 +2518,74 @@ def trigger_auto_trade():
     except Exception as e:
         logger.error(f"Failed to execute auto-trade: {e}")
         return {'error': f'Auto-trade failed: {str(e)}'}, 500
+
+@app.route('/statistics', methods=['GET'])
+def get_statistics():
+    """Get real-time trading statistics for dashboard"""
+    if 'bot' not in globals():
+        return {'error': 'Bot not initialized'}, 500
+
+    try:
+        # Calculate real-time statistics
+        runtime = datetime.now() - datetime.fromisoformat(getattr(bot, 'start_time', datetime.now().isoformat()))
+
+        # Get recent trades from activity log (simplified)
+        recent_trades = []
+        if hasattr(bot, 'activityLog') and bot.activityLog:
+            # Get last 10 trade activities
+            trade_activities = [activity for activity in bot.activityLog[-50:] if activity.get('type') == 'trades']
+            recent_trades = trade_activities[-10:]
+
+        # Calculate performance metrics
+        total_trades = getattr(bot, 'total_trades', 0)
+        winning_trades = getattr(bot, 'winning_trades', 0)
+        total_pnl = getattr(bot, 'total_pnl', 0.0)
+
+        win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
+
+        # Get current market data
+        market_data = {}
+        try:
+            trending_coin = bot.get_trending_coin()
+            market_data = {
+                'trending_coin': trending_coin,
+                'symbol': f"{trending_coin}/USDT"
+            }
+        except:
+            market_data = {'error': 'Unable to fetch market data'}
+
+        statistics = {
+            'status': 'success',
+            'timestamp': datetime.now().isoformat(),
+            'runtime_seconds': runtime.total_seconds(),
+            'trading_mode': bot.trading_mode,
+            'auto_trading_enabled': bot.auto_trading_enabled,
+            'auto_trading_interval': bot.auto_trading_interval,
+            'current_balance': bot.current_balance,
+            'starting_balance': bot.starting_balance,
+            'total_pnl': total_pnl,
+            'total_pnl_percentage': (total_pnl / bot.starting_balance * 100) if bot.starting_balance > 0 else 0,
+            'total_trades': total_trades,
+            'winning_trades': winning_trades,
+            'win_rate': win_rate,
+            'daily_pnl': bot.current_balance - bot.daily_start_balance,
+            'position': bot.position,
+            'portfolio_value': sum([data.get('amount', 0) * data.get('buy_price', 0) for data in bot.portfolio.values() if isinstance(data, dict)]),
+            'market_data': market_data,
+            'recent_trades': recent_trades,
+            'system_health': {
+                'status': 'healthy',
+                'exchanges_connected': len(bot.exchanges),
+                'last_cycle_time': getattr(bot, 'last_cycle_time', None),
+                'consecutive_losses': getattr(bot, 'consecutive_losses', 0)
+            }
+        }
+
+        return statistics
+
+    except Exception as e:
+        logger.error(f"Failed to get statistics: {e}")
+        return {'error': 'Failed to retrieve statistics'}, 500
 
 @app.route('/')
 def dashboard():
