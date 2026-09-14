@@ -37,6 +37,24 @@ Probe JSON in `media/launch-log.txt`:
 KRAKEN_RECORD=1 sh scripts/chrome/capture.sh
 ```
 
+## Search Console (matt@topta.co)
+
+HTML file is live on every public root: `/google8c292cfe0da6151b.html`.
+
+Use **URL prefix** + HTML file. Do not use Domain DNS (Cloudflare TXT failed).
+
+```
+sh scripts/chrome/gsc-add-properties.sh
+```
+
+Stay signed in as **matt@topta.co**. If the page says gmail, switch accounts.
+
+Verified this session (HTML file / Overview): kraken, topta.co, tacos, music, blog, profile, dashboard.
+
+Pending account-switch: discgolf, ai, portfolio.
+
+Kraken sitemap submitted (`sitemap.xml`). Google may show “Couldn't fetch” for a few hours; the file is HTTP 200 `text/xml`.
+
 ## Safety
 
 - JS is read-only except clicking an already-visible Search Console “Submit” if present.
