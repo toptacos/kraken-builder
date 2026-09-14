@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
 PROTOCOL_VERSION = 1
 
 
-def encode_request(action: str, payload: dict[str, Any] | None = None, req_id: str = "1") -> bytes:
+def encode_request(
+    action: str, payload: dict[str, Any] | None = None, req_id: str = "1"
+) -> bytes:
     body = {
         "v": PROTOCOL_VERSION,
         "id": req_id,
@@ -31,7 +34,7 @@ def decode_response(raw: bytes) -> dict[str, Any]:
 def _argv(binary: Path) -> list[str]:
     ext = binary.suffix
     if ext == ".py":
-        return ["python3", str(binary)]
+        return [sys.executable, str(binary)]
     if ext == ".sh":
         return ["bash", str(binary)]
     if ext == ".js":

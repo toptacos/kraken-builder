@@ -10,6 +10,7 @@ need() {
 }
 need git
 need python3
+python3 -c "import yaml" 2>/dev/null || python3 -m pip install --user pyyaml >/dev/null
 
 mkdir -p "$SRC" "$BIN_DIR" "$HOME/.kraken"
 if [ -d "$SRC/.git" ]; then

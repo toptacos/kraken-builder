@@ -2,11 +2,15 @@ from pathlib import Path
 import os
 import stat
 import subprocess
+import sys
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
+@pytest.mark.skipif(os.name == "nt", reason="POSIX wrapper")
 def test_wrapper_speaks_kraken_not_python_module(tmp_path):
     wrapper = ROOT / "scripts" / "kraken"
     assert wrapper.exists()
@@ -20,10 +24,16 @@ def test_wrapper_speaks_kraken_not_python_module(tmp_path):
 def test_install_sh_is_executable():
     path = ROOT / "install.sh"
     assert path.exists()
-    assert (
-        "python3 -m kraken" not in path.read_text().split("echo")[0]
-        or "kraken" in path.read_text()
+    text = path.read_text()
+    assert "python3 -m kraken" in text or "kraken" in text
+    if os.name != "nt":
+        assert path.stat().st_mode & stat.S_IXUSR
+
+
+def test_module_entry_works():
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(ROOT)
+    out = subprocess.check_output(
+        [sys.executable, "-m", "kraken", "self", "plan"], env=env, text=True
     )
-    assert "Puts" not in path.read_text() or True
-    mode = path.stat().st_mode
-    assert mode & stat.S_IXUSR
+    assert '"ok"' in out

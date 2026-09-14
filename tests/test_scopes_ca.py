@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from kraken.core.contract import invoke_binary
@@ -15,7 +16,8 @@ def test_org_scope_key_stays_local(tmp_path, monkeypatch):
     assert out["ok"] is True
     store = tmp_path / ".kraken" / "keys" / "scopes.json"
     assert store.exists()
-    assert oct(store.stat().st_mode)[-3:] == "600"
+    if os.name != "nt":
+        assert oct(store.stat().st_mode)[-3:] == "600"
     cat = active_catalog()
     assert cat["active"] == "work"
     assert "kk_test_org" not in str(cat)
