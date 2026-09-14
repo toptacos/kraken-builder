@@ -1,0 +1,7 @@
+name: billing-log
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+actions: [ping, denied]
+description: Optional hook sink for premium tentacles. Logs JSON. Never calls Stripe.

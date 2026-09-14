@@ -2,7 +2,7 @@
 
 **One binary. Many tentacles.** Local-first CLI plugin runner. Not the [crypto exchange](https://www.kraken.com).
 
-JSON in → policy → exec → JSON out. MIT core. Premium is fleet + portal, not a fatter CLI.
+JSON in → policy → exec → JSON out. **MIT open source.** Optional billing lives in `kraken.billing` and is not required to run.
 
 ```
 curl -fsSL https://kraken.topta.co/install.sh | sh
@@ -36,7 +36,7 @@ Site: https://kraken.topta.co
 Install: https://kraken.topta.co/cli  
 Use cases: https://kraken.topta.co/use-cases  
 Changelog: https://kraken.topta.co/changelog  
-Pricing: https://kraken.topta.co/pricing (Starter $19 / Pro $49 / Enterprise $149 — checkout on profile.topta.co)  
+Optional seats (after you have a tentacle): https://kraken.topta.co/pricing — docs/BILLING.md  
 API: https://api.topta.co
 
 Repos: [kraken-builder](https://github.com/toptacos/kraken-builder) · [tentacles](https://github.com/toptacos/kraken-tentacles) · [suckers](https://github.com/toptacos/kraken-suckers)
