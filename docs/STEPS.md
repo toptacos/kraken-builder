@@ -16,7 +16,7 @@
 cd kraken-builder
 python3 -m pip install -e . -r requirements-dev.txt
 make e2e
-gh repo create mmcachran/kraken-builder --public --source . --remote origin --push
+gh repo create toptacos/kraken-builder --public --source . --remote origin --push
 git checkout -b feature/kraken-core-tentacles
 git push -u origin feature/kraken-core-tentacles
 ```

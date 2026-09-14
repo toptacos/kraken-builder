@@ -1,0 +1,17 @@
+#!/bin/sh
+# PATH wrapper. Users type `kraken`, not python3 -m kraken.
+set -eu
+ROOT="${KRAKEN_ROOT:-}"
+if [ -z "$ROOT" ]; then
+  if [ -d "$HOME/.kraken/src" ]; then
+    ROOT="$HOME/.kraken/src"
+  else
+    ROOT="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)"
+  fi
+fi
+export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
+if command -v python3 >/dev/null 2>&1; then
+  exec python3 -m kraken "$@"
+fi
+echo "kraken: python3 not on PATH. Install Python 3.10+ then re-run." >&2
+exit 127

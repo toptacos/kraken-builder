@@ -44,10 +44,17 @@ First line on camera: “Kraken is one binary. You add tentacles. The machine st
 
 `website/media/kraken-bumper.mp4` — 12s silent bumper (lockup → OG → poster → Nyx). Upload as YouTube unlisted + X first post + Facebook cover clip.
 
-## First posts
+## First posts (drafts — do not auto-post)
 
 X: `Kraken is out of the tank. One binary. Many tentacles. kraken.topta.co` + bumper  
-YouTube description: install command + docs.html  
-Facebook: same + beta.html
+YouTube description: `python3 -m kraken init && python3 -m kraken vanilla` + https://kraken.topta.co/docs  
+Facebook: same + https://kraken.topta.co/account
 
 Do not imply the exchange. Always “Kraken by Topta.”
+
+## Launch checklist (human)
+
+- [ ] Claim `@kraken_topta` on X / YouTube / Facebook
+- [ ] Post drafts above after a human click
+- [ ] Search Console on kraken.topta.co
+- [ ] Product Hunt after public repo (exists: toptacos/kraken-builder)
