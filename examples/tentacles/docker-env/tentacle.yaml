@@ -1,0 +1,7 @@
+name: docker-env
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+actions: [plan, up, status, share, down]
+description: Build a Docker Compose environment from a service list, start it when Docker exists, and emit a share spec so another Kraken box can join the same services.

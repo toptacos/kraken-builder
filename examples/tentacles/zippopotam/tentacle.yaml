@@ -1,0 +1,8 @@
+name: zippopotam
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+needs_docker: false
+actions: [lookup]
+description: Zippopotam.us ZIP → city. No key.

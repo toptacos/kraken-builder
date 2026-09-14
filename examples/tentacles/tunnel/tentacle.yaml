@@ -1,0 +1,8 @@
+name: tunnel
+version: "0.1.0"
+runtime: binary
+binary: handler.py
+license: free
+actions: [plan, status]
+needs_docker: false
+description: Plan an SSH jump to a host you already have a key for. Does not invent access.

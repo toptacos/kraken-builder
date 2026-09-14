@@ -1,0 +1,7 @@
+name: runtime
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+actions: [plan, build, invoke, publish]
+description: Run a tentacle request in a user image. Dockerfile + services.yaml only. Shared store/vault/ssh mounts. Dry-run when Docker is missing.

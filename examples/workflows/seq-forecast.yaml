@@ -1,0 +1,13 @@
+name: seq-forecast
+goal: geo then weather-pro using the prior result (needs licenses + installs).
+steps:
+  - id: place
+    tentacle: geo
+    action: lookup
+    payload: { zip: "27284" }
+  - id: weather
+    tentacle: weather-pro
+    action: forecast
+    payload:
+      zip: $place.result.zip
+      geo: $place.result

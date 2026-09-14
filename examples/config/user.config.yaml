@@ -1,0 +1,18 @@
+# Copy to ~/.kraken/config.yaml (user wins over /etc/kraken).
+version: 1
+notify: local
+stores:
+  - name: local
+    uri: local://data
+  - name: usb
+    uri: file:///media/backup/kraken
+    optional: true
+llm:
+  enabled: false
+  image: kraken-llm:local
+  network: kraken_llm
+  ingest: [notes, media, backups]
+tunnel:
+  bind: 127.0.0.1
+  require_existing_key: true
+tentacles: []

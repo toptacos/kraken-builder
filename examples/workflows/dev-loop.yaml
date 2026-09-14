@@ -1,0 +1,34 @@
+name: dev-loop
+goal: Plan a shared Docker env, register a hotreload watch, tick once.
+steps:
+  - id: env
+    tentacle: docker-env
+    action: plan
+    payload:
+      name: dev
+      services:
+        - name: redis
+          image: redis:7-alpine
+          ports: ["6379:6379"]
+  - id: share
+    tentacle: docker-env
+    action: share
+    payload:
+      name: dev
+      services:
+        - name: redis
+          image: redis:7-alpine
+          ports: ["6379:6379"]
+  - id: watch
+    tentacle: hotreload
+    action: watch
+    payload:
+      name: demo
+      root: .
+      patterns: ["*.py"]
+      command: ["true"]
+  - id: tick
+    tentacle: hotreload
+    action: tick
+    payload:
+      name: demo

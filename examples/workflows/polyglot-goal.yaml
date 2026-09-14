@@ -1,0 +1,42 @@
+name: polyglot-goal
+goal: Ping in-process, then fan-out the contract across languages, then fold results.
+steps:
+  - id: seed
+    tentacle: echo
+    action: ping
+  - id: fanout
+    parallel:
+      - id: py
+        tentacle: echo-bin
+        action: ping
+        payload: { from: $seed }
+      - id: sh
+        tentacle: echo-sh
+        action: ping
+        payload: { from: $seed }
+      - id: js
+        tentacle: echo-js
+        action: ping
+        payload: { from: $seed }
+      - id: php
+        tentacle: echo-php
+        action: ping
+        payload: { from: $seed }
+      - id: rb
+        tentacle: echo-rb
+        action: ping
+        payload: { from: $seed }
+      - id: pl
+        tentacle: echo-pl
+        action: ping
+        payload: { from: $seed }
+      - id: go
+        tentacle: echo-go
+        action: ping
+        payload: { from: $seed }
+  - id: fold
+    tentacle: echo
+    action: echo
+    payload:
+      langs: $fanout
+      seed: $seed

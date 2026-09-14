@@ -1,0 +1,12 @@
+name: sites
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+needs_docker: true
+platforms:
+  linux-amd64: { tested: true }
+  linux-arm64: { tested: true }
+  darwin-arm64: { tested: false }
+actions: [plan, list, up]
+description: Multi-site local dev from project .kraken/config.yaml. Compose on kraken_sites, ports on 127.0.0.1. Docker only for up.

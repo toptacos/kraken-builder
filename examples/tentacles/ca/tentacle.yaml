@@ -1,0 +1,8 @@
+name: ca
+version: "0.1.0"
+runtime: binary
+binary: handler.py
+license: free
+actions: [plan, status]
+needs_docker: false
+description: Plan local TLS files under ~/.kraken/data/ca. Not a public CA. Not in core.

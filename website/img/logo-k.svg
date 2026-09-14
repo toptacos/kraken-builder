@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Kraken K">
+  <rect width="256" height="256" rx="36" fill="#0B1220"/>
+  <defs>
+    <linearGradient id="k" x1="40" y1="20" x2="220" y2="240">
+      <stop offset="0%" stop-color="#7ff5ee"/>
+      <stop offset="55%" stop-color="#2FD0C6"/>
+      <stop offset="100%" stop-color="#1AA6A6"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#k)" d="M58 36c18 8 28 28 32 52 4 26-2 54-14 78-8 16-20 30-22 46 18-10 36-8 54 6 14 12 22 30 22 48h28c0-28-12-52-34-70-10-8-22-14-28-16 22-8 48-28 62-56 16-32 18-70 8-96L148 40c8 22 6 50-6 72-12 22-32 38-52 46 6-22 8-46 4-68-4-20-14-38-28-48L58 36z"/>
+  <circle cx="78" cy="92" r="5" fill="#0B1220"/>
+  <circle cx="70" cy="118" r="4.5" fill="#0B1220"/>
+  <circle cx="66" cy="142" r="4" fill="#0B1220"/>
+  <circle cx="72" cy="164" r="3.5" fill="#0B1220"/>
+</svg>

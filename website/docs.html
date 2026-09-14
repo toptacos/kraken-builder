@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kraken docs</title>
+  <link rel="icon" href="img/favicon.ico" sizes="any">
+  <link rel="canonical" href="https://kraken.topta.co/docs.html">
+  <link rel="stylesheet" href="css/brand.css">
+</head>
+<body class="docs">
+  <header class="nav">
+    <a class="brand" href="./"><img class="mark" src="img/icon-32.png" width="32" height="32" alt="Kraken tentacle-K mark"> KRAKEN</a>
+  </header>
+  <main class="panel">
+    <h2>CLI</h2>
+    <pre>kraken init
+kraken doctor
+kraken tentacle add examples/tentacles/geo
+kraken tentacle add github.com/you/weather-pro
+kraken tentacle plan weather-pro
+kraken run weather-pro forecast --compose --payload '{"zip":"27284"}'</pre>
+    <h2>Contract</h2>
+    <p>JSON v1 on stdin/stdout. Core never imports tentacle source.</p>
+    <h2>Dependencies</h2>
+    <p>Declare-only graph unless <code>--compose</code> runs deps first and injects <code>_deps</code>.</p>
+    <h2>Licenses</h2>
+    <p><code>~/.kraken/keys/licenses.json</code> then optional POST to api.topta.co.</p>
+    <h2>Examples</h2>
+    <p><a href="examples.html">Pi, filesort, local sites</a> · <code>docs/PLATFORMS.md</code></p>
+    <h2>Guides</h2>
+    <div class="cards">
+      <article class="card"><a href="tutorial-tentacles.html">Four tentacles tutorial</a></article>
+      <article class="card"><a href="security.html">Security model</a></article>
+      <article class="card"><a href="docker.html">Docker isolation</a></article>
+      <article class="card"><a href="courses.html">Courses + shorts</a></article>
+      <article class="card"><a href="languages.html">Hello world languages</a></article>
+      <article class="card"><a href="brand.html">Brand kit</a></article>
+      <article class="card"><a href="saas.html">SaaS / paid arms</a></article>
+    </div>
+    <h2>Markdown (in the repo)</h2>
+    <p><code>PLUGINS CONTRACT SECURITY NETWORK USERNS DEVICE_GROUP RUNTIME HELLO_WORLD DEPLOY_TOPTA</code></p>
+    <h2>Publish</h2>
+    <p><a href="publish.html">List a tentacle</a> · <code>docs/PUBLISHING.md</code> · <code>docs/MONETIZATION.md</code></p>
+  </main>
+</body>
+</html>

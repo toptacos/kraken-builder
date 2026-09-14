@@ -1,0 +1,67 @@
+{
+  "tentacles": [
+    {
+      "name": "geo",
+      "license": "free",
+      "blurb": "IP lookup",
+      "actions": [
+        "lookup"
+      ]
+    },
+    {
+      "name": "notes",
+      "license": "free",
+      "blurb": "Local markdown notes",
+      "actions": [
+        "put",
+        "get",
+        "search"
+      ]
+    },
+    {
+      "name": "panel",
+      "license": "free",
+      "blurb": "Same-device settings UI",
+      "actions": [
+        "status",
+        "paths",
+        "ui",
+        "contact"
+      ]
+    },
+    {
+      "name": "expose",
+      "license": "free",
+      "blurb": "*.kraken.localhost on 127.0.0.1",
+      "actions": [
+        "plan"
+      ]
+    },
+    {
+      "name": "docker-env",
+      "license": "free",
+      "blurb": "Compose plan, loopback bind",
+      "actions": [
+        "plan",
+        "up"
+      ]
+    },
+    {
+      "name": "weather-pro",
+      "license": "premium",
+      "blurb": "Paid forecast arm",
+      "actions": [
+        "forecast"
+      ]
+    },
+    {
+      "name": "scourge",
+      "license": "premium",
+      "blurb": "Org fleet after grant",
+      "actions": [
+        "status",
+        "devices"
+      ]
+    }
+  ]
+}

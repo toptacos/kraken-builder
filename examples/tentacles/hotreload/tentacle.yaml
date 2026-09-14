@@ -1,0 +1,7 @@
+name: hotreload
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+actions: [watch, tick, status, clear]
+description: Development hot-refresh. Register roots and a command; tick hashes files and reruns when they change.

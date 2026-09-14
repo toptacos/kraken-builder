@@ -1,0 +1,8 @@
+name: scourge
+version: "0.1.0"
+runtime: binary
+binary: handler.py
+license: premium
+actions: [status, devices, share-plan, login-plan]
+needs_docker: false
+description: Premium multi-device fleet view. Requires local license key.

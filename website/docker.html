@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Docker isolation — Kraken</title>
+  <link rel="canonical" href="https://kraken.topta.co/docker.html">
+  <link rel="stylesheet" href="css/brand.css">
+</head>
+<body class="docs">
+  <header class="nav">
+    <a class="brand" href="./"><img class="mark" src="img/logo-k-128.png" alt=""> KRAKEN</a>
+    <nav><a href="docs.html">Docs</a><a href="security.html">Security</a><a href="tutorial-tentacles.html">Tutorial</a></nav>
+  </header>
+  <main class="panel" style="opacity:1;transform:none">
+    <h1>Docker flags Kraken actually sets</h1>
+    <p>Core stays lean. Only <code>runtime</code>, <code>docker-env</code>, and <code>sites</code> shell out to Docker.</p>
+    <h2>runtime</h2>
+    <pre>docker run --rm -i
+  --network kraken_dev          # name must start with kraken_
+  --security-opt no-new-privileges
+  -v $PWD:/work
+  -v ~/.kraken/data:/kraken/data:ro   # drop :ro if write_data
+  image:tag                     # :latest rewritten to :local</pre>
+    <h2>docker-env</h2>
+    <pre>kraken run docker-env plan --payload '{
+  "name":"dev",
+  "public":false,
+  "isolated":true,
+  "services":[{"name":"redis","image":"redis:7-alpine","ports":["6379:6379"]}]
+}'</pre>
+    <p>Publishes become <code>127.0.0.1:6379:6379</code>. <code>isolated:true</code> sets Compose <code>internal: true</code>.</p>
+    <h2>User namespaces</h2>
+    <p>Not a tentacle flag. Run rootless Docker as your user, or set <code>userns-remap</code> on the daemon. Do not pass <code>--userns=host</code> from Kraken — that turns remapping off. See <code>docs/USERNS.md</code>.</p>
+    <video class="explainer" controls src="media/train-tentacles.mp4"></video>
+  </main>
+</body>
+</html>

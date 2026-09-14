@@ -1,0 +1,7 @@
+name: geo
+version: "0.1.2"
+license: free
+runtime: binary
+binary: handler.py
+actions: [lookup]
+description: Free zip lookup fixture used as a weather-pro dependency.

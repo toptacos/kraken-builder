@@ -1,0 +1,29 @@
+services:
+  docs:
+    image: nginx:alpine
+    container_name: kraken_site_docs
+    ports:
+      - "127.0.0.1:8081:80"
+    volumes:
+      - ./site-a:/usr/share/nginx/html:ro
+    networks: [kraken_sites]
+    labels:
+      kraken.tentacle: sites
+      kraken.uri: http://127.0.0.1:8081
+  app:
+    image: nginx:alpine
+    container_name: kraken_site_app
+    ports:
+      - "127.0.0.1:8082:80"
+    volumes:
+      - ./site-b:/usr/share/nginx/html:ro
+    networks: [kraken_sites]
+    labels:
+      kraken.tentacle: sites
+      kraken.uri: http://127.0.0.1:8082
+networks:
+  kraken_sites:
+    name: kraken_sites
+    internal: false
+    labels:
+      kraken.tentacle: sites

@@ -1,0 +1,9 @@
+name: openmeteo
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+needs_docker: false
+platforms: { linux-amd64: { tested: true }, darwin-arm64: { tested: true } }
+actions: [forecast]
+description: Open-Meteo forecast. No API key. Offline fixture if the net is down.

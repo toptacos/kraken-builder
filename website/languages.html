@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Languages — Kraken tentacles</title>
+  <meta name="description" content="Same JSON contract in Python, Bash, JavaScript, PHP, Ruby, Perl, Go, and Rust.">
+  <link rel="canonical" href="https://kraken.topta.co/languages.html">
+  <link rel="stylesheet" href="css/brand.css">
+</head>
+<body class="docs">
+  <header class="nav">
+    <a class="brand" href="./"><img class="mark" src="img/logo-k-transparent-128.png" alt=""> KRAKEN</a>
+    <nav><a href="./">Home</a><a href="tutorial-tentacles.html">Tutorial</a></nav>
+  </header>
+  <main class="panel" style="opacity:1;transform:none;min-height:auto">
+    <h1>Write an arm in the language you already use</h1>
+    <p>stdin JSON, stdout JSON, exit 0. Fixtures live in <code>examples/tentacles/polyglot/</code>.</p>
+    <pre>kraken workflow run examples/workflows/polyglot-goal.yaml</pre>
+    <div class="cards">
+      <article class="card"><header><strong>Python</strong></header><p><code>examples/tentacles/echo-bin.py</code></p></article>
+      <article class="card"><header><strong>Bash</strong></header><p><code>polyglot/echo.sh</code></p></article>
+      <article class="card"><header><strong>JavaScript</strong></header><p><code>polyglot/echo.js</code></p></article>
+      <article class="card"><header><strong>PHP</strong></header><p><code>polyglot/echo.php</code></p></article>
+      <article class="card"><header><strong>Ruby</strong></header><p><code>polyglot/echo.rb</code></p></article>
+      <article class="card"><header><strong>Perl</strong></header><p><code>polyglot/echo.pl</code></p></article>
+      <article class="card"><header><strong>Go</strong></header><p><code>polyglot/echo.go</code></p></article>
+      <article class="card"><header><strong>Rust</strong></header><p><code>polyglot/echo.rs</code> — compile, then point <code>binary:</code> at the file.</p></article>
+    </div>
+    <p>Also: docker-env, hotreload, vault, store in Python as full tools, not pings.</p>
+  <p>Hello-world + compile: examples/tentacles/hello-world/</p>
+  </main>
+</body>
+</html>

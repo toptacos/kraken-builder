@@ -1,0 +1,8 @@
+#!/usr/bin/env php
+<?php
+$cmd = $argv[1] ?? 'list';
+if ($cmd === 'route:list') {
+    echo "/health\n/catalog\n/\n";
+    exit(0);
+}
+echo "laravel-lite artisan stub. Commands: route:list\n";

@@ -1,0 +1,7 @@
+name: hello-pl
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.pl
+actions: [ping, hello]
+description: Hello world in Perl.

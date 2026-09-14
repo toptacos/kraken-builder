@@ -1,0 +1,7 @@
+name: echo
+version: "0.1.0"
+entrypoint: arms.echo.handler:handle
+description: In-process echo arm for hooks and suckers.
+triggers: [manual, queue]
+actions: [ping, echo]
+license: free

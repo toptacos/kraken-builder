@@ -1,0 +1,14 @@
+version: 1
+notify: local
+hooks:
+  after_run:
+    - tentacle: echo-bin
+      action: ping
+      optional: true
+      when: ["echo", "*"]
+tentacles:
+  - name: echo-bin
+    version: "0.1.0"
+    binary: examples/tentacles/echo-bin.py
+    actions: [ping]
+    license: free

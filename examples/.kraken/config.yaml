@@ -1,0 +1,8 @@
+version: 1
+notify: project
+data_dir: data
+overrides:
+  log_level: debug
+tentacles:
+  - name: echo-bin
+    binary: examples/tentacles/echo-bin.sh

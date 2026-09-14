@@ -1,0 +1,11 @@
+# Project overlay — multiple local sites, no core change.
+sites:
+  - name: docs
+    uri: http://127.0.0.1:8081
+    root: ./site-a
+    image: nginx:alpine
+  - name: app
+    uri: http://127.0.0.1:8082
+    root: ./site-b
+    image: nginx:alpine
+network: kraken_sites

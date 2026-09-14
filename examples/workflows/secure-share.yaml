@@ -1,0 +1,24 @@
+name: secure-share
+goal: Encrypt a credential, stash the ciphertext by hash, export a pack another Kraken install can import.
+steps:
+  - id: lock
+    tentacle: vault
+    action: init
+    payload: {}
+  - id: hide
+    tentacle: vault
+    action: put
+    payload:
+      name: deploy-token
+      value: "tok_demo_not_a_real_secret"
+  - id: stash
+    tentacle: store
+    action: put
+    payload:
+      name: deploy-token.enc
+      path: $hide.result.path
+      backend: local
+  - id: pack
+    tentacle: store
+    action: export-pack
+    payload: {}

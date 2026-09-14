@@ -1,0 +1,10 @@
+name: Bug
+description: Something the CLI or a tentacle got wrong
+body:
+  - type: textarea
+    id: repro
+    attributes:
+      label: Repro
+      description: Commands and JSON payload. No license keys.
+    validations:
+      required: true

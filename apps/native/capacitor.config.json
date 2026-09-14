@@ -1,0 +1,10 @@
+{
+  "appId": "co.topta.kraken",
+  "appName": "Kraken",
+  "webDir": "www",
+  "server": {
+    "hostname": "localhost",
+    "androidScheme": "https",
+    "errorPath": "offline.html"
+  }
+}
