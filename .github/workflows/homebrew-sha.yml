@@ -1,0 +1,15 @@
+name: homebrew-sha
+on:
+  push:
+    tags: ['v*']
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Print formula next step
+        run: |
+          echo "After this tag is public:"
+          echo "  curl -sL https://github.com/toptacos/kraken-builder/archive/refs/tags/${GITHUB_REF_NAME}.tar.gz | shasum -a 256"
+          echo "Paste into Formula/kraken-cli.rb sha256"
+          echo "Then: brew tap toptacos/kraken https://github.com/toptacos/kraken-builder"

@@ -1,7 +1,7 @@
 # Kraken brand guidelines (use this, not a new mark)
 
 ## Name
-**Kraken** by Topta. Never “Kraken Exchange.” Never a cartoon squid as the app icon.
+**Kraken** is a TopTaco product on topta.co. TopTaco is a brand of McAchran Consulting LLC. The tentacle-K lockup is the only app icon.
 
 **Tagline:** One binary. Many tentacles.  
 **URL:** https://kraken.topta.co  

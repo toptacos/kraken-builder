@@ -3,7 +3,7 @@
 Users get **either**:
 
 1. **Native shell** (Capacitor, bundled `panel` HTML) on the same device that runs `kraken`. Settings, paths, resources. No `server.url` in the store build.
-2. **Secure portal** `https://kraken.topta.co/account.html` via `api.topta.co` login. Scourge / multi-device after license + `kraken grant`.
+2. **Secure portal** `https://kraken.topta.co/account` via `api.topta.co` login. Scourge / multi-device after license + `kraken grant`.
 
 They are not two products. The CLI is the product. The app and the site are clients.
 
@@ -20,7 +20,7 @@ Do **not** add Flutter. Do **not** put a WebView on a phone pointed at a laptop�
 
 One binary for the scripts already on your disk. Premium is fleet + portal, not a fatter CLI.
 
-Channels: X (@mmcachran + @kraken_topta when claimed), README first 20 lines, courses shorts, then Product Hunt after the public repo exists.
+Channels: X (@mmcachran + @kraken_topta when claimed), README first 20 lines, `kraken demo` clip, then Product Hunt after Homebrew sha is filled. Do not create social accounts with injected JS.
 
 ## SEO
 
@@ -28,11 +28,11 @@ Canonical `https://kraken.topta.co/`. Keywords: local CLI plugin runner, tentacl
 
 ## Week of launch (human)
 
-1. Unzip handoff + scourge packs. `PYTHONPATH=. pytest` the grant/panel/expose tests.
-2. rsync `website/` to the DigitalOcean vhost already on kraken.topta.co DNS.
-3. Claim social names; post drafts from `docs/SOCIAL.md` only after a human click.
-4. Create GitHub repo when the App can. Tag `v0.1.0-beta`.
-5. Capacitor store build later; portal is enough for “advanced management” at ship.
+1. `PYTHONPATH=. python3 -m pytest tests/test_demo_first_json.py tests/test_expose.py tests/test_panel.py -q`
+2. Build the live SPA (`applications/kraken` in the monorepo) — prerender writes crawlable HTML.
+3. Search Console: property kraken.topta.co, submit sitemap.
+4. Claim social names yourself; post drafts from `docs/SOCIAL.md` after a human click.
+5. Tag `v0.1.1`. Fill Homebrew sha256. Capacitor store build later.
 
 ## Money
 

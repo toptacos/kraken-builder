@@ -32,6 +32,5 @@ jobs:
           export KRAKEN_BIN="$HOME/.local/bin"
           sh "$GITHUB_WORKSPACE/install.sh"
           export PATH="$KRAKEN_BIN:$PATH"
-          kraken self plan
-          kraken tentacle add "$KRAKEN_SRC/examples/tentacles/geo"
-          kraken run geo lookup --payload '{"ip":"1.1.1.1"}'
+          kraken demo
+          kraken doctor

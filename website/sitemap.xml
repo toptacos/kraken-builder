@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://kraken.topta.co/</loc></url>
-  <url><loc>https://kraken.topta.co/docs.html</loc></url>
-  <url><loc>https://kraken.topta.co/pricing.html</loc></url>
-  <url><loc>https://kraken.topta.co/register.html</loc></url>
-  <url><loc>https://kraken.topta.co/publish.html</loc></url>
-  <url><loc>https://kraken.topta.co/languages.html</loc></url>
-  <url><loc>https://kraken.topta.co/tutorial-tentacles.html</loc></url>
-  <url><loc>https://kraken.topta.co/security.html</loc></url>
-  <url><loc>https://kraken.topta.co/docker.html</loc></url>
-  <url><loc>https://kraken.topta.co/blog-panel-scourge.html</loc></url>
-  <url><loc>https://kraken.topta.co/account.html</loc></url>
-  <url><loc>https://kraken.topta.co/beta.html</loc></url>
-  <url><loc>https://kraken.topta.co/brand.html</loc></url>
-  <url><loc>https://kraken.topta.co/courses.html</loc></url>
+  <url><loc>https://kraken.topta.co/docs</loc></url>
+  <url><loc>https://kraken.topta.co/cli</loc></url>
+  <url><loc>https://kraken.topta.co/pricing</loc></url>
+  <url><loc>https://kraken.topta.co/register</loc></url>
+  <url><loc>https://kraken.topta.co/use-cases</loc></url>
+  <url><loc>https://kraken.topta.co/changelog</loc></url>
+  <url><loc>https://kraken.topta.co/blog</loc></url>
+  <url><loc>https://kraken.topta.co/security</loc></url>
+  <url><loc>https://kraken.topta.co/catalog</loc></url>
 </urlset>

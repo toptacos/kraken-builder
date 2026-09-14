@@ -1,23 +1,23 @@
 # kraken.topta.co
 
-Public marketing + catalog. Admin stays noindex.
+Live marketing is the Vue SPA (`toptaco-monorepo/applications/kraken`). `website/` is brand kit + archive. Canonical paths have no `.html`.
 
 ## Pages
 
-- `/` hero, install one-liner, two tentacles demo
-- `/docs` this tree
-- `/tentacles` catalog (starts as static markdown)
-- `/pricing` free core, paid plane TBD
-- `/brand` logos
-
-## Stack for the site (later)
-
-Laravel + FrankenPHP on Vercel or a small VPS. Postgres when accounts exist. Until then, static pages in `site/` are enough.
+- `/` hero, install, catalog slice
+- `/cli` install + demo + Homebrew
+- `/use-cases` homelab / Pi / consultant
+- `/docs` contract
+- `/catalog/tentacles/:name` long-form for geo, filesort, expose
+- `/blog` journal (six posts)
+- `/changelog` 0.1.1
+- `/register` tentacle listing
+- `/pricing` free core; Scourge on profile.topta.co
 
 ## SEO
 
-Index `/`, `/docs`, `/tentacles`. Noindex `/app`, `/billing`, `/admin`.
+Index `/`, `/docs`, `/cli`, `/catalog/*`, `/blog/*`, `/use-cases`. Noindex `/keys`, `/admin`. Prerender on `npm run build`.
 
 ## Launch post
 
-Silence until a public binary exists. Then one post: “Kraken is a single binary that runs tools from any repo.”
+`Kraken CLI is a local plugin runner. Not the exchange. curl … | sh then kraken demo.`

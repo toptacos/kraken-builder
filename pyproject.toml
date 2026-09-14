@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kraken-cli"
+version = "0.1.1"
+description = "Local-first CLI plugin runner. One binary. Many tentacles. Not the exchange."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [{ name = "McAchran Consulting LLC" }]
+keywords = ["cli", "homelab", "raspberry-pi", "plugins", "local-first"]
+dependencies = ["pyyaml"]
+
+[project.urls]
+Homepage = "https://kraken.topta.co"
+Source = "https://github.com/toptacos/kraken-builder"
+
+[project.scripts]
+kraken = "kraken.core.cli:main"
+k = "kraken.core.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["kraken*"]

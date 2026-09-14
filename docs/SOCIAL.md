@@ -5,8 +5,8 @@ I cannot create live X, YouTube, or Facebook accounts. Claim these names yoursel
 | Network | Claim |
 |---|---|
 | X | `@kraken_topta` (fallback `@krakentopta`) |
-| YouTube | channel **Kraken by Topta** — handle `@kraken_topta` |
-| Facebook | Page **Kraken by Topta** |
+| YouTube | channel **Kraken by TopTaco** — handle `@kraken_topta` |
+| Facebook | Page **Kraken by TopTaco** |
 | Site | https://kraken.topta.co |
 | API | https://api.topta.co |
 
@@ -46,11 +46,18 @@ First line on camera: “Kraken is one binary. You add tentacles. The machine st
 
 ## First posts (drafts — do not auto-post)
 
-X: `Kraken is out of the tank. One binary. Many tentacles. kraken.topta.co` + bumper  
-YouTube description: `python3 -m kraken init && python3 -m kraken vanilla` + https://kraken.topta.co/docs  
-Facebook: same + https://kraken.topta.co/account
+X: `Kraken CLI is a local plugin runner. Not the exchange. One binary. Many tentacles.
+curl -fsSL https://kraken.topta.co/install.sh | sh
+kraken demo
+kraken.topta.co` + bumper
 
-Do not imply the exchange. Always “Kraken by Topta.”
+YouTube description: `curl -fsSL https://kraken.topta.co/install.sh | sh` then `kraken demo` + https://kraken.topta.co/docs
+
+Facebook: same + https://kraken.topta.co/use-cases
+
+Do not create accounts with injected JS. Claim handles yourself, then post from the matt@topta.co Chrome profile.
+
+Always “Kraken by TopTaco.” TopTaco is a brand of McAchran Consulting LLC.
 
 ## Launch checklist (human)
 

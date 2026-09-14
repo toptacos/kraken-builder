@@ -1,0 +1,7 @@
+name: hello
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.sh
+actions: [ping]
+description: Template tentacle. JSON in, JSON out. Rename the folder and name.

@@ -41,6 +41,9 @@ export PATH="$BIN_DIR:$PATH"
 python3 -m kraken init
 python3 -m kraken vanilla
 echo "ok: kraken is on $BIN_DIR/kraken"
-echo "next: kraken self plan"
+echo "first JSON (geo lookup fixture):"
+python3 -m kraken demo || python3 -m kraken run geo lookup --payload '{"ip":"1.1.1.1"}' || true
+echo "next: kraken doctor"
+echo "then: kraken run filesort scan --payload '{\"path\":\".\"}'"
 echo "docs: https://kraken.topta.co/cli"
 echo "source: https://github.com/toptacos/kraken-builder"

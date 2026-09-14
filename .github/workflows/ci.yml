@@ -20,11 +20,12 @@ jobs:
       - name: Tentacle and core tests
         env:
           PYTHONPATH: ${{ github.workspace }}
-        run: python -m pytest tests/test_notes_tunnel_llm.py tests/test_expose.py tests/test_scopes_ca.py tests/test_panel.py tests/test_scourge_grant.py tests/test_suckers.py tests/test_install_wrapper.py tests/test_license_upgrade.py tests/test_wx_sucker.py tests/test_browse_js.py -q
-      - name: CLI init vanilla self plan
+        run: python -m pytest tests/test_notes_tunnel_llm.py tests/test_expose.py tests/test_scopes_ca.py tests/test_panel.py tests/test_scourge_grant.py tests/test_suckers.py tests/test_install_wrapper.py tests/test_license_upgrade.py tests/test_wx_sucker.py tests/test_browse_js.py tests/test_demo_first_json.py -q
+      - name: CLI init vanilla demo doctor
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
           python -m kraken init
           python -m kraken vanilla
-          python -m kraken self plan
+          python -m kraken demo
+          python -m kraken doctor

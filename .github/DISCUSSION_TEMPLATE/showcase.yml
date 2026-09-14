@@ -1,0 +1,10 @@
+title: "[showcase] "
+labels: ["showcase"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What you ran
+      description: Homelab, Pi, consultant jump host. Paste one command and the JSON out.
+    validations:
+      required: true

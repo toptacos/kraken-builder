@@ -98,6 +98,9 @@ def main(argv: list[str] | None = None) -> int:
     vanilla = sub.add_parser("vanilla", help="install bundled free tentacles")
     vanilla.add_argument("--home", type=Path, default=None)
 
+    demo_p = sub.add_parser("demo", help="run geo lookup so first JSON lands in 60s")
+    demo_p.add_argument("--ip", default="1.1.1.1")
+
     grant_p = sub.add_parser("grant", help="allow a default-deny capability")
     grant_p.add_argument("name")
     grant_p.add_argument("--revoke", action="store_true")
@@ -195,6 +198,21 @@ def main(argv: list[str] | None = None) -> int:
 
         print(json.dumps(install_vanilla(root, args.home)))
         return 0
+
+    if args.cmd == "demo":
+        try:
+            print(
+                json.dumps(
+                    run_named(root, "geo", "lookup", {"ip": args.ip}),
+                    default=str,
+                )
+            )
+            return 0
+        except (ResolveError, LicenseError, KeyError) as exc:
+            print(
+                json.dumps({"ok": False, "error": str(exc), "hint": "kraken vanilla"})
+            )
+            return 2
 
     if args.cmd == "grant":
         from kraken.core.grant import grant

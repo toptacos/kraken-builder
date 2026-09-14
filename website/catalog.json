@@ -92,8 +92,8 @@
       "name": "geo",
       "version": "0.1.2",
       "license": "free",
-      "blurb": "Free zip lookup fixture used as a weather-pro dependency.",
-      "docs": "IP lookup fixture. Free. Used as a weather-pro dependency.",
+      "blurb": "Offline IP/zip fixture. 1.1.1.1 → Los Angeles. First JSON after kraken demo.",
+      "docs": "Local CLI plugin runner fixture. No network. kraken demo runs this lookup so install prints JSON in under 60s.",
       "actions": [
         "lookup"
       ],

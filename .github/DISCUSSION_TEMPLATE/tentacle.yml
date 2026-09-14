@@ -1,0 +1,10 @@
+title: "[tentacle] "
+labels: ["write-a-tentacle"]
+body:
+  - type: textarea
+    id: yaml
+    attributes:
+      label: tentacle.yaml
+      description: Name, actions, language. No license keys.
+    validations:
+      required: true

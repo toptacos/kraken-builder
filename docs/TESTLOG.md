@@ -50,3 +50,16 @@ Vue SPA routes live 200: /tentacles /suckers /grants /brand /security. catalog.j
 Brand tokens ink #0B1220 teal #2FD0C6 foam #E7F6F6 gold #e7c56a on SPA.
 topta.co Products + FeaturesGrid copy aligned to lean CLI (not Docker stack).
 22 pytest still passed.
+
+2026-09-14 org move + PATH install
+
+Canonical public source: https://github.com/toptacos/kraken-builder
+Extensions: toptacos/kraken-tentacles, toptacos/kraken-suckers (public)
+Premium: toptacos/kraken-scourge, toptacos/kraken-premium (private)
+Team: github.com/orgs/toptacos/teams/kraken
+
+curl -fsSL https://kraken.topta.co/install.sh | sh  → PATH `kraken`
+vanilla finds ~/.kraken/src (8 tentacles).
+Premium: issue beta key → kraken license set → grant scourge → run scourge status. Keys 0600.
+Live Stripe checkout 503 (KRAKEN_BILLING off).
+pytest 27 passed. SPA /cli /examples /install.sh /banner-lockup.jpg 200.

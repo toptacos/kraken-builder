@@ -16,11 +16,11 @@
 
 ## Mark
 
-A simple coil of three tentacles around a geometric core — not a cartoon squid, not the exchange logo. Files in `branding/`.
+The tentacle-K lockup on ink. Files in `branding/` and `website/img/kit-2026/`.
 
 ## Why this brand exists
 
-Kraken is the product name for a local runner. The creature is a metaphor for *arms you attach*, not a crypto exchange and not a theme-park squid. Teal-on-ink plus Nyx is how people remember “one binary, many tentacles” in a feed full of generic CLI landing pages.
+Kraken is the product name for a local runner. Tentacles are arms you attach. Teal-on-ink is how the line “one binary, many tentacles” holds in a feed of generic CLI pages.
 
 ## Why someone uses the product
 

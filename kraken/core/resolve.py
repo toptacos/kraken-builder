@@ -14,7 +14,7 @@ from kraken.core.loader import load_arms
 from kraken.core.semver import satisfies
 from kraken.core.tentacle import discover_installed
 
-CORE_VERSION = "0.1.0"
+CORE_VERSION = "0.1.1"
 
 
 class ResolveError(ValueError):
@@ -41,7 +41,9 @@ class Plan:
         return {
             "root": self.root,
             "order": self.order,
-            "nodes": {k: {"version": n.version, "kind": n.kind} for k, n in self.nodes.items()},
+            "nodes": {
+                k: {"version": n.version, "kind": n.kind} for k, n in self.nodes.items()
+            },
             "optional_missing": self.optional_missing,
         }
 
@@ -73,7 +75,9 @@ def catalog(root) -> dict[str, Node]:
         name = spec.get("name")
         if not name or name in nodes:
             continue
-        nodes[str(name)] = Node(str(name), str(spec.get("version") or "0.0.0"), spec, "binary")
+        nodes[str(name)] = Node(
+            str(name), str(spec.get("version") or "0.0.0"), spec, "binary"
+        )
     return nodes
 
 
@@ -117,7 +121,9 @@ def resolve(root, name: str) -> Plan:
                 if optional:
                     plan.optional_missing.append(dep)
                     continue
-                raise ResolveError(f"{current} requires missing tentacle '{dep}' ({bound})")
+                raise ResolveError(
+                    f"{current} requires missing tentacle '{dep}' ({bound})"
+                )
             installed = nodes[dep].version
             if not optional and not satisfies(installed, bound):
                 raise ResolveError(

@@ -1,0 +1,39 @@
+name: tentacle-contract
+on:
+  push:
+    paths: ['examples/tentacles/**', '.github/workflows/tentacle-contract.yml']
+  pull_request:
+    paths: ['examples/tentacles/**']
+jobs:
+  yaml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml pytest
+      - name: Every tentacle has a name and handler
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+          root = Path("examples/tentacles")
+          missing = []
+          for d in sorted(p for p in root.iterdir() if p.is_dir() and not p.name.startswith(".")):
+              man = d / "tentacle.yaml"
+              if not man.exists():
+                  missing.append(str(man))
+                  continue
+              data = yaml.safe_load(man.read_text()) or {}
+              if not data.get("name"):
+                  missing.append(f"{man} missing name")
+              binary = data.get("binary") or "handler.py"
+              if not (d / binary).exists() and not list(d.glob("handler.*")):
+                  missing.append(f"{d} missing handler")
+          if missing:
+              raise SystemExit("\n".join(missing))
+          print("ok")
+          PY
