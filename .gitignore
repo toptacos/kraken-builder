@@ -7,3 +7,7 @@ __pycache__/
 keys/
 *.pem
 .vercel/
+scripts/chrome/media/*.png
+scripts/chrome/media/*.mov
+!scripts/chrome/media/og-still.jpg
+!scripts/chrome/media/launch-log.txt

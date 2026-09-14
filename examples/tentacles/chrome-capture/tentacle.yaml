@@ -1,0 +1,7 @@
+name: chrome-capture
+version: "0.1.0"
+license: premium
+runtime: binary
+binary: handler.py
+actions: [probe, capture]
+description: Premium. Probe a URL in Chrome Default (matt@topta.co) or return an offline fixture. Needs a license key.

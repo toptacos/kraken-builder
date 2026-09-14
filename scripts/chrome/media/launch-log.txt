@@ -1,0 +1,13 @@
+== home https://kraken.topta.co
+{"href":"https://kraken.topta.co/","title":"Kraken CLI · One binary. Many tentacles. | TopTaco","h1":"Kraken CLI — one binary. Many tentacles.","mit":true,"exchange":false,"buttons":[]}
+== cli https://kraken.topta.co/cli
+{"href":"https://kraken.topta.co/cli/","title":"Install Kraken CLI · Open source | TopTaco","h1":"Install Kraken CLI","mit":true,"exchange":false,"buttons":[]}
+== tutorial https://kraken.topta.co/docs/tentacle
+{"href":"https://kraken.topta.co/docs/tentacle/","title":"Create a tentacle · Kraken | TopTaco","h1":"Create a tentacle","mit":true,"exchange":false,"buttons":[]}
+== github https://github.com/toptacos/kraken-builder
+{"href":"https://github.com/toptacos/kraken-builder","title":"GitHub - toptacos/kraken-builder: Kraken CLI — open-source MIT plugin runner. One binary, many tentacles. · GitHub","h1":"Kraken CLI","mit":true,"exchange":false,"buttons":["Platform","Solutions","Resources","Open Source","Enterprise","Search/","main","Go to file","Code","View all files","More items","Manage cookies"]}
+== search-console https://search.google.com/search-console?resource_id=https://kraken.topta.co/
+{"href":"https://search.google.com/search-console/not-verified?original_url=/search-console?resource_id%3Dhttps://kraken.topta.co/&original_resource_id=https://kraken.topta.co/","title":"Oops, you don't have access to this property","h1":"","mit":true,"exchange":false,"buttons":["feedback","help_outline","manage_accounts","notifications","Add property","feedbackSubmit feedback","infoAbout Search Console","Verify your ownership","close"]}
+done. media in /Users/mcachran/Projects/Companies/TopTacos/Kraken/kraken-builder/scripts/chrome/media
+---
+screencapture failed: no GUI display in this session. Probe JSON above is the machine-readable capture. Branded still: og-still.jpg. Human: run capture.sh on a logged-in Mac for PNG/MOV.
