@@ -41,7 +41,9 @@ def _resolve_binary(root: Path, spec: dict[str, Any]) -> Path:
     return (root / path).resolve()
 
 
-def _invoke_one(root: Path, name: str, action: str, payload: dict[str, Any] | None) -> dict[str, Any]:
+def _invoke_one(
+    root: Path, name: str, action: str, payload: dict[str, Any] | None
+) -> dict[str, Any]:
     registry = in_process_registry(root)
     if name in registry.names():
         assert_licensed(name, registry.get(name).raw)
@@ -88,22 +90,57 @@ def run_named(
         result = _invoke_one(root, name, action, body)
     except Exception as exc:
         if not _IN_HOOK:
-            fire_hooks(root, "on_error", name, {**ctx, "ok": False, "result": str(exc)}, _invoke_one)
+            fire_hooks(
+                root,
+                "on_error",
+                name,
+                {**ctx, "ok": False, "result": str(exc)},
+                _invoke_one,
+            )
         raise
     emit("run", {"name": name, "action": action, "ok": bool(result.get("ok", True))})
     if not _IN_HOOK:
         _IN_HOOK = True
         try:
             hooks = fire_hooks(
-                root, "after_run", name, {**ctx, "ok": True, "result": result}, _invoke_one
+                root,
+                "after_run",
+                name,
+                {**ctx, "ok": True, "result": result},
+                _invoke_one,
             )
-        finally:
-            _IN_HOOK = False
-        if hooks:
-            if isinstance(result, dict):
+            if hooks and isinstance(result, dict):
                 result = dict(result)
                 result["_hooks"] = hooks
+                patch = _hook_patch(hooks)
+                spec = spec_by_name(root, name) or {}
+                actions = spec.get("actions") or []
+                if patch and "finish" in actions and action != "finish":
+                    finished = _invoke_one(
+                        root,
+                        name,
+                        "finish",
+                        {
+                            **(payload or {}),
+                            "raw": result.get("result"),
+                            "patch": patch,
+                        },
+                    )
+                    result["result"] = finished.get("result", finished)
+                    result["finished"] = True
+        finally:
+            _IN_HOOK = False
     return result
+
+
+def _hook_patch(hooks: list[dict[str, Any]]) -> dict[str, Any]:
+    patch: dict[str, Any] = {}
+    for hook in hooks:
+        blob = hook.get("result") or {}
+        inner = blob.get("result") if isinstance(blob.get("result"), dict) else blob
+        if isinstance(inner, dict) and isinstance(inner.get("patch"), dict):
+            patch.update(inner["patch"])
+    return patch
 
 
 def list_all(root: Path) -> list[dict[str, Any]]:
