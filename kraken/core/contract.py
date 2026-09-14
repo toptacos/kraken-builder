@@ -9,6 +9,23 @@ from pathlib import Path
 from typing import Any
 
 PROTOCOL_VERSION = 1
+KINDS = ("json", "text", "file", "media", "params")
+
+
+def envelope(kind: str, value: Any, **meta: Any) -> dict[str, Any]:
+    if kind not in KINDS:
+        kind = "json"
+    return {"kind": kind, "value": value, "meta": meta}
+
+
+def unwrap(payload: Any) -> dict[str, Any]:
+    if isinstance(payload, dict) and payload.get("kind") in KINDS:
+        return {
+            "kind": payload["kind"],
+            "value": payload.get("value"),
+            "meta": payload.get("meta") or {},
+        }
+    return {"kind": "json", "value": payload, "meta": {}}
 
 
 def encode_request(
@@ -37,8 +54,10 @@ def _argv(binary: Path) -> list[str]:
         return [sys.executable, str(binary)]
     if ext == ".sh":
         return ["bash", str(binary)]
-    if ext == ".js":
+    if ext in {".js", ".mjs"}:
         return ["node", str(binary)]
+    if ext in {".applescript", ".scpt"}:
+        return ["osascript", str(binary)]
     if ext == ".php":
         return ["php", str(binary)]
     if ext == ".rb":

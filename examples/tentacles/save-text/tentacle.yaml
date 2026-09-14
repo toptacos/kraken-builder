@@ -1,0 +1,8 @@
+name: save-text
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.js
+needs_docker: false
+actions: [convert]
+description: JS sucker. Turn a text envelope into a file envelope patch. Does not fetch.

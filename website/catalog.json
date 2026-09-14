@@ -1,67 +1,531 @@
 {
   "tentacles": [
     {
-      "name": "geo",
+      "name": "ca",
+      "version": "0.1.0",
       "license": "free",
-      "blurb": "IP lookup",
+      "blurb": "Plan local TLS files under ~/.kraken/data/ca. Not a public CA. Not in core.",
+      "docs": "Plans local TLS files under ~/.kraken/data/ca. Not a public CA. Not in core.",
+      "actions": [
+        "plan",
+        "status"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/ca",
+      "page": "/catalog/tentacles/ca",
+      "example": "kraken run ca plan --payload '{\"host\":\"panel.kraken.localhost\"}'",
+      "install": "kraken tentacle add examples/tentacles/ca"
+    },
+    {
+      "name": "countries",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "REST Countries v3. No key.",
+      "docs": "REST Countries v3. No key.",
       "actions": [
         "lookup"
-      ]
-    },
-    {
-      "name": "notes",
-      "license": "free",
-      "blurb": "Local markdown notes",
-      "actions": [
-        "put",
-        "get",
-        "search"
-      ]
-    },
-    {
-      "name": "panel",
-      "license": "free",
-      "blurb": "Same-device settings UI",
-      "actions": [
-        "status",
-        "paths",
-        "ui",
-        "contact"
-      ]
-    },
-    {
-      "name": "expose",
-      "license": "free",
-      "blurb": "*.kraken.localhost on 127.0.0.1",
-      "actions": [
-        "plan"
-      ]
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/countries",
+      "page": "/catalog/tentacles/countries",
+      "example": "kraken run countries lookup --payload '{\"name\":\"Mexico\"}'",
+      "install": "kraken tentacle add examples/tentacles/countries"
     },
     {
       "name": "docker-env",
+      "version": "0.1.0",
       "license": "free",
-      "blurb": "Compose plan, loopback bind",
+      "blurb": "Build a Docker Compose environment from a service list, start it when Docker exists, and emit a share spec so another Kraken box can join the same services.",
+      "docs": "Compose plan. Bind 127.0.0.1 unless public:true.",
       "actions": [
         "plan",
-        "up"
-      ]
+        "up",
+        "status",
+        "share",
+        "down"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/docker-env",
+      "page": "/catalog/tentacles/docker-env",
+      "example": "kraken run docker-env plan",
+      "install": "kraken tentacle add examples/tentacles/docker-env"
     },
     {
-      "name": "weather-pro",
-      "license": "premium",
-      "blurb": "Paid forecast arm",
+      "name": "expose",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Plan a *.kraken.localhost name on 127.0.0.1. Never binds 0.0.0.0.",
+      "docs": "Plans *.kraken.localhost on 127.0.0.1. Default deny until kraken grant expose.",
+      "actions": [
+        "plan",
+        "status"
+      ],
+      "needs_docker": false,
+      "grant": "expose",
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/expose",
+      "page": "/catalog/tentacles/expose",
+      "example": "kraken grant expose && kraken run expose plan --payload '{\"host\":\"panel.kraken.localhost\"}'",
+      "install": "kraken tentacle add examples/tentacles/expose"
+    },
+    {
+      "name": "filesort",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Walk a path, hash files, detect duplicates, tag by extension. SQLite index under .kraken/data/filesort.",
+      "docs": "Walk a path, hash files, detect duplicates.",
+      "actions": [
+        "scan",
+        "dups",
+        "tag"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/filesort",
+      "page": "/catalog/tentacles/filesort",
+      "example": "kraken run filesort scan --payload '{\"path\":\".\"}'",
+      "install": "kraken tentacle add examples/tentacles/filesort"
+    },
+    {
+      "name": "geo",
+      "version": "0.1.2",
+      "license": "free",
+      "blurb": "Free zip lookup fixture used as a weather-pro dependency.",
+      "docs": "IP lookup fixture. Free. Used as a weather-pro dependency.",
+      "actions": [
+        "lookup"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/geo",
+      "page": "/catalog/tentacles/geo",
+      "example": "kraken run geo lookup --payload '{\"ip\":\"1.1.1.1\"}'",
+      "install": "kraken tentacle add examples/tentacles/geo"
+    },
+    {
+      "name": "hotreload",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Development hot-refresh. Register roots and a command; tick hashes files and reruns when they change.",
+      "docs": "Development hot-refresh. Register roots and a command; tick hashes files and reruns when they change.",
+      "actions": [
+        "watch",
+        "tick",
+        "status",
+        "clear"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/hotreload",
+      "page": "/catalog/tentacles/hotreload",
+      "example": "kraken run hotreload status",
+      "install": "kraken tentacle add examples/tentacles/hotreload"
+    },
+    {
+      "name": "ipwhere",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "ip-api.com JSON, no key. Fixture when offline.",
+      "docs": "ip-api.com JSON, no key. Fixture when offline.",
+      "actions": [
+        "lookup"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/ipwhere",
+      "page": "/catalog/tentacles/ipwhere",
+      "example": "kraken run ipwhere lookup --payload '{\"ip\":\"1.1.1.1\"}'",
+      "install": "kraken tentacle add examples/tentacles/ipwhere"
+    },
+    {
+      "name": "llm",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Plan a local LLM container on kraken_llm with read-only ingest mounts.",
+      "docs": "Plan a local model call. Grant llm first. Core ships no weights.",
+      "actions": [
+        "plan",
+        "status"
+      ],
+      "needs_docker": true,
+      "grant": "llm",
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/llm",
+      "page": "/catalog/tentacles/llm",
+      "example": "kraken grant llm && kraken run llm plan",
+      "install": "kraken tentacle add examples/tentacles/llm"
+    },
+    {
+      "name": "notes",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Encrypted-at-rest notes under ~/.kraken/data/notes",
+      "docs": "Local markdown notes under ~/.kraken/data/notes.",
+      "actions": [
+        "list",
+        "put",
+        "get",
+        "search"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/notes",
+      "page": "/catalog/tentacles/notes",
+      "example": "kraken run notes put --payload '{\"path\":\"inbox.md\",\"body\":\"hi\"}'",
+      "install": "kraken tentacle add examples/tentacles/notes"
+    },
+    {
+      "name": "openmeteo",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Open-Meteo forecast. No API key. Offline fixture if the net is down.",
+      "docs": "Open-Meteo forecast. No API key. Offline fixture if the net is down.",
       "actions": [
         "forecast"
-      ]
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/openmeteo",
+      "page": "/catalog/tentacles/openmeteo",
+      "example": "kraken run openmeteo forecast --payload '{\"lat\":36.8,\"lon\":-76.0}'",
+      "install": "kraken tentacle add examples/tentacles/openmeteo"
+    },
+    {
+      "name": "panel",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Local Capacitor-friendly panel \u2014 settings, paths, resources, contact plan",
+      "docs": "Same-device settings UI. Capacitor loads bundled HTML. Live JSON optional from 127.0.0.1:18181.",
+      "actions": [
+        "status",
+        "paths",
+        "contact",
+        "ui"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/panel",
+      "page": "/catalog/tentacles/panel",
+      "example": "kraken run panel status",
+      "install": "kraken tentacle add examples/tentacles/panel"
+    },
+    {
+      "name": "pi-net",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Find a Raspberry Pi on the LAN (hosts list or mDNS names) or use raw SSH credentials. No Docker.",
+      "docs": "Find a Raspberry Pi on the LAN (hosts list or mDNS names) or use raw SSH credentials. No Docker.",
+      "actions": [
+        "discover",
+        "status",
+        "add"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/pi-net",
+      "page": "/catalog/tentacles/pi-net",
+      "example": "kraken run pi-net status",
+      "install": "kraken tentacle add examples/tentacles/pi-net"
+    },
+    {
+      "name": "quakes",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "USGS significant earthquakes GeoJSON. No key.",
+      "docs": "USGS significant earthquakes GeoJSON. No key.",
+      "actions": [
+        "feed"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/quakes",
+      "page": "/catalog/tentacles/quakes",
+      "example": "kraken run quakes list",
+      "install": "kraken tentacle add examples/tentacles/quakes"
+    },
+    {
+      "name": "runtime",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Run a tentacle request in a user image. Dockerfile + services.yaml only. Shared store/vault/ssh mounts. Dry-run when Docker is missing.",
+      "docs": "Run a tentacle request in a user image. Dockerfile + services.yaml only. Shared store/vault/ssh mounts. Dry-run when Docker is missing.",
+      "actions": [
+        "plan",
+        "build",
+        "invoke",
+        "publish"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/runtime",
+      "page": "/catalog/tentacles/runtime",
+      "example": "kraken run runtime plan",
+      "install": "kraken tentacle add examples/tentacles/runtime"
     },
     {
       "name": "scourge",
+      "version": "0.1.0",
       "license": "premium",
-      "blurb": "Org fleet after grant",
+      "blurb": "Premium multi-device fleet view. Requires local license key.",
+      "docs": "Premium org fleet. Requires license + kraken grant scourge. Private repo toptacos/kraken-scourge.",
       "actions": [
         "status",
-        "devices"
-      ]
+        "devices",
+        "share-plan",
+        "login-plan"
+      ],
+      "needs_docker": false,
+      "grant": "scourge",
+      "source": "https://github.com/toptacos/kraken-scourge/tree/main/scourge",
+      "page": "/catalog/tentacles/scourge",
+      "example": "kraken license set scourge KEY && kraken grant scourge && kraken run scourge status",
+      "install": "kraken tentacle add examples/tentacles/scourge"
+    },
+    {
+      "name": "sites",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Multi-site local dev from project .kraken/config.yaml. Compose on kraken_sites, ports on 127.0.0.1. Docker only for up.",
+      "docs": "Multi-site local dev from project .kraken/config.yaml. Compose on kraken_sites, ports on 127.0.0.1. Docker only for up.",
+      "actions": [
+        "plan",
+        "list",
+        "up"
+      ],
+      "needs_docker": true,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/sites",
+      "page": "/catalog/tentacles/sites",
+      "example": "kraken run sites plan",
+      "install": "kraken tentacle add examples/tentacles/sites"
+    },
+    {
+      "name": "store",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Content-addressed result store. Local, S3-mirror, or an encrypted pack another Kraken install can import.",
+      "docs": "Content-addressed result store. Local, S3-mirror, or an encrypted pack another Kraken install can import.",
+      "actions": [
+        "put",
+        "get",
+        "list",
+        "export-pack",
+        "import-pack",
+        "sync"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/store",
+      "page": "/catalog/tentacles/store",
+      "example": "kraken run store status",
+      "install": "kraken tentacle add examples/tentacles/store"
+    },
+    {
+      "name": "tunnel",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Plan an SSH jump to a host you already have a key for. Does not invent access.",
+      "docs": "Plan only. Grant tunnel first. Does not open a public hole by default.",
+      "actions": [
+        "plan",
+        "status"
+      ],
+      "needs_docker": false,
+      "grant": "tunnel",
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/tunnel",
+      "page": "/catalog/tentacles/tunnel",
+      "example": "kraken grant tunnel && kraken run tunnel plan",
+      "install": "kraken tentacle add examples/tentacles/tunnel"
+    },
+    {
+      "name": "vault",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Encrypt credentials and files with AES-256-CBC (openssl, PBKDF2). Bundles move to another Kraken install.",
+      "docs": "Local encrypted store. Keys stay on the box.",
+      "actions": [
+        "init",
+        "put",
+        "get",
+        "list",
+        "export-bundle",
+        "import-bundle"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/vault",
+      "page": "/catalog/tentacles/vault",
+      "example": "kraken run vault status",
+      "install": "kraken tentacle add examples/tentacles/vault"
+    },
+    {
+      "name": "voice-free",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Nyx scratch TTS via free local or public APIs. No ElevenLabs.",
+      "docs": "Nyx scratch TTS via free local or public APIs. No ElevenLabs.",
+      "actions": [
+        "speak",
+        "providers"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/voice-free",
+      "page": "/catalog/tentacles/voice-free",
+      "example": "kraken run voice-free plan",
+      "install": "kraken tentacle add examples/tentacles/voice-free"
+    },
+    {
+      "name": "weather-pro",
+      "version": "0.1.0",
+      "license": "premium",
+      "blurb": "Premium example. Needs geo installed and a license key.",
+      "docs": "Premium forecast arm. Key gated. Private under toptacos/kraken-premium.",
+      "actions": [
+        "forecast"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-premium/tree/main/weather-pro",
+      "page": "/catalog/tentacles/weather-pro",
+      "example": "kraken license set weather-pro KEY && kraken run weather-pro forecast",
+      "install": "kraken tentacle add examples/tentacles/weather-pro"
+    },
+    {
+      "name": "zippopotam",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Zippopotam.us ZIP \u2192 city. No key.",
+      "docs": "Zippopotam.us ZIP \u2192 city. No key.",
+      "actions": [
+        "lookup"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-tentacles/tree/main/tentacles/zippopotam",
+      "page": "/catalog/tentacles/zippopotam",
+      "example": "kraken run zippopotam lookup --payload '{\"zip\":\"23508\"}'",
+      "install": "kraken tentacle add examples/tentacles/zippopotam"
+    },
+    {
+      "name": "wx",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Fetch Open-Meteo, let a sucker convert units, then finish the report.",
+      "docs": "Fetch Open-Meteo (no key). After a sucker patches units, finish writes the report.",
+      "actions": [
+        "forecast",
+        "finish"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-builder/tree/main/examples/tentacles/wx",
+      "page": "/catalog/tentacles/wx",
+      "example": "kraken tentacle add examples/tentacles/wx-units\nkraken tentacle add examples/tentacles/wx\nkraken run wx forecast --payload '{\"lat\":36.85,\"lon\":-76.29}'",
+      "install": "kraken tentacle add examples/tentacles/wx"
+    },
+    {
+      "name": "wx-units",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "Sucker. Convert Open-Meteo Celsius to Fahrenheit and write a summary patch.",
+      "docs": "Does not fetch. Returns patch.temperature_f for wx finish.",
+      "actions": [
+        "convert"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-builder/tree/main/examples/tentacles/wx-units",
+      "page": "/catalog/tentacles/wx-units",
+      "example": "kraken tentacle add examples/tentacles/wx-units",
+      "install": "kraken tentacle add examples/tentacles/wx-units"
+    },
+    {
+      "name": "browse-js",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "osascript + Chrome JS on macOS, Node fixture elsewhere. Envelope kind=text then finish kind=file.",
+      "docs": "Any language. Shell dispatcher. Sucker save-text patches text to file. finish writes the path.",
+      "actions": [
+        "fetch",
+        "finish"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-builder/tree/main/examples/tentacles/browse-js",
+      "page": "/catalog/tentacles/browse-js",
+      "example": "k tentacle add examples/tentacles/save-text\nk tentacle add examples/tentacles/browse-js\nk run browse-js fetch --payload '{\"url\":\"https://example.com\"}'",
+      "install": "k tentacle add examples/tentacles/browse-js"
+    },
+    {
+      "name": "save-text",
+      "version": "0.1.0",
+      "license": "free",
+      "blurb": "JS sucker. Turn a text envelope into a file envelope patch.",
+      "docs": "Does not fetch. Returns patch.kind=file for browse-js finish.",
+      "actions": [
+        "convert"
+      ],
+      "needs_docker": false,
+      "grant": null,
+      "source": "https://github.com/toptacos/kraken-builder/tree/main/examples/tentacles/save-text",
+      "page": "/catalog/tentacles/save-text",
+      "example": "k tentacle add examples/tentacles/save-text",
+      "install": "k tentacle add examples/tentacles/save-text"
     }
-  ]
+  ],
+  "suckers": [
+    {
+      "name": "after-echo",
+      "sucker": "after-echo",
+      "tentacle": "echo-bin",
+      "action": "ping",
+      "optional": true,
+      "when": [
+        "echo"
+      ],
+      "blurb": "Named hook. Fires after echo. Does not re-enter.",
+      "docs": "Suckers are named hook rows. They point at a tentacle. Hook invokes do not fire hooks.",
+      "source": "https://github.com/toptacos/kraken-suckers/blob/main/suckers/after-echo.yaml",
+      "page": "/catalog/suckers/after-echo",
+      "example": "kraken run echo ping"
+    },
+    {
+      "name": "wx-units",
+      "sucker": "wx-units",
+      "tentacle": "wx-units",
+      "action": "convert",
+      "optional": true,
+      "when": [
+        "wx"
+      ],
+      "blurb": "Patch wx forecast units. Does not re-enter.",
+      "docs": "After wx forecast, convert C to F and return patch. Kraken then calls wx finish.",
+      "source": "https://github.com/toptacos/kraken-builder/blob/main/examples/suckers/wx-units.yaml",
+      "page": "/catalog/suckers/wx-units",
+      "example": "kraken run wx forecast --payload '{\"lat\":36.85,\"lon\":-76.29}'"
+    },
+    {
+      "name": "save-text",
+      "sucker": "save-text",
+      "tentacle": "save-text",
+      "action": "convert",
+      "optional": true,
+      "when": [
+        "browse-js"
+      ],
+      "blurb": "Patch browse-js text into a file envelope.",
+      "docs": "After browse-js fetch, convert kind=text to kind=file. Kraken then calls browse-js finish.",
+      "source": "https://github.com/toptacos/kraken-builder/blob/main/examples/suckers/save-text.yaml",
+      "page": "/catalog/suckers/save-text",
+      "example": "k run browse-js fetch --payload '{\"url\":\"https://example.com\"}'"
+    }
+  ],
+  "repos": {
+    "builder": "https://github.com/toptacos/kraken-builder",
+    "core": "https://github.com/toptacos/kraken-core",
+    "tentacles": "https://github.com/toptacos/kraken-tentacles",
+    "suckers": "https://github.com/toptacos/kraken-suckers"
+  }
 }

@@ -28,6 +28,8 @@ export PYTHONPATH="$SRC\${PYTHONPATH:+:\$PYTHONPATH}"
 exec python3 -m kraken "\$@"
 EOF
 chmod 0755 "$BIN_DIR/kraken"
+ln -sf "$BIN_DIR/kraken" "$BIN_DIR/k"
+echo "ok: k is an alias for kraken (PATH). Tentacle names are unchanged: k run wx"
 
 case ":$PATH:" in
   *":$BIN_DIR:"*) ;;
