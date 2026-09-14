@@ -1,8 +1,10 @@
 # Kraken CLI
 
-**One binary. Many tentacles.** Local-first CLI plugin runner. Not the [crypto exchange](https://www.kraken.com).
+**One binary. Many tentacles.** Local-first CLI plugin runner. 
 
 JSON in → policy → exec → JSON out. **MIT open source.** Optional billing lives in `kraken.billing` and is not required to run.
+
+![Kraken tentacle-K](https://kraken.topta.co/og-1200x630.jpg)
 
 ```
 curl -fsSL https://kraken.topta.co/install.sh | sh
@@ -41,10 +43,16 @@ API: https://api.topta.co
 
 Repos: [kraken-builder](https://github.com/toptacos/kraken-builder) · [tentacles](https://github.com/toptacos/kraken-tentacles) · [suckers](https://github.com/toptacos/kraken-suckers)
 
-Homebrew (fill sha256 after tagging v0.1.1):
+Homebrew:
 
 ```
 brew install toptacos/kraken/kraken-cli
+```
+
+Optional billing extra (same tree, not required):
+
+```
+pip install 'kraken-cli[billing]'
 ```
 
 Topics: `cli` · `homelab` · `raspberry-pi` · `plugins` · `local-first` · `self-hosted`

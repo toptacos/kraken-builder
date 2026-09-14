@@ -4,7 +4,7 @@ Opened in Chrome profile Default (matt@topta.co). Do not inject JS to create @kr
 
 ## X compose
 
-1. Kraken CLI is a local plugin runner. Not the exchange. One binary. Many tentacles.
+1. Kraken CLI is a local plugin runner. One binary. Many tentacles.
    curl -fsSL https://kraken.topta.co/install.sh | sh
    kraken demo
    https://kraken.topta.co
@@ -18,7 +18,7 @@ Opened in Chrome profile Default (matt@topta.co). Do not inject JS to create @kr
 ## YouTube (when channel exists)
 
 Title: Kraken CLI — one binary, many tentacles
-Description: curl -fsSL https://kraken.topta.co/install.sh | sh then kraken demo. Not the crypto exchange. https://kraken.topta.co/docs
+Description: curl -fsSL https://kraken.topta.co/install.sh | sh then kraken demo. https://kraken.topta.co/docs
 
 ## Search Console
 

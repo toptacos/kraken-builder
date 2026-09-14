@@ -20,4 +20,4 @@ Index `/`, `/docs`, `/cli`, `/catalog/*`, `/blog/*`, `/use-cases`. Noindex `/key
 
 ## Launch post
 
-`Kraken CLI is a local plugin runner. Not the exchange. curl … | sh then kraken demo.`
+`Kraken CLI is a local plugin runner. curl … | sh then kraken demo.`

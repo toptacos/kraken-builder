@@ -46,7 +46,7 @@ First line on camera: “Kraken is one binary. You add tentacles. The machine st
 
 ## First posts (drafts — do not auto-post)
 
-X: `Kraken CLI is a local plugin runner. Not the exchange. One binary. Many tentacles.
+X: `Kraken CLI is a local plugin runner. One binary. Many tentacles.
 curl -fsSL https://kraken.topta.co/install.sh | sh
 kraken demo
 kraken.topta.co` + bumper

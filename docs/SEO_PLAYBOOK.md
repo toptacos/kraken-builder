@@ -3,11 +3,11 @@
 Live surface is the Vue SPA (`toptaco-monorepo/applications/kraken`). `website/` is the brand kit + static archive. Canonical paths have no `.html`.
 
 ## Positioning
-Local CLI plugin runner. Not the crypto exchange.
+Local CLI plugin runner.
 
 **Title pattern:** `{Page} · Kraken CLI`  
 **Home title:** `Kraken CLI · One binary. Many tentacles.`  
-**Meta:** Local CLI plugin runner. Not the crypto exchange. Attach tentacles in any language. MIT core.
+**Meta:** Local CLI plugin runner. Attach tentacles in any language. MIT core.
 
 Canonical every page: `https://kraken.topta.co/{path}`  
 `robots.txt` allow `/` disallow keys/admin. `npm run build` prerenders HTML + regenerates `sitemap.xml`.

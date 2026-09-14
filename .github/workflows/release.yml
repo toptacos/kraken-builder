@@ -20,7 +20,7 @@ jobs:
         with:
           generate_release_notes: true
           body: |
-            Kraken CLI ${{ github.ref_name }} — local plugin runner. Not the exchange.
+            Kraken CLI ${{ github.ref_name }} — local plugin runner.
 
             ```
             curl -fsSL https://kraken.topta.co/install.sh | sh

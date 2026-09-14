@@ -5,13 +5,16 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kraken-cli"
 version = "0.1.1"
-description = "Open-source MIT CLI plugin runner. One binary. Many tentacles. Not the exchange."
+description = "Open-source MIT CLI plugin runner. One binary. Many tentacles."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
 authors = [{ name = "McAchran Consulting LLC" }]
 keywords = ["cli", "homelab", "raspberry-pi", "plugins", "local-first"]
 dependencies = ["pyyaml"]
+
+[project.optional-dependencies]
+billing = []
 
 [project.urls]
 Homepage = "https://kraken.topta.co"

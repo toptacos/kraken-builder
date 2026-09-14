@@ -11,12 +11,12 @@
 ### Site
 - Live SPA pages: use-cases, changelog, blog posts, register, long-form geo/filesort.
 - Playground demos the geo contract with a city result (still does not exec on the host).
-- JSON-LD disambiguates Kraken CLI from the crypto exchange.
 - Prerender script writes crawlable HTML for home, docs, catalog, blog.
+- Optional `kraken.billing` package: local keys, hooks, verbose logs. MIT core does not require it.
 
 ### Distribution
 - Homebrew formula at `Formula/kraken-cli.rb` (tap: toptacos/kraken).
 - GitHub release workflow body includes install + CHANGELOG excerpt.
 - Discussions templates: install, write-a-tentacle, showcase.
 
-Not the Kraken exchange. Brand: tentacle-K, ink `#0B1220`, teal `#2FD0C6`.
+Brand: tentacle-K, ink `#0B1220`, teal `#2FD0C6`.

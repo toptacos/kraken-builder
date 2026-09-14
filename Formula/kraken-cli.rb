@@ -1,5 +1,5 @@
 class KrakenCli < Formula
-  desc "Local-first CLI plugin runner. One binary. Many tentacles. Not the exchange."
+  desc "Local-first CLI plugin runner. One binary. Many tentacles."
   homepage "https://kraken.topta.co"
   url "https://github.com/toptacos/kraken-builder/archive/refs/tags/v0.1.1.tar.gz"
   sha256 "0000000000000000000000000000000000000000000000000000000000000000"

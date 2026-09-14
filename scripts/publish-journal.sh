@@ -22,8 +22,8 @@ post() {
 }
 
 post kraken-cli-one-binary "Kraken CLI: one binary, many tentacles" \
-  "Local CLI plugin runner. Not the crypto exchange. Install, demo, doctor." \
-  "<h2>Local CLI plugin runner</h2><p>Not the exchange. <a href=\"https://kraken.topta.co/cli\">Install</a> then <code>kraken demo</code>.</p><pre>curl -fsSL https://kraken.topta.co/install.sh | sh</pre>"
+  "Local CLI plugin runner. Install, demo, doctor." \
+  "<h2>Local CLI plugin runner</h2><p><a href=\"https://kraken.topta.co/cli\">Install</a> then <code>kraken demo</code>.</p><pre>curl -fsSL https://kraken.topta.co/install.sh | sh</pre>"
 
 post kraken-grants-default-deny "Kraken grants: default deny" \
   "kraken grant before expose, tunnel, llm, scourge. Self-hosted tentacle CLI." \

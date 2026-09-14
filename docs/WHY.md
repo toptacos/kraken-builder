@@ -41,4 +41,4 @@ Personas and jobs: `docs/USE_CASES.md`, `website/use-cases.html`.
 
 - Not a replacement for Kubernetes.
 - Not an LLM. Tentacles can call models; core does not require one.
-- Not the Kraken exchange.
+-
