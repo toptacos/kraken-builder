@@ -18,15 +18,30 @@ kraken grant expose
 kraken run expose plan --payload '{"host":"panel.kraken.localhost"}'
 ```
 
+## Public input
+
+| Channel | Use |
+|---------|-----|
+| [Discussions · install](https://github.com/toptacos/kraken-builder/discussions) | Install, PATH, python wrapper |
+| [Discussions · tentacle](https://github.com/toptacos/kraken-builder/discussions) | Write an arm. Paste tentacle.yaml, no keys |
+| [Discussions · showcase](https://github.com/toptacos/kraken-builder/discussions) | Homelab / Pi / consultant jobs |
+| [Issues](https://github.com/toptacos/kraken-builder/issues) | Bugs with a repro. Never paste `~/.kraken/keys` |
+| [Register](https://kraken.topta.co/register) | List a tentacle for catalog review |
+
+Template: [`examples/tentacles/_template/`](examples/tentacles/_template/). Contract: JSON on stdin, JSON on stdout. Core never imports your source.
+
+## Links
+
 Site: https://kraken.topta.co  
 Install: https://kraken.topta.co/cli  
 Use cases: https://kraken.topta.co/use-cases  
 Changelog: https://kraken.topta.co/changelog  
-API: https://api.topta.co  
+Pricing: https://kraken.topta.co/pricing (Starter $9.99 / Pro $29.99 / Enterprise $99.99 — checkout on profile.topta.co)  
+API: https://api.topta.co
 
 Repos: [kraken-builder](https://github.com/toptacos/kraken-builder) · [tentacles](https://github.com/toptacos/kraken-tentacles) · [suckers](https://github.com/toptacos/kraken-suckers)
 
-Homebrew (after the v0.1.1 tag SHA is filled):
+Homebrew (fill sha256 after tagging v0.1.1):
 
 ```
 brew install toptacos/kraken/kraken-cli
