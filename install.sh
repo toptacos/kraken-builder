@@ -14,6 +14,8 @@ need python3
 mkdir -p "$SRC" "$BIN_DIR" "$HOME/.kraken"
 if [ -d "$SRC/.git" ]; then
   git -C "$SRC" pull --ff-only
+elif [ -f "$SRC/kraken/__main__.py" ]; then
+  :
 else
   git clone --depth 1 "$REPO" "$SRC"
 fi

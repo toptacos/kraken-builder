@@ -1,0 +1,36 @@
+name: install
+on:
+  push:
+    branches: [main]
+    paths: ['install.sh', 'scripts/kraken', 'kraken/**', '.github/workflows/install.yml']
+  pull_request:
+    paths: ['install.sh', 'scripts/kraken', 'kraken/**']
+jobs:
+  posix-install:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Isolated HOME install
+        env:
+          KRAKEN_REPO: ${{ github.workspace }}
+        run: |
+          HOME="${RUNNER_TEMP}/kraken-home"
+          export HOME
+          mkdir -p "$HOME"
+          # install.sh clones; point it at this checkout instead
+          export KRAKEN_SRC="$HOME/.kraken/src"
+          mkdir -p "$KRAKEN_SRC"
+          cp -R "${GITHUB_WORKSPACE}/." "$KRAKEN_SRC/"
+          export KRAKEN_BIN="$HOME/.local/bin"
+          sh "$GITHUB_WORKSPACE/install.sh"
+          export PATH="$KRAKEN_BIN:$PATH"
+          kraken self plan
+          kraken tentacle add "$KRAKEN_SRC/examples/tentacles/geo"
+          kraken run geo lookup --payload '{"ip":"1.1.1.1"}'
