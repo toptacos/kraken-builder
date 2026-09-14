@@ -36,7 +36,7 @@ Site: https://kraken.topta.co
 Install: https://kraken.topta.co/cli  
 Use cases: https://kraken.topta.co/use-cases  
 Changelog: https://kraken.topta.co/changelog  
-Pricing: https://kraken.topta.co/pricing (Starter $9.99 / Pro $29.99 / Enterprise $99.99 — checkout on profile.topta.co)  
+Pricing: https://kraken.topta.co/pricing (Starter $19 / Pro $49 / Enterprise $149 — checkout on profile.topta.co)  
 API: https://api.topta.co
 
 Repos: [kraken-builder](https://github.com/toptacos/kraken-builder) · [tentacles](https://github.com/toptacos/kraken-tentacles) · [suckers](https://github.com/toptacos/kraken-suckers)
