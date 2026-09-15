@@ -47,7 +47,31 @@ def collect_hooks(root, event: str, target: str) -> list[dict[str, Any]]:
         if raw.get("tentacle") == target:
             continue
         out.append(raw)
+    out.sort(key=lambda h: _priority(h))
     return out
+
+
+def _priority(raw: dict[str, Any]) -> int:
+    try:
+        return int(raw.get("priority", 100))
+    except (TypeError, ValueError):
+        return 100
+
+
+def _if_ok(raw: dict[str, Any], context: dict[str, Any]) -> bool:
+    cond = raw.get("if")
+    if not cond:
+        return True
+    if cond in (True, "ok", "success"):
+        return bool(context.get("ok", True))
+    if cond in (False, "not_ok", "error"):
+        return not bool(context.get("ok", True))
+    if isinstance(cond, str) and cond.startswith("action="):
+        wanted = cond.split("=", 1)[1]
+        return (
+            str(context.get("action") or context.get("target_action") or "") == wanted
+        )
+    return True
 
 
 def fire_hooks(
@@ -64,6 +88,11 @@ def fire_hooks(
         optional = bool(hook.get("optional", True))
         if not name:
             continue
+        if not _if_ok(hook, context):
+            results.append(
+                {"tentacle": name, "ok": True, "skipped": True, "reason": "if"}
+            )
+            continue
         payload = {
             "hook": event,
             "target": target,
@@ -78,10 +107,14 @@ def fire_hooks(
             emit("hook", {"event": event, "tentacle": name, "target": target})
         except Exception as exc:  # missing, license, binary
             if optional:
-                results.append({"tentacle": name, "ok": False, "skipped": True, "error": str(exc)})
+                results.append(
+                    {"tentacle": name, "ok": False, "skipped": True, "error": str(exc)}
+                )
                 continue
             if event == "before_run":
-                raise HookAbort(f"before_run hook '{name}' aborted {target}: {exc}") from exc
+                raise HookAbort(
+                    f"before_run hook '{name}' aborted {target}: {exc}"
+                ) from exc
             results.append({"tentacle": name, "ok": False, "error": str(exc)})
         else:
             if event == "before_run" and result.get("ok") is False and not optional:

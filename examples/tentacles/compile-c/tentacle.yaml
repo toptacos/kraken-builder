@@ -11,8 +11,12 @@ hooks:
     - tentacle: compile-stamp
       action: convert
       optional: true
+      priority: 10
+      if: ok
       when: ["compile-c"]
     - tentacle: compile-tag
       action: convert
       optional: true
+      priority: 20
+      if: ok
       when: ["compile-c"]

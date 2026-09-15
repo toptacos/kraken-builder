@@ -79,6 +79,8 @@ Rules:
 - `tentacle` equal to the target is skipped (a tentacle cannot hook itself).
 - Missing optional hook → `{skipped: true}`, main run still succeeds.
 - `before_run` + `optional: false` + hook `ok: false` → `HookAbort`, main tentacle does not run, `on_error` still fires.
+- `priority:` integer, lower runs first (default 100).
+- `if: ok` runs only when the main result was ok. `if: error` on failure. `if: action=forecast` matches the action name.
 
 ## Middleware (control plane only)
 

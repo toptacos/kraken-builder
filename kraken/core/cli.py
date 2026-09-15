@@ -101,6 +101,21 @@ def main(argv: list[str] | None = None) -> int:
     demo_p = sub.add_parser("demo", help="run geo lookup so first JSON lands in 60s")
     demo_p.add_argument("--ip", default="1.1.1.1")
 
+    inst = sub.add_parser(
+        "instance", help="named Kraken homes you can export without keys"
+    )
+    inst_sub = inst.add_subparsers(dest="inst_cmd", required=True)
+    inst_new = inst_sub.add_parser("new")
+    inst_new.add_argument("name")
+    inst_new.add_argument("--label", default="")
+    inst_sub.add_parser("list")
+    inst_exp = inst_sub.add_parser("export")
+    inst_exp.add_argument("name")
+    inst_exp.add_argument("--out", type=Path, default=None)
+    inst_imp = inst_sub.add_parser("import")
+    inst_imp.add_argument("archive", type=Path)
+    inst_imp.add_argument("--name", default="")
+
     grant_p = sub.add_parser("grant", help="allow a default-deny capability")
     grant_p.add_argument("name")
     grant_p.add_argument("--revoke", action="store_true")
@@ -118,6 +133,34 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "init":
         print(str(ensure_user_layout(args.home)))
         return 0
+
+    if args.cmd == "instance":
+        from kraken.core.instance import (
+            create_instance,
+            export_bundle,
+            import_bundle,
+            list_instances,
+        )
+
+        if args.inst_cmd == "new":
+            print(json.dumps(create_instance(args.name, args.label)))
+            return 0
+        if args.inst_cmd == "list":
+            print(json.dumps(list_instances()))
+            return 0
+        if args.inst_cmd == "export":
+            blob = export_bundle(args.name)
+            dest = args.out or Path(f"{args.name}.kraken.tgz")
+            dest.write_bytes(blob)
+            print(
+                json.dumps(
+                    {"ok": True, "path": str(dest), "bytes": len(blob), "keys": False}
+                )
+            )
+            return 0
+        if args.inst_cmd == "import":
+            print(json.dumps(import_bundle(args.archive, args.name or None)))
+            return 0
 
     if args.cmd == "list":
         for row in list_all(root):
