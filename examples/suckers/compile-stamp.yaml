@@ -1,0 +1,5 @@
+sucker: compile-stamp
+tentacle: compile-stamp
+action: convert
+optional: true
+when: ["compile-c"]

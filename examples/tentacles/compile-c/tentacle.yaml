@@ -1,0 +1,18 @@
+name: compile-c
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+actions: [plan, build, invoke, finish]
+needs_docker: true
+description: Compile a C handler to a single binary via Docker, then invoke it. Suckers stamp and tag the result. Dry-run when Docker is missing.
+hooks:
+  after_run:
+    - tentacle: compile-stamp
+      action: convert
+      optional: true
+      when: ["compile-c"]
+    - tentacle: compile-tag
+      action: convert
+      optional: true
+      when: ["compile-c"]

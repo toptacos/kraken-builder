@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Docker environment tentacle. Dry-runs when docker is missing."""
+
 from __future__ import annotations
 
 import json
@@ -17,7 +18,9 @@ def _home() -> Path:
 
 
 def _ok(req: dict, result: dict, ok: bool = True) -> int:
-    sys.stdout.write(json.dumps({"v": 1, "id": req.get("id"), "ok": ok, "result": result}))
+    sys.stdout.write(
+        json.dumps({"v": 1, "id": req.get("id"), "ok": ok, "result": result})
+    )
     return 0
 
 
@@ -34,7 +37,9 @@ def _bind_port(raw: str, public: bool) -> str:
     return f"127.0.0.1:{text}"
 
 
-def _compose_yaml(name: str, services: list, public: bool = False, isolated: bool = False) -> str:
+def _compose_yaml(
+    name: str, services: list, public: bool = False, isolated: bool = False
+) -> str:
     lines = ["services:"]
     for svc in services:
         sid = str(svc.get("name") or "app")
@@ -51,7 +56,7 @@ def _compose_yaml(name: str, services: list, public: bool = False, isolated: boo
         if env:
             lines.append("    environment:")
             for k, v in env.items():
-                lines.append(f"      {k}: \"{v}\"")
+                lines.append(f'      {k}: "{v}"')
         lines.append(f"    networks: [kraken_{name}]")
         lines.append(f"    labels:")
         lines.append(f"      kraken.tentacle: docker-env")
@@ -83,10 +88,19 @@ def main() -> int:
     req = json.loads(sys.stdin.read() or "{}")
     action = req.get("action") or "plan"
     p = req.get("payload") or {}
-    name = str(p.get("name") or "dev")
-    services = list(p.get("services") or [{"name": "redis", "image": "redis:7-alpine", "ports": ["6379:6379"]}])
-    public = bool(p.get("public"))
-    isolated = bool(p.get("isolated"))
+    from kraken.core.network import resolve_docker
+
+    net = resolve_docker(p)
+    name = str(
+        p.get("name")
+        or (net["name"].removeprefix("kraken_") if net.get("name") else "dev")
+    )
+    services = list(
+        p.get("services")
+        or [{"name": "redis", "image": "redis:7-alpine", "ports": ["6379:6379"]}]
+    )
+    public = bool(p["public"]) if "public" in p else bool(net.get("public"))
+    isolated = bool(p["isolated"]) if "isolated" in p else bool(net.get("isolated"))
     root = Path(p.get("dir") or (_home() / name))
     root.mkdir(parents=True, exist_ok=True)
     compose_path = root / "docker-compose.yml"
@@ -95,7 +109,16 @@ def main() -> int:
     state_path = root / "state.json"
 
     if action == "plan":
-        return _ok(req, {"name": name, "compose": str(compose_path), "yaml": yaml_text, "mode": "plan"})
+        return _ok(
+            req,
+            {
+                "name": name,
+                "compose": str(compose_path),
+                "yaml": yaml_text,
+                "mode": "plan",
+                "docker": net,
+            },
+        )
 
     if action == "up":
         code, out = _run_docker(["compose", "up", "-d"], root)
@@ -107,13 +130,23 @@ def main() -> int:
     if action == "status":
         code, out = _run_docker(["compose", "ps"], root)
         saved = json.loads(state_path.read_text()) if state_path.exists() else {}
-        return _ok(req, {"name": name, "docker": bool(_docker()), "ps": out[-2000:], "saved": saved})
+        return _ok(
+            req,
+            {
+                "name": name,
+                "docker": bool(_docker()),
+                "ps": out[-2000:],
+                "saved": saved,
+            },
+        )
 
     if action == "share":
         ports = []
         for svc in services:
             for pval in svc.get("ports") or []:
-                ports.append({"service": svc.get("name"), "publish": _bind_port(pval, public)})
+                ports.append(
+                    {"service": svc.get("name"), "publish": _bind_port(pval, public)}
+                )
         spec = {
             "kind": "kraken.docker-share.v1",
             "env": name,
@@ -123,6 +156,8 @@ def main() -> int:
             "bind": "127.0.0.1" if not public else "0.0.0.0",
             "isolated": isolated,
             "join": f"docker network connect kraken_{name} <container>",
+            "docker": net,
+            "optional": not net.get("enabled"),
         }
         (root / "share.json").write_text(json.dumps(spec, indent=2))
         return _ok(req, spec)
