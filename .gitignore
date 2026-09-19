@@ -9,5 +9,12 @@ keys/
 .vercel/
 scripts/chrome/media/*.png
 scripts/chrome/media/*.mov
+scripts/chrome/media/*.log
 !scripts/chrome/media/og-still.jpg
 !scripts/chrome/media/launch-log.txt
+*.egg-info/
+build/
+dist/
+*.pyc
+.mypy_cache/
+.ruff_cache/
