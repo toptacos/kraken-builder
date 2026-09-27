@@ -1,0 +1,17 @@
+name: profile
+mount: site
+host: profile.topta.co
+license: free
+brand:
+  wordmark: profile
+  ink: "#0B1220"
+  teal: "#2FD0C6"
+pages: [account, settings, subscriptions, api_keys, notes, vault, calendar, resume]
+api:
+  collection: account
+  jobs: [email]
+auth:
+  required: true
+  # One login gates the other hosts. SSO cookie on .topta.co, not per-host.
+  sso_cookie: sso_token
+  gate_hosts: [blog, tacos, music, discgolf, kraken, portfolio]

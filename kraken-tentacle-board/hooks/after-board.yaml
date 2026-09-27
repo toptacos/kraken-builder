@@ -1,0 +1,6 @@
+id: after-board
+when: after_run
+tentacle: save-text
+action: convert
+optional: true
+if: ok

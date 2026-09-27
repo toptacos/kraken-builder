@@ -1,0 +1,17 @@
+name: taco
+version: "0.1.0"
+license: premium
+runtime: binary
+binary: handler.sh
+actions: [ping, help, init, after_install, oauth, host, policy, set-policy, event, ingest, score, give, redeem, catalog, finish, clear]
+timeout_sec: 15
+data_dir: data
+needs_docker: false
+hooks:
+  after_install:
+    - tentacle: taco
+      action: after_install
+      payload: {defaults: true}
+description: >
+  Premium TopTaco gamification. Local policy + ledger. Inbound events only.
+  Does not pull GitHub/GitLab/AWS on its own.

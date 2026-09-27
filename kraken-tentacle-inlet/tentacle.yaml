@@ -1,0 +1,12 @@
+name: inlet
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.sh
+actions: [ping, which, devices, grant, revoke, listen, status, stop, finish]
+timeout_sec: 20
+data_dir: data
+needs_docker: false
+description: >
+  Loopback control-plane UI for the reef. Optional cloudflared tunnel.
+  Devices are a local roster. No remote shell. No host command execution.

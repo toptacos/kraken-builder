@@ -1,0 +1,14 @@
+name: tacos
+mount: site
+host: tacos.topta.co
+license: free
+brand:
+  wordmark: tacos
+  ink: "#0B1220"
+  teal: "#2FD0C6"
+pages: [list, place, review]
+api:
+  collection: places
+  jobs: [geocode, thumbnail]
+meter:
+  featured_listing_usd: 29.99

@@ -1,0 +1,16 @@
+name: discgolf
+mount: site
+host: discgolf.topta.co
+license: free
+brand:
+  wordmark: disc golf
+  ink: "#0B1220"
+  teal: "#2FD0C6"
+pages: [courses, course, review]
+api:
+  collection: courses
+  jobs: [geocode]
+meter:
+  affiliate: true
+  # Commission comes from the affiliate network, not from listing fees.
+  affiliate_pct: 6-10

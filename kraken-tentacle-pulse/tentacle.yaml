@@ -1,0 +1,10 @@
+name: pulse
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.sh
+actions: [ping, check, wrap, finish]
+timeout_sec: 10
+data_dir: data
+needs_docker: false
+description: Validate and wrap Kraken v1 envelopes. Vanilla JavaScript (Node, no deps).

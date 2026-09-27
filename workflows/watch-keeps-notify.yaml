@@ -1,0 +1,27 @@
+# Cross-arm story: tick watch, read a keep name (not value) in logs, notify locally.
+name: watch-keeps-notify
+steps:
+  - id: tick
+    tentacle: watch
+    action: ping
+  - id: names
+    tentacle: keeps
+    action: list
+    needs: [tick]
+  - id: notify
+    tentacle: watch
+    action: notify
+    needs: [names]
+    payload:
+      channel: local
+      title: reef
+      body: "keeps list complete — values not in this envelope"
+  - id: ledger
+    tentacle: ledger
+    action: append
+    needs: [notify]
+    payload:
+      envelope:
+        arm: watch
+        note: local notify only
+        value: "must-be-redacted-if-present"

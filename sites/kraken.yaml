@@ -1,0 +1,17 @@
+name: kraken
+mount: both
+host: kraken.topta.co
+license: free
+brand:
+  wordmark: Kraken
+  line: "One binary. Many tentacles."
+pages: [cli, docs/tentacle, catalog, pricing, register]
+api:
+  collection: kraken
+  jobs: [license_verify, catalog_register]
+cli:
+  command: up
+  network: kraken
+meter:
+  seats: [19, 49, 149]
+  core: mit

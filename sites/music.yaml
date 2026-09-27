@@ -1,0 +1,9 @@
+name: music
+mount: site
+host: music.topta.co
+license: free
+pages: [play]
+api:
+  collection: trivia
+meter:
+  premium_usd: 4.99

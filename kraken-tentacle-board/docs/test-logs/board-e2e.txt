@@ -1,0 +1,8 @@
+test_custom_yaml_panels (__main__.Scenarios.test_custom_yaml_panels) ... ok
+test_open_frame_has_boxes (__main__.Scenarios.test_open_frame_has_boxes) ... ok
+test_workflow_present (__main__.Scenarios.test_workflow_present) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.675s
+
+OK

@@ -1,0 +1,9 @@
+name: save-text
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+actions: [convert, ping]
+timeout_sec: 10
+data_dir: data
+needs_docker: false

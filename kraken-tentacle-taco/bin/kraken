@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+"""Minimal Kraken shim so `kraken taco init` hits the after_install/init hook."""
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+HANDLER = ROOT / "handler.py"
+
+
+def run(action: str, payload: dict | None = None) -> int:
+    req = {"v": 1, "action": action, "payload": payload or {}}
+    proc = subprocess.run(
+        [sys.executable, str(HANDLER)],
+        input=json.dumps(req),
+        text=True,
+        check=False,
+    )
+    return proc.returncode
+
+
+def main(argv: list[str]) -> int:
+    args = argv[1:]
+    if not args or args[0] in {"-h", "--help"}:
+        print("kraken taco init|after_install|ping|policy")
+        return 0
+    if args[0] != "taco":
+        print("this shim only routes the taco tentacle", file=sys.stderr)
+        return 2
+    rest = args[1:] or ["ping"]
+    action = rest[0]
+    if action == "init" and "--defaults" in rest:
+        return run("init", {"defaults": True})
+    if action == "init":
+        # first call prints prompts; second with --defaults applies after_install
+        code = run("init", {})
+        return code
+    if action in {"after_install", "install"}:
+        return run("after_install", {"defaults": True})
+    return run(action, {})
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))

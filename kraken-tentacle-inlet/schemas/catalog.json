@@ -1,0 +1,9 @@
+{
+  "name": "inlet",
+  "version": "0.1.0",
+  "license": "free",
+  "author_email": "dev@localhost",
+  "source": "",
+  "description": "Loopback control-plane UI. Optional cloudflared. No remote shell.",
+  "actions": "ping,which,devices,grant,revoke,listen,status,stop,finish"
+}

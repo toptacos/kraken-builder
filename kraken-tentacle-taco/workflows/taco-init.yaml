@@ -1,0 +1,13 @@
+name: taco-init
+steps:
+  - id: init
+    tentacle: taco
+    action: init
+    payload:
+      interactive: true
+  - id: apply
+    tentacle: taco
+    action: init
+    needs: [init]
+    payload:
+      defaults: true

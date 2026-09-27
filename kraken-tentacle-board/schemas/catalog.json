@@ -1,0 +1,15 @@
+{
+  "name": "board",
+  "version": "0.1.0",
+  "license": "free",
+  "source": "path://kraken-tentacle-board",
+  "homepage": "https://kraken.topta.co/catalog/tentacles/board",
+  "actions": [
+    "ping", "init", "status", "snapshot", "repo", "project",
+    "layout", "ai", "apply", "analyze", "open", "finish", "clear"
+  ],
+  "blurb": "Terminal project dashboard with local Jev + Ollama panels.",
+  "author": "board tentacle",
+  "needs_docker": false,
+  "runtime": "binary"
+}

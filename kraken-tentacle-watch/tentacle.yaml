@@ -1,0 +1,54 @@
+name: watch
+version: "0.1.0"
+license: free
+runtime: binary
+# handler.sh prefers dist/watch-$GOOS-$GOARCH, then `go run`, then handler.py
+binary: handler.sh
+actions:
+  - ping
+  - plan
+  - build
+  - apply
+  - status
+  - list
+  - add
+  - remove
+  - tick
+  - snapshot
+  - task
+  - notify
+  - browse
+  - capture
+  - start
+  - stop
+  - finish
+  - clear
+timeout_sec: 30
+data_dir: data
+needs_docker: false
+platforms:
+  linux-amd64: { tested: true, binary: dist/watch-linux-amd64 }
+  linux-arm64: { tested: false, binary: dist/watch-linux-arm64 }
+  darwin-amd64: { tested: false, binary: dist/watch-darwin-amd64 }
+  darwin-arm64: { tested: false, binary: dist/watch-darwin-arm64 }
+  windows-amd64: { tested: false, binary: dist/watch-windows-amd64.exe }
+  windows-arm64: { tested: false, binary: dist/watch-windows-arm64.exe }
+requires:
+  protocol: 1
+  core: ">=0.1.0"
+description: System and user watchers, third-party alerts, browser probes, and attached screen/media. JSON in, JSON out.
+homepage: https://kraken.topta.co
+hooks:
+  after_run:
+    - tentacle: watch-stamp
+      action: convert
+      optional: true
+      priority: 10
+      if: ok
+      when: ["watch"]
+    - tentacle: save-text
+      action: convert
+      optional: true
+      priority: 20
+      if: ok
+      when: ["watch"]

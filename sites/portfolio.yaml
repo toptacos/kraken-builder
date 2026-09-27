@@ -1,0 +1,16 @@
+name: portfolio
+mount: site
+host: portfolio.topta.co
+license: free
+brand:
+  wordmark: portfolio
+  ink: "#0B1220"
+  teal: "#2FD0C6"
+pages: [projects, project, about]
+api:
+  collection: projects
+  jobs: []
+auth:
+  required: false
+  # Public showcase. Editing happens in the admin dashboard, never here.
+  managed_by: dashboard

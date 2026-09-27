@@ -1,0 +1,10 @@
+name: facts
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.sh
+actions: [ping, host, env, snapshot, finish]
+timeout_sec: 10
+data_dir: data
+needs_docker: false
+description: Host facts for hooks. POSIX bash, no extra runtime.

@@ -1,0 +1,12 @@
+name: blog
+mount: site
+host: blog.topta.co
+license: free
+brand:
+  wordmark: blog
+  ink: "#0B1220"
+  teal: "#2FD0C6"
+pages: [post, list, category]
+api:
+  collection: posts
+  jobs: [thumbnail, email]

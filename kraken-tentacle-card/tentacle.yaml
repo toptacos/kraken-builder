@@ -1,0 +1,10 @@
+name: card
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.sh
+actions: [ping, render, write, finish, clear]
+timeout_sec: 15
+data_dir: data
+needs_docker: false
+description: Render a local HTML card from a JSON payload. PHP handler.

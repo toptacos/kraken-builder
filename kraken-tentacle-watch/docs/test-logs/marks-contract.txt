@@ -1,0 +1,13 @@
+test_add_list_search_tag_folder (__main__.MarksContract.test_add_list_search_tag_folder) ... ok
+test_export_import_clear (__main__.MarksContract.test_export_import_clear) ... ok
+test_finish_patch (__main__.MarksContract.test_finish_patch) ... ok
+test_listen_once (__main__.MarksContract.test_listen_once) ... ok
+test_ping (__main__.MarksContract.test_ping) ... ok
+test_strip_tracking (__main__.MarksContract.test_strip_tracking) ... ok
+test_token_and_bookmarklet (__main__.MarksContract.test_token_and_bookmarklet) ... ok
+test_unknown_action (__main__.MarksContract.test_unknown_action) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 2.912s
+
+OK

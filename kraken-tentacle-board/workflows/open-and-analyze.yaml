@@ -1,0 +1,13 @@
+id: open-and-analyze
+description: Snapshot the dashboard then run a local-only analysis pass.
+steps:
+  - id: open
+    tentacle: board
+    action: open
+    payload: {}
+  - id: analyze
+    tentacle: board
+    action: analyze
+    payload:
+      prompt: What is the safest next commit?
+    needs: [open]

@@ -1,0 +1,24 @@
+# kraken project config — parsed by berth, executed as plan/up by core.
+name: sample
+command: up
+network:
+  name: kraken
+  driver: bridge
+services:
+  api:
+    image: ghcr.io/example/api:latest
+    ports: ["8080:8080"]
+  web:
+    image: ghcr.io/example/web:latest
+    ports: ["3000:3000"]
+hooks:
+  after_up: [status]
+  after_down: []
+third_party:
+  - name: topta-api
+    kind: queue
+    url: https://api.topta.co
+  - name: object-store
+    kind: receipt
+    url: https://example.invalid
+# secrets stay out of this file; names and URLs only

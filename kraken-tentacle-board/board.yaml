@@ -1,0 +1,19 @@
+# Example project-root config (also valid as .kraken/board.yaml)
+name: demo
+ai:
+  backend: ollama
+  model: llama3.2
+  jev: true
+panels:
+  - id: repo
+    kind: repo
+    title: repository
+  - id: project
+    kind: project
+    title: project
+  - id: ai
+    kind: ai
+    title: ai / jev
+  - id: term
+    kind: terminal
+    title: terminal

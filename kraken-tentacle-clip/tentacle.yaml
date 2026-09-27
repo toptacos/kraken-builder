@@ -1,0 +1,12 @@
+name: clip
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.sh
+actions: [ping, add, list, get, remove, note, finish, clear]
+timeout_sec: 15
+data_dir: data
+needs_docker: false
+description: >
+  Local index of video share links the user pastes. Does not fetch, scrape,
+  or download Facebook/Meta media.

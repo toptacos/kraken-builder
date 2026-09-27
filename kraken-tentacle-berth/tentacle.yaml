@@ -1,0 +1,19 @@
+name: berth
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.sh
+actions: [ping, help, plan, up, down, status, hook, services, finish]
+timeout_sec: 20
+data_dir: data
+needs_docker: false
+description: >
+  Setup tentacle. Parse project config into a local Docker network plan
+  that Kraken core shares. Many functions, one arm.
+hooks:
+  after_install: berth-init
+  init: berth-init
+brand:
+  line: "One binary. Many tentacles."
+  site: https://kraken.topta.co
+  hub: https://topta.co

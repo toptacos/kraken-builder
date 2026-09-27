@@ -1,0 +1,47 @@
+# Archives and data dumps. These are working material, not source.
+*.zip
+*.tar.gz
+*.tgz
+*.tar
+*.7z
+data/
+*.csv
+*.sql
+*.dump
+
+# OS / editor noise
+.DS_Store
+**/.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Local Kraken homes and anything that could hold a session
+.kraken/
+keys/
+licenses.json
+*.pem
+*.minisig
+.env
+.env.*
+!.env.example
+
+# Python / Node build output
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+node_modules/
+dist/
+.venv/
+venv/
+
+# Test + coverage output
+.coverage
+coverage.xml
+htmlcov/
+junit*.xml
