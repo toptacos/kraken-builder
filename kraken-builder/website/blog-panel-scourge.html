@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>From panel to Scourge — Kraken blog</title>
+  <link rel="canonical" href="https://kraken.topta.co/blog-panel-scourge.html">
+  <link rel="stylesheet" href="css/brand.css">
+  <style>
+    .lang-btn{margin-right:.4rem;padding:.2rem .6rem;border:1px solid #2FD0C6;background:transparent;color:#E7F6F6;cursor:pointer}
+    .lang-btn.on{background:#2FD0C6;color:#0B1220}
+    [data-lang]{display:none} [data-lang].on{display:block}
+  </style>
+</head>
+<body class="docs">
+  <header class="nav">
+    <a class="brand" href="./">KRAKEN</a>
+    <nav><a href="docs.html">Docs</a><a href="pricing.html">Pricing</a></nav>
+  </header>
+  <main class="panel" style="opacity:1;transform:none">
+    <p>
+      <button class="lang-btn on" data-set="en">Python</button>
+      <button class="lang-btn" data-set="go">Go</button>
+      <button class="lang-btn" data-set="js">JS</button>
+    </p>
+    <h1>Panel (free) and Scourge (premium)</h1>
+    <p>Free panel shows paths and resources on one box. Scourge is the licensed fleet view: login at kraken.topta.co, list devices in an org scope, share config only after <code>kraken grant</code>.</p>
+    <div data-lang="en" class="on">
+      <pre>kraken tentacle add examples/tentacles/panel
+kraken run panel status
+kraken license set scourge KEY
+kraken grant scourge
+kraken grant remote_config
+kraken tentacle add examples/tentacles/scourge
+kraken run scourge status</pre>
+    </div>
+    <div data-lang="go">
+      <pre>// tentacle.yaml binary: scourge
+// stdin JSON, stdout JSON — same as Python handler
+os.Stdin → json.Unmarshal → os.Stdout</pre>
+    </div>
+    <div data-lang="js">
+      <pre>process.stdin.on('data', buf => {
+  const req = JSON.parse(buf);
+  process.stdout.write(JSON.stringify({v:1, id:req.id, ok:true, result:{}}));
+});</pre>
+    </div>
+    <p>Default deny. Tunnels stay 127.0.0.1. Social accounts are created by a human on X/YouTube; this tree only ships posts as markdown drafts in <code>docs/SOCIAL.md</code>.</p>
+  </main>
+  <script>
+    document.querySelectorAll('.lang-btn').forEach(b => b.onclick = () => {
+      document.querySelectorAll('.lang-btn').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      document.querySelectorAll('[data-lang]').forEach(x => x.classList.toggle('on', x.dataset.lang === b.dataset.set));
+    });
+  </script>
+</body>
+</html>

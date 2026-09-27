@@ -1,0 +1,34 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pytest pyyaml
+      - env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m pytest tests/test_notes_tunnel_llm.py tests/test_expose.py tests/test_scopes_ca.py tests/test_panel.py tests/test_scourge_grant.py tests/test_suckers.py tests/test_demo_first_json.py -q
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body: |
+            Kraken CLI ${{ github.ref_name }} — local plugin runner.
+
+            ```
+            curl -fsSL https://kraken.topta.co/install.sh | sh
+            kraken demo
+            kraken doctor
+            ```
+
+            Changelog: https://kraken.topta.co/changelog
+            Site: https://kraken.topta.co
+            Homebrew formula: Formula/kraken-cli.rb (fill sha256 after this tag).
+            Billing: https://profile.topta.co/pricing

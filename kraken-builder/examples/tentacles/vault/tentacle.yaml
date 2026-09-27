@@ -1,0 +1,7 @@
+name: vault
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+actions: [init, put, get, list, export-bundle, import-bundle]
+description: Encrypt credentials and files with AES-256-CBC (openssl, PBKDF2). Bundles move to another Kraken install.

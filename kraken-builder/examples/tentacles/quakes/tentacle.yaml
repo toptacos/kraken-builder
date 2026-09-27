@@ -1,0 +1,8 @@
+name: quakes
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+needs_docker: false
+actions: [feed]
+description: USGS significant earthquakes GeoJSON. No key.

@@ -1,0 +1,7 @@
+name: echo-rs
+version: "0.1.0"
+description: Rust echo tentacle
+binary: echo.rs
+actions:
+  - ping
+  - echo

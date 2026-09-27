@@ -1,0 +1,5 @@
+sucker: after-echo
+tentacle: echo-bin
+action: ping
+optional: true
+when: ["echo"]

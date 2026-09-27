@@ -1,0 +1,8 @@
+name: compile-stamp
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+actions: [convert]
+needs_docker: false
+description: Sucker. Stamps a compiled invoke with toolchain=c. Does not compile.

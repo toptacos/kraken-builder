@@ -1,0 +1,8 @@
+name: llm
+version: "0.1.0"
+runtime: binary
+binary: handler.py
+license: free
+actions: [plan, status]
+needs_docker: true
+description: Plan a local LLM container on kraken_llm with read-only ingest mounts.

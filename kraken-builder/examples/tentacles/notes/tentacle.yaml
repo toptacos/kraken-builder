@@ -1,0 +1,8 @@
+name: notes
+version: "0.1.0"
+runtime: binary
+binary: handler.py
+license: free
+actions: [list, put, get, search]
+needs_docker: false
+description: Encrypted-at-rest notes under ~/.kraken/data/notes

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Kraken panel</title>
+  <style>
+    :root { --ink:#0B1220; --teal:#2FD0C6; --foam:#E7F6F6; --gold:#e7c56a; }
+    body { margin:0; font:16px/1.45 system-ui,sans-serif; background:var(--ink); color:var(--foam); }
+    main { padding:1.25rem; max-width:28rem; }
+    h1 { color:var(--teal); }
+    code, pre { color:var(--teal); background:#111827; padding:.6rem; overflow:auto; display:block; }
+    button { background:var(--teal); color:var(--ink); border:0; padding:.6rem 1rem; font-weight:700; }
+    .gold { color:var(--gold); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Kraken panel</h1>
+    <p>Bundled shell. Same device as <code>kraken</code>. Live JSON is optional from 127.0.0.1:18181.</p>
+    <p class="gold">Store build has no server.url.</p>
+    <button type="button" id="ping">Refresh status</button>
+    <pre id="out">loading…</pre>
+  </main>
+  <script>
+    const LIVE = "http://127.0.0.1:18181/status.json";
+    const bundled = { ok: true, kind: "capacitor-shell", bind: "127.0.0.1:18181", live: false };
+    async function refresh() {
+      const out = document.getElementById("out");
+      try {
+        const res = await fetch(LIVE, { cache: "no-store" });
+        if (!res.ok) throw new Error("no live panel");
+        out.textContent = JSON.stringify(await res.json(), null, 2);
+      } catch (err) {
+        out.textContent = JSON.stringify({ ...bundled, note: String(err.message || err) }, null, 2);
+      }
+    }
+    document.getElementById("ping").onclick = refresh;
+    refresh();
+  </script>
+</body>
+</html>

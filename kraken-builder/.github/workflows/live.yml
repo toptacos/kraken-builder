@@ -1,0 +1,36 @@
+name: live
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 12 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'tests/test_live_*.py'
+      - 'scripts/e2e.sh'
+      - '.github/workflows/live.yml'
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pytest pyyaml
+      - name: Isolated install
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m pytest tests/test_live_workflows.py::test_isolated_path_install -q
+      - name: Live auth, API token, premium
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          BLOG_ADMIN_EMAIL: ${{ secrets.BLOG_ADMIN_EMAIL }}
+          BLOG_ADMIN_PASSWORD: ${{ secrets.BLOG_ADMIN_PASSWORD }}
+          BLOG_API_URL: https://api.topta.co
+        run: |
+          if [ -z "$BLOG_ADMIN_EMAIL" ] || [ -z "$BLOG_ADMIN_PASSWORD" ]; then
+            echo "skip live: repo secrets BLOG_ADMIN_EMAIL/PASSWORD not set"
+            exit 0
+          fi
+          python -m pytest tests/test_live_auth_e2e.py tests/test_live_workflows.py -q

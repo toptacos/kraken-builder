@@ -1,0 +1,7 @@
+name: pi-host
+version: "0.1.0"
+entrypoint: arms.pi_host.handler:handle
+description: Pi host status arm.
+triggers: [manual, queue]
+actions: [status, discover, add]
+license: free

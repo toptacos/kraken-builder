@@ -1,0 +1,14 @@
+name: wx
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+needs_docker: false
+actions: [forecast, finish]
+description: Fetch Open-Meteo, let a sucker convert units, then finish the report.
+hooks:
+  after_run:
+    - tentacle: wx-units
+      action: convert
+      optional: true
+      when: ["wx"]

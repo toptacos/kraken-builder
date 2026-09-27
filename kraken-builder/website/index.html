@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kraken — One binary. Many tentacles.</title>
+  <meta name="description" content="Local runner for homelab, ops, and indie data arms. One MIT binary. Tentacles you can write in any language. Phone only watches.">
+  <link rel="canonical" href="https://kraken.topta.co/">
+  <meta property="og:title" content="Kraken">
+  <meta property="og:description" content="One binary. Many tentacles.">
+  <meta property="og:image" content="https://kraken.topta.co/img/kit-2026/og-1200x630.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://kraken.topta.co/img/kit-2026/x-1200x600.jpg">
+  <link rel="icon" href="img/favicon.ico" sizes="any">
+  <link rel="icon" href="img/logo-k.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="img/icon-512-maskable.png">
+  <link rel="stylesheet" href="css/brand.css">
+  <script src="js/vue.global.prod.js"></script>
+
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"SoftwareApplication","name":"Kraken","url":"https://kraken.topta.co","applicationCategory":"DeveloperApplication","operatingSystem":"Linux,macOS,Windows","description":"Local-first CLI runner. One binary, many tentacles."}
+  </script>
+
+</head>
+<body>
+  <div class="photo-arms" aria-hidden="true"></div>
+  <div class="ink-specks" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+  <div id="tentacle-layer" aria-hidden="true">
+    <svg viewBox="0 0 800 2000" preserveAspectRatio="xMidYMin meet">
+      <defs>
+        <linearGradient id="tentacleGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#7ff5ee"/>
+          <stop offset="45%" stop-color="#2FD0C6"/>
+          <stop offset="100%" stop-color="#0e6f6f"/>
+        </linearGradient>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <path id="ghost-2" d="M180 80 C 40 260, 320 380, 120 560 C 20 720, 280 860, 90 1100 C 20 1280, 240 1500, 140 1920"/>
+      <path id="ghost-path" d="M420 40 C 620 180, 180 280, 390 430 C 640 590, 160 720, 410 900 C 680 1080, 200 1220, 430 1400 C 650 1560, 280 1700, 400 1920"/>
+      <path id="fill-path" d="M420 40 C 620 180, 180 280, 390 430 C 640 590, 160 720, 410 900 C 680 1080, 200 1220, 430 1400 C 650 1560, 280 1700, 400 1920"/>
+      <g id="suckers"></g>
+    </svg>
+  </div>
+  <div id="app">
+    <header class="nav">
+      <a class="brand" href="./"><img class="mark" src="img/icon-32.png" width="32" height="32" alt="Kraken tentacle-K mark"> KRAKEN</a>
+      <nav>
+        <a href="#why">Why</a>
+        <a href="#examples">Examples</a>
+        <a href="#product">Product</a>
+        <a href="#catalog">Catalog</a>
+        <a href="#licenses">Licenses</a>
+        <a href="#docs">Docs</a>
+        <a href="morph.html">Motion</a>
+        <a href="nyx.html">Nyx</a>
+        <a href="courses.html">Courses</a>
+        <a href="tutorial-tentacles.html">Tutorial</a>
+        <a href="seasons.html">Seasons</a>
+        <a href="before.html">Before</a>
+        <a href="beta.html">Beta</a>
+        <a href="pricing.html">Pricing</a>
+        <a href="use-cases.html">Use cases</a>
+        <a href="languages.html">Languages</a>
+        <a href="publish.html">Publish</a>
+        <a href="register.html">Register</a>
+        <a href="https://api.topta.co">API</a>
+      </nav>
+    </header>
+    <section class="hero" data-latch="0">
+      <div>
+        <div class="hero-banner" role="img" aria-label="Kraken tentacles"></div>
+        <img class="hero-mark" src="img/icon-512.png" width="192" height="192" alt="Kraken tentacle-K mark">
+        <h1>KRAKEN</h1>
+        <p>{{ tagline }}</p>
+        <p class="why-line">Local runner. Any-language tentacles. Paid arms on an MIT core.</p>
+        <p class="brand-ribbon"><i>MIT core</i><i>Local first</i><i>Any language</i></p>
+        <a class="cta" href="use-cases.html">See what people run</a>
+        <div class="rule-arm" aria-hidden="true"></div>
+        <audio class="voice-inline" controls preload="metadata" src="media/voice/intro.mp3">Intro</audio>
+        <pre class="install">curl -fsSL https://kraken.topta.co/install.sh | sh
+# then: kraken doctor</pre>
+        <audio class="voice-inline" controls preload="metadata" src="media/voice/install.mp3">Install</audio>
+        <video class="explainer" controls poster="img/explainer-still.jpg">
+          <source src="media/kraken-explainer-vo.mp4" type="video/mp4">
+        </video>
+      </div>
+    </section>
+    <section class="panel nyx-strip" id="nyx" data-latch="0.12">
+      <img class="nyx-avatar" src="img/nyx-avatar.jpg" alt="Nyx Hale">
+      <div>
+        <h2>Nyx Hale</h2>
+        <p>Same face on courses and Before/After. Hear the briefing, then copy the commands below.</p>
+        <audio class="voice-inline" controls preload="metadata" src="media/voice/pitch.mp3">Pitch</audio>
+        <p class="ink"><a href="nyx.html">Nyx</a> · <a href="courses.html">Courses</a></p>
+      </div>
+    </section>
+    <section class="panel" id="why" data-latch="0.16">
+      <h2>Why use it</h2>
+      <audio class="voice-inline" controls preload="metadata" src="media/voice/why.mp3">Why</audio>
+      <p>You already have scripts, APIs, and a laptop. Kraken is the one local binary that turns those into named arms with licenses, hooks, and a queue — without standing up another SaaS.</p>
+      <div class="cards">
+        <article class="card">
+          <header><strong>Local first</strong></header>
+          <p>Runs on your machine. Payload in, JSON out. The cloud is optional for catalog and keys.</p>
+          <audio class="voice-inline" controls preload="metadata" src="media/voice/why-local.mp3">Local</audio>
+        </article>
+        <article class="card">
+          <header><strong>Any language</strong></header>
+          <p>A tentacle is a binary + YAML. Python, Go, Rust, PHP, a shell script — same contract.</p>
+          <audio class="voice-inline" controls preload="metadata" src="media/voice/why-any-language.mp3">Language</audio>
+        </article>
+        <article class="card">
+          <header><strong>Paid arms, free core</strong></header>
+          <p>MIT core. Premium tentacles check a key. You can sell weather-pro without forking the runner.</p>
+          <audio class="voice-inline" controls preload="metadata" src="media/voice/why-not-saas.mp3">Not SaaS</audio>
+        </article>
+        <article class="card">
+          <header><strong>Compose, don’t rewrite</strong></header>
+          <p>Workflows chain responses. Hooks fire before/after. Dependencies resolve before you run.</p>
+          <audio class="voice-inline" controls preload="metadata" src="media/voice/why-compose.mp3">Compose</audio>
+        </article>
+        <article class="card">
+          <header><strong>Privacy default</strong></header>
+          <p>Payloads stay on the box unless an arm you chose sends them. Keys live in ~/.kraken/keys.</p>
+          <audio class="voice-inline" controls preload="metadata" src="media/voice/why-privacy.mp3">Privacy</audio>
+        </article>
+        <article class="card">
+          <header><strong>Solo and ops</strong></header>
+          <p>Ship without four new vendors. Doctor and monitor for the jump host.</p>
+          <audio class="voice-inline" controls preload="metadata" src="media/voice/why-indie.mp3">Indie</audio>
+          <audio class="voice-inline" controls preload="metadata" src="media/voice/why-ops.mp3">Ops</audio>
+        </article>
+      </div>
+    </section>
+    <section class="panel" id="examples" data-latch="0.18">
+      <h2>Examples</h2>
+      <audio class="voice-inline" controls preload="metadata" src="media/voice/examples.mp3">Examples</audio>
+      <p>Copy these. They are the same commands on the explainer.</p>
+      <div class="cards">
+        <article class="card">
+          <header><strong>Install and prove the box</strong></header>
+          <pre>curl -fsSL https://kraken.topta.co/install.sh | sh
+kraken doctor
+ls ~/.kraken</pre>
+        </article>
+        <article class="card">
+          <header><strong>Add a free arm</strong></header>
+          <pre>kraken tentacle add examples/tentacles/geo
+kraken run geo lookup --payload '{"ip":"1.1.1.1"}'</pre>
+        </article>
+        <article class="card">
+          <header><strong>Unlock a premium arm</strong></header>
+          <pre>kraken tentacle add examples/tentacles/weather-pro
+kraken license set weather-pro YOUR_KEY
+kraken run weather-pro forecast --compose</pre>
+        </article>
+        <article class="card">
+          <header><strong>Sequence two arms</strong></header>
+          <pre>kraken workflow run examples/workflows/geo-then-weather.yaml
+# $geo.city interpolates into weather-pro</pre>
+        </article>
+        <article class="card">
+          <header><strong>Dev env + hotreload</strong></header>
+          <pre>kraken tentacle add examples/tentacles/docker-env
+kraken tentacle add examples/tentacles/hotreload
+kraken workflow run examples/workflows/dev-loop.yaml</pre>
+        </article>
+        <article class="card">
+          <header><strong>Encrypt and hand off</strong></header>
+          <pre>kraken tentacle add examples/tentacles/vault
+kraken tentacle add examples/tentacles/store
+kraken workflow run examples/workflows/secure-share.yaml</pre>
+        </article>
+      </div>
+    </section>
+    <section class="panel" id="product" data-latch="0.2">
+      <h2>Product</h2>
+      <audio class="voice-inline" controls preload="metadata" src="media/voice/product.mp3">Product</audio>
+      <p>Core is one executable and a <code>.kraken</code> directory. This page is branding.</p>
+      <div class="term"><span class="prompt">$</span> <span>{{ typed }}</span><span class="caret"></span></div>
+    </section>
+    <section class="panel" id="catalog" data-latch="0.45">
+      <h2>Catalog</h2>
+      <div class="cards">
+        <article v-for="item in tentacles" :key="item.name" class="card" :class="item.license">
+          <header><strong>{{ item.name }}</strong><span class="badge">{{ item.license }}</span></header>
+          <p>{{ item.blurb }}</p>
+          <code>{{ (item.actions || []).join(', ') }}</code>
+        </article>
+      </div>
+    </section>
+    <section class="panel" id="licenses" data-latch="0.7">
+      <h2>Premium tentacles</h2>
+      <audio class="voice-inline" controls preload="metadata" src="media/voice/licenses.mp3">Licenses</audio>
+      <form class="redeem" @submit.prevent="redeem">
+        <input v-model="tentacleName" placeholder="weather-pro">
+        <input v-model="licenseKey" placeholder="license key">
+        <button type="submit">Redeem</button>
+      </form>
+      <p class="ink">{{ redeemMsg }}</p>
+    </section>
+    <section class="panel" id="monitor" data-latch="0.82">
+      <h2>Watch the stack</h2>
+      <p>Snapshot local health and ping the control plane in one workflow.</p>
+      <pre class="install">kraken monitor --url https://api.topta.co
+kraken workflow run examples/workflows/monitor.yaml
+kraken license upgrade weather-pro --plan beta</pre>
+    </section>
+    <section class="panel" id="docs" data-latch="0.92">
+      <h2>Docs</h2>
+      <p><a href="docs.html">Contract, hooks, workflows, licenses, doctor</a> · <a href="nyx.html">Nyx</a>
+        <a href="beta.html">Beta</a> · <a href="register.html">Register</a></p>
+    </section>
+    <section class="panel" id="media" data-latch="0.95">
+      <h2>Media</h2>
+        <div class="cards media-grid">
+        <article class="card"><img src="img/kit-2026/banner-lockup.jpg" width="1200" height="400" alt="Kraken tentacle-K mark"></article>
+        <article class="card"><img src="img/kit-2026/abyss.jpg" width="1200" height="800" alt="Kraken tentacle-K mark"></article>
+        <article class="card"><img src="img/kit-2026/og-1200x630.jpg" width="1200" height="630" alt="Kraken tentacle-K mark"></article>
+        <article class="card"><img src="img/kit-2026/icon-512.jpg" width="512" height="512" alt="Kraken tentacle-K mark"></article>
+      </div>
+    </section>
+    <section class="panel" id="pricing" data-latch="0.96">
+      <h2>Pricing</h2>
+      <p>MIT core. Paid arms and a future catalog relay. <a href="pricing.html">Full split</a>.</p>
+    </section>
+    <section class="panel" id="faq" data-latch="0.98">
+      <h2>FAQ</h2>
+      <p><strong>Do I need an account to install?</strong> No. <code>curl | sh</code> then <code>kraken doctor</code>.</p>
+      <p><strong>Can I write an arm in Node / Go / PHP?</strong> Yes. Same JSON contract. <a href="languages.html">Languages</a>.</p>
+      <p><strong>How do I sell an arm?</strong> <code>license: premium</code> and list it. <a href="publish.html">Publish</a>.</p>
+    </section>
+    <footer>kraken.topta.co · MIT core · <a href="pricing.html">Pricing</a> · <a href="publish.html">Publish</a></footer>
+  </div>
+  <script src="js/voice.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

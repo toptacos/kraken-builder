@@ -1,0 +1,7 @@
+name: geo
+version: "0.1.2"
+license: free
+runtime: binary
+binary: handler.py
+actions: [lookup]
+description: Offline IP/zip fixture. 1.1.1.1 → Los Angeles. First JSON after kraken demo.

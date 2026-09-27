@@ -1,0 +1,15 @@
+name: browse-js
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.sh
+needs_docker: false
+platforms: { darwin-arm64: { tested: true }, linux-amd64: { tested: true } }
+actions: [fetch, finish]
+description: Any-language tentacle. osascript + Chrome JS on macOS, Node fixture elsewhere. Envelope kind=text then finish kind=file.
+hooks:
+  after_run:
+    - tentacle: save-text
+      action: convert
+      optional: true
+      when: ["browse-js"]

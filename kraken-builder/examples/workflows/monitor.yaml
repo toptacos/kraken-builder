@@ -1,0 +1,15 @@
+name: monitor-stack
+goal: Snapshot core health and ping the control plane in parallel.
+steps:
+  - id: local
+    tentacle: monitor
+    action: snapshot
+  - id: remote
+    parallel:
+      - id: api
+        tentacle: monitor
+        action: ping
+        payload: { url: "https://api.topta.co" }
+      - id: echo
+        tentacle: echo
+        action: ping

@@ -1,0 +1,7 @@
+name: store
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+actions: [put, get, list, export-pack, import-pack, sync]
+description: Content-addressed result store. Local, S3-mirror, or an encrypted pack another Kraken install can import.

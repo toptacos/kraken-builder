@@ -1,0 +1,12 @@
+name: weather-pro
+version: "0.1.0"
+license: premium
+runtime: binary
+binary: handler.py
+actions: [forecast]
+requires:
+  protocol: 1
+  core: ">=0.1.0"
+  tentacles:
+    geo: ">=0.1.0 <0.3.0"
+description: Premium example. Needs geo installed and a license key.

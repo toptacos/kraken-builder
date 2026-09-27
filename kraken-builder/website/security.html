@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Security — Kraken</title>
+  <link rel="stylesheet" href="css/brand.css">
+  <link rel="canonical" href="https://kraken.topta.co/security.html">
+</head>
+<body class="docs">
+  <header class="nav">
+    <a class="brand" href="./"><img class="mark" src="img/logo-k-128.png" alt=""> KRAKEN</a>
+    <nav><a href="docs.html">Docs</a><a href="docker.html">Docker</a><a href="tutorial-tentacles.html">Tutorial</a></nav>
+  </header>
+  <main class="panel" style="opacity:1;transform:none">
+    <h1>Tentacle security</h1>
+    <p>Tentacles run as <strong>you</strong>. Core does not jail them. Isolation is the JSON contract plus Docker flags when a tentacle asks for a container.</p>
+    <h2>Trust</h2>
+    <pre>you
+ ├── core (config, licenses 0600, hooks)
+ ├── arms/  (in-process — do not install strangers here)
+ └── tentacles/  (subprocess, JSON in / JSON out)
+      └── optional docker  kraken_*  bind 127.0.0.1</pre>
+    <h2>Do</h2>
+    <ul>
+      <li>Only <code>tentacle add</code> repos you would <code>make install</code>.</li>
+      <li><code>chmod 700 ~/.kraken</code>.</li>
+      <li>Keep <code>public: false</code> on compose.</li>
+      <li>Treat <code>kg_</code> group keys like a household password.</li>
+    </ul>
+    <h2>Do not</h2>
+    <ul>
+      <li>Expose the CLI over HTTP.</li>
+      <li>Rely on XOR vault fallback.</li>
+      <li>Ship <code>KRAKEN_LICENSE_OFFLINE=1</code> in a SaaS wrapper.</li>
+    </ul>
+    <p>Full notes: <code>docs/SECURITY.md</code> · <code>docs/NETWORK.md</code> · <code>docs/USERNS.md</code> · <code>docs/DEVICE_GROUP.md</code></p>
+  </main>
+</body>
+</html>

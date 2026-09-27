@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Account · Kraken</title>
+  <meta name="description" content="Kraken account Local-first CLI. Tentacles in any language.">
+  <link rel="canonical" href="https://kraken.topta.co/account.html">
+  <meta property="og:title" content="Account · Kraken">
+  <meta property="og:image" content="https://kraken.topta.co/img/kit-2026/og-1200x630.jpg">
+  <link rel="icon" href="img/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/brand.css">
+  
+</head>
+<body class="docs">
+  <header class="nav">
+    <a class="brand" href="./"><img class="mark" src="img/icon-32.png" alt="Kraken tentacle-K mark" width="32" height="32"> KRAKEN</a>
+    <nav>
+      <a href="docs.html">Docs</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="account.html">Account</a>
+      <a href="blog-panel-scourge.html">Blog</a>
+    </nav>
+  </header>
+  <main class="panel" style="opacity:1;transform:none">
+    <h1>Kraken account</h1>
+    
+<p>Portal client for the same CLI. Login via api.topta.co. This page does not run tentacles.</p>
+<form id="login">
+  <input name="email" type="email" required placeholder="you@example.com">
+  <button type="submit">Plan login</button>
+</form>
+<pre id="out">kraken account login you@example.com
+kraken grant scourge
+kraken license set scourge KEY</pre>
+<script>
+document.getElementById("login").onsubmit = (e) => {
+  e.preventDefault();
+  const email = e.target.email.value;
+  document.getElementById("out").textContent = JSON.stringify({
+    method: "POST",
+    url: "https://api.topta.co/api/kraken/session/login",
+    json: {email, kind: "portal"},
+    sent: false
+  }, null, 2);
+};
+</script>
+
+  </main>
+  <footer>kraken.topta.co · MIT core · <a href="pricing.html">Pricing</a></footer>
+</body>
+</html>

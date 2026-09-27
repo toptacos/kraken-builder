@@ -1,0 +1,8 @@
+name: wx-units
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+needs_docker: false
+actions: [convert]
+description: Sucker. Convert Open-Meteo Celsius to Fahrenheit and write a summary patch.

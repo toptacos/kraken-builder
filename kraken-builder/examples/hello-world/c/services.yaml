@@ -1,0 +1,13 @@
+# Shared Kraken services for this tentacle. Paths only — runtime mounts them.
+store:
+  backend: local          # local | s3 | ssh
+  path: ~/.kraken/data/store
+s3:
+  uri: ""                 # s3://bucket/prefix when real creds exist
+ssh:
+  key: ""                 # host path to a key, mounted read-only at /kraken/ssh/key
+upload:
+  uri: local://store      # where invoke results should land
+network: kraken_dev
+dockerfile: Dockerfile
+image: kraken-hello-c:local

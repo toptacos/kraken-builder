@@ -1,0 +1,13 @@
+name: filesort
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+needs_docker: false
+platforms:
+  linux-amd64: { tested: true }
+  linux-arm64: { tested: true }
+  darwin-arm64: { tested: true }
+  windows-amd64: { tested: false }
+actions: [scan, dups, tag]
+description: Walk a path, hash files, detect duplicates, tag by extension. SQLite index under .kraken/data/filesort.

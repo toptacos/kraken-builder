@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tutorial — docker, hotreload, vault, store</title>
+  <link rel="canonical" href="https://kraken.topta.co/tutorial-tentacles.html">
+  <link rel="stylesheet" href="css/brand.css">
+</head>
+<body class="docs">
+  <header class="nav">
+    <a class="brand" href="./"><img class="mark" src="img/logo-k-transparent-128.png" alt=""> KRAKEN</a>
+    <nav>
+      <a href="./">Home</a>
+      <a href="./#examples">Examples</a>
+      <a href="courses.html">Courses</a>
+    </nav>
+  </header>
+  <main class="panel" style="opacity:1;transform:none;min-height:auto">
+    <p class="narrator"><img src="img/nyx-avatar.jpg" alt=""> Nyx · four new arms</p>
+    <h1>Build four tentacles</h1>
+    <p>Two plugin kinds. <strong>Arms</strong> live in <code>arms/</code> and import into the runner (<code>echo</code>, <code>monitor</code>). <strong>Tentacles</strong> are a folder you add — YAML plus a binary. These four are tentacles so they move to another machine without rebuilding core.</p>
+
+    <h2>1–2 · Desk loop</h2>
+    <audio class="voice-inline" controls preload="metadata" src="media/voice/tutorial-dev.mp3">Dev</audio>
+    <pre>kraken tentacle add examples/tentacles/docker-env
+kraken tentacle add examples/tentacles/hotreload
+kraken run docker-env plan --payload '{"name":"dev","services":[{"name":"redis","image":"redis:7-alpine","ports":["6379:6379"]}]}'
+kraken run docker-env share --payload '{"name":"dev","services":[{"name":"redis","image":"redis:7-alpine","ports":["6379:6379"]}]}'
+kraken run hotreload watch --payload '{"name":"demo","root":"./app","patterns":["*.py"],"command":["pytest","-q"]}'
+kraken run hotreload tick --payload '{"name":"demo"}'
+kraken workflow run examples/workflows/dev-loop.yaml</pre>
+
+    <h2>3–4 · Seal and move</h2>
+    <audio class="voice-inline" controls preload="metadata" src="media/voice/tutorial-secure.mp3">Secure</audio>
+    <pre>kraken tentacle add examples/tentacles/vault
+kraken tentacle add examples/tentacles/store
+kraken run vault init --payload '{}'
+kraken run vault put --payload '{"name":"deploy-token","value":"…"}'
+kraken run store put --payload '{"name":"deploy-token.enc","path":"~/.kraken/data/vault/deploy-token.enc","backend":"s3"}'
+kraken run store export-pack --payload '{}'
+# other machine
+kraken run store import-pack --payload '{"pack":"./kraken.pack.json"}'
+kraken workflow run examples/workflows/secure-share.yaml</pre>
+
+    <p class="ink">Docs: <a href="../docs/TUTORIAL_TENTACLES.md">TUTORIAL_TENTACLES.md</a> · tests in <code>tests/test_dev_tentacles.py</code></p>
+  </main>
+</body>
+</html>

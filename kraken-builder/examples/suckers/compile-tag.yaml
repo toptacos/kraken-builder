@@ -1,0 +1,5 @@
+sucker: compile-tag
+tentacle: compile-tag
+action: convert
+optional: true
+when: ["compile-c"]

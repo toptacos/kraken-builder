@@ -1,0 +1,5 @@
+sucker: save-text
+tentacle: save-text
+action: convert
+optional: true
+when: ["browse-js"]

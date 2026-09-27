@@ -1,0 +1,7 @@
+name: echo-pl
+version: "0.1.0"
+description: Perl echo tentacle
+binary: echo.pl
+actions:
+  - ping
+  - echo

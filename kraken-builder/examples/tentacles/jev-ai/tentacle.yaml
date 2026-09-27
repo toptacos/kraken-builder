@@ -1,0 +1,7 @@
+name: jev-ai
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+actions: [edit, learn, infer, status]
+description: Open-source Jev JSON editor + local secure AI models (Ollama/llama.cpp). Edit JSON, learn from data, and run inference locally without external API calls.

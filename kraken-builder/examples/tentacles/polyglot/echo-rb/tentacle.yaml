@@ -1,0 +1,7 @@
+name: echo-rb
+version: "0.1.0"
+description: Ruby echo tentacle
+binary: echo.rb
+actions:
+  - ping
+  - echo

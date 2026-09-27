@@ -1,0 +1,7 @@
+name: echo-php
+version: "0.1.0"
+description: PHP echo tentacle
+binary: echo.php
+actions:
+  - ping
+  - echo

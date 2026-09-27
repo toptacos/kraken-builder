@@ -1,0 +1,8 @@
+name: compile-tag
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+actions: [convert]
+needs_docker: false
+description: Sucker. Tags a compiled result with image name. Does not compile.

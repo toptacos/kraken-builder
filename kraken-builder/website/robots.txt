@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /keys
+Disallow: /admin
+Sitemap: https://kraken.topta.co/sitemap.xml

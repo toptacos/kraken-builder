@@ -1,0 +1,8 @@
+name: voice-free
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.py
+actions: [speak, providers]
+description: Nyx scratch TTS via free local or public APIs. No ElevenLabs.
+depends: []

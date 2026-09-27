@@ -1,0 +1,10 @@
+name: Tentacle idea
+description: Propose a free tentacle. No keys.
+body:
+  - type: textarea
+    id: job
+    attributes:
+      label: Job to be done
+      description: Homelab, Pi, consultant. What JSON in / JSON out.
+    validations:
+      required: true

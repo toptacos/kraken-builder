@@ -1,0 +1,8 @@
+name: panel
+version: "0.1.0"
+runtime: binary
+binary: handler.py
+license: free
+actions: [status, paths, contact, ui]
+needs_docker: false
+description: Local Capacitor-friendly panel — settings, paths, resources, contact plan

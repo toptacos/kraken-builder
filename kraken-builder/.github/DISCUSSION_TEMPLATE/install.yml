@@ -1,0 +1,10 @@
+title: "[install] "
+labels: ["install"]
+body:
+  - type: textarea
+    id: os
+    attributes:
+      label: OS and how you installed
+      description: curl install.sh, Homebrew, or python3 -m kraken. Paste `kraken self plan` with keys redacted.
+    validations:
+      required: true
