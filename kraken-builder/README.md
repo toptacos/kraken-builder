@@ -51,6 +51,24 @@ kraken grant expose
 kraken run expose plan --payload '{"host":"panel.kraken.localhost"}'
 ```
 
+## Configuration
+
+Three scopes — system (`/etc/kraken/config.yaml`), user
+(`$KRAKEN_HOME/.kraken/config.yaml`), and project (`.kraken/config.yaml`
+walking up from the cwd). Later scopes win per key; project beats user, which
+is why a project config belongs in version control.
+
+```bash
+kraken config list          # every setting, marked * when not the default
+kraken config explain KEY   # which file won, and what it overrode
+kraken config validate      # check every file, exit 2 on problems
+kraken config init          # write a commented example
+```
+
+Thirteen settings, all typed and validated. Committed examples live in
+`examples/config/`, generated from the same function `config init` uses.
+Full reference: [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
+
 ## `kraken up` — the shared network
 
 Core owns one Docker network, named `kraken`. Arms only *plan*; core runs it.

@@ -7,7 +7,7 @@ from typing import Any
 
 from kraken.core.contract import PROTOCOL_VERSION
 from kraken.core.license import load_store
-from kraken.core.paths import ensure_user_layout
+from kraken.core.paths import layout_dirs, ensure_user_layout
 from kraken.core.resolve import CORE_VERSION, ResolveError, catalog, resolve
 from kraken.core.tentacle import discover_installed
 
@@ -39,7 +39,7 @@ def inspect(root: Path) -> dict[str, Any]:
     def ok(name: str, detail: str, passed: bool = True) -> None:
         checks.append({"name": name, "ok": passed, "detail": detail})
 
-    for folder in ("data", "logs", "tentacles", "cache", "keys"):
+    for folder in (*layout_dirs().values(), "tentacles"):
         path = home / folder
         ok(f"layout.{folder}", str(path), path.is_dir())
 

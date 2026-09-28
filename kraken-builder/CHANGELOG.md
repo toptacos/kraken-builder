@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.3.0 — 2026-09-28
+
+### Security
+- **`allow` grants were read by grepping the file text.** `read_allow` looked
+  for the literal string `"expose: true"` anywhere in config.yaml, so a line
+  reading `# expose: true` granted the capability. In a default-deny system
+  that is the worst possible failure: an operator writing down "I do not want
+  this" silently enabled it. The resolver parses YAML now, honours all three
+  scopes so a project can deny what a user allowed, and `kraken grant` writes
+  through a YAML round-trip so it cannot corrupt the file.
+- `kraken config validate` refuses `docker.public: true`.
+
+### Added
+- **A real configuration layer.** `kraken/core/config_schema.py` describes all
+  thirteen settings — type, default, allowed scopes, and what it does. It is the
+  single source for the docs, the examples, and the tests, so a setting cannot
+  exist undocumented or untested.
+- **`kraken config`** with `list`, `get`, `explain`, `path`, `validate`, and
+  `init --scope`. `list` marks anything not at its default and names the scope
+  that set it; `explain` shows every layer for a key and which one won.
+- Committed examples in `examples/config/` for all three scopes, generated from
+  the same function `config init` writes, with a test asserting they are
+  byte-identical so they cannot drift.
+- `docs/CONFIGURATION.md`.
+- `tests/test_config.py` (64 tests) walks the schema rather than hand-picking
+  keys, so a new setting without coverage fails the suite.
+
+### Fixed
+- **`data_dir` and `notify` were decorative.** Both were written into every
+  user's config by `kraken init` and read by nothing. `data_dir` is now
+  honoured by the arms, `kraken up`, and `kraken doctor`; `notify.channels`
+  now selects which channels fire, with the environment still supplying each
+  channel's credentials.
+- `notify: none` meant "fall back to stdout" rather than "no channels".
+- `kraken config` printed human text on failure even when piped. Output is now
+  one JSON object on stdout whenever it is not a terminal, success or failure.
+- `load_config` starts from the schema defaults rather than three hardcoded
+  keys, so a partial file resolves to a complete config. Unknown keys still
+  pass through for forward compatibility.
+
 ## 0.2.0 — 2026-09-27
 
 ### Added

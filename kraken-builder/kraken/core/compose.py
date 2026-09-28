@@ -20,7 +20,7 @@ from typing import Any
 import yaml
 
 from kraken.core.network import normalize_network_name, resolve_docker
-from kraken.core.paths import user_home
+from kraken.core.paths import data_root
 
 #: Arms that may own a compose plan. The first match wins.
 PLAN_ARMS = ("berth", "board", "inlet")
@@ -32,8 +32,7 @@ class ComposeError(RuntimeError):
 
 def plan_dir(arm: str = "berth", home: Path | None = None) -> Path:
     """Where a CLI-mount arm stores its data. Mirrors the arm's own data_dir()."""
-    root = (home or user_home()) / ".kraken" / "data" / arm
-    return root
+    return data_root(home) / arm
 
 
 def find_plan(home: Path | None = None, arm: str | "None" = None) -> Path | None:

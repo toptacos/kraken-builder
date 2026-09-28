@@ -46,8 +46,53 @@ def notify_ntfy(event: str, payload: dict[str, Any]) -> None:
         return
 
 
+#: channel name -> sender
+CHANNELS = {
+    "stdout": notify_stdout,
+    "webhook": notify_webhook,
+    "ntfy": notify_ntfy,
+}
+
+
+def enabled_channels() -> list[str]:
+    """Which channels the config asks for.
+
+    Defaults to stdout only. The config chooses the channels; the environment
+    still supplies each one's credentials, so a channel with no variable set
+    is skipped rather than failing the run. An outbound channel here is the
+    one place Kraken talks to something that is not the machine it runs on —
+    which is why 'local' means stdout and nothing else.
+    """
+    import os
+
+    from kraken.core.config import load_config
+
+    try:
+        cfg = (load_config() or {}).get("notify")
+    except Exception:
+        cfg = None
+
+    if isinstance(cfg, dict):
+        channels = cfg.get("channels", ["stdout"])
+    elif isinstance(cfg, str):
+        from kraken.core.config_schema import NOTIFY_SHORTHAND
+
+        # An explicit `notify: none` means no channels, not "fall back to
+        # stdout". Only a missing config defaults to stdout.
+        channels = NOTIFY_SHORTHAND.get(cfg, ["stdout"])
+    else:
+        channels = ["stdout"]
+
+    if not isinstance(channels, list):
+        return ["stdout"]
+    return [c for c in channels if c in CHANNELS]
+
+
 def emit(event: str, payload: dict[str, Any] | None = None) -> None:
     data = payload or {}
-    notify_stdout(event, data)
-    notify_webhook(event, data)
-    notify_ntfy(event, data)
+    for name in enabled_channels():
+        try:
+            CHANNELS[name](event, data)
+        except Exception:
+            # A notification must never fail the action that triggered it.
+            continue

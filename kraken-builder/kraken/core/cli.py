@@ -101,6 +101,20 @@ def main(argv: list[str] | None = None) -> int:
     demo_p = sub.add_parser("demo", help="run geo lookup so first JSON lands in 60s")
     demo_p.add_argument("--ip", default="1.1.1.1")
 
+    cfg_p = sub.add_parser(
+        "config", help="show what is configured, which file won, and validate it"
+    )
+    cfg_sub = cfg_p.add_subparsers(dest="config_action")
+    cfg_sub.add_parser("list", help="every setting with its effective value")
+    cfg_get = cfg_sub.add_parser("get", help="one setting")
+    cfg_get.add_argument("key")
+    cfg_exp = cfg_sub.add_parser("explain", help="which file won for a setting")
+    cfg_exp.add_argument("key")
+    cfg_sub.add_parser("path", help="the config chain, in order")
+    cfg_sub.add_parser("validate", help="check every file in the chain")
+    cfg_init = cfg_sub.add_parser("init", help="write a commented example")
+    cfg_init.add_argument("--scope", default="user", choices=["system", "user", "project"])
+
     up_p = sub.add_parser(
         "up",
         help="plan (or start) the shared `kraken` network from a berth compose plan",
@@ -280,6 +294,40 @@ def main(argv: list[str] | None = None) -> int:
                 json.dumps({"ok": False, "error": str(exc), "hint": "kraken vanilla"})
             )
             return 2
+
+    if args.cmd == "config":
+        import sys as _sys
+
+        from kraken.core import config_cmd
+
+        action = getattr(args, "config_action", None) or "list"
+        fn = {
+            "list": config_cmd.cmd_list,
+            "get": config_cmd.cmd_get,
+            "explain": config_cmd.cmd_explain,
+            "path": config_cmd.cmd_path,
+            "validate": config_cmd.cmd_validate,
+            "init": config_cmd.cmd_init,
+        }.get(action)
+        if fn is None:
+            print(
+                json.dumps(
+                    {
+                        "ok": False,
+                        "error": {"code": "unknown_action", "message": f"config {action}"},
+                    }
+                )
+            )
+            return 2
+        payload, code = fn(args, root)
+        # Contract: stdout is exactly one JSON object whenever it is not a
+        # terminal, success or failure. Only a human at a prompt gets the text
+        # form. An error must not silently switch formats for a script.
+        if not _sys.stdout.isatty():
+            print(json.dumps({k: v for k, v in payload.items() if k != "text"}, default=str))
+        else:
+            print(payload.get("text") or json.dumps(payload, default=str))
+        return code
 
     if args.cmd == "up":
         from kraken.core.compose import ComposeError, up as compose_up
