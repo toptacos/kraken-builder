@@ -151,6 +151,29 @@ def test_install_sh_points_the_pointer_and_does_not_pip_install():
     assert "kraken/core/cli.py" in body
 
 
+def test_website_serves_the_same_installer():
+    """`kraken.topta.co/install.sh` is a copy of this file. When they were two
+    real files they drifted, and production kept serving the broken installer
+    after the repo was fixed. website/install.sh is a symlink for that reason;
+    this fails if anyone converts it back into a copy."""
+    served = ROOT / "website" / "install.sh"
+    assert served.is_symlink(), "website/install.sh must be a symlink to ../install.sh"
+    assert served.resolve() == (ROOT / "install.sh").resolve()
+    assert served.read_text() == (ROOT / "install.sh").read_text()
+
+
+def test_install_wrapper_lives_in_one_place():
+    """Every launcher on disk must be the same file, or `kraken` behaves
+    differently depending on which one PATH finds."""
+    launcher = ROOT / "scripts" / "kraken"
+    installed = Path.home() / ".local" / "bin" / "kraken"
+    if not installed.exists():
+        pytest.skip("launcher not installed on this machine")
+    assert installed.read_text() == launcher.read_text(), (
+        "run: KRAKEN_SRC=$PWD sh ./install.sh"
+    )
+
+
 def test_doctor_reports_which_source_is_running():
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT)
