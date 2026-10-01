@@ -86,6 +86,12 @@
   not a defect. `contract.py`'s `envelope()`/`unwrap()` (`{kind, value, meta}`)
   remain dead code — nothing in core calls them and no handler imports them —
   which is why `kind` is not asserted by the contract tests.
+- `KRAKEN_HOME` is the home directory and `.kraken` is appended to it, so
+  pointing it at `~/.kraken` silently nests everything one level deeper
+  (`~/.kraken/.kraken/tentacles/…`) with no complaint. The resolver now warns
+  once when `KRAKEN_HOME` is itself named `.kraken`. This is not hypothetical:
+  the contract sweep's own harness made exactly that mistake before the guard
+  existed.
 - Several arms configure hooks (`keeps` → `redact-log`, `compile-c` →
   `compile-stamp`, `compile-tag`) for arms that are not installed by default,
   so `_hooks` reports `skipped: true` on every run.
