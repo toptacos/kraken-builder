@@ -38,6 +38,20 @@ def _git(root: Path, *argv: str) -> str:
     return out.stdout.strip() if out.returncode == 0 else ""
 
 
+def _same_dir(a: str | Path, b: str | Path) -> bool:
+    """True when two paths name the same directory.
+
+    A string compare is not enough. On macOS `/tmp` is a symlink to
+    `/private/tmp`, so a pointer written by install.sh reads back as a
+    different string from the tree python imported — and every fresh install
+    reported itself stale.
+    """
+    try:
+        return Path(a).resolve() == Path(b).resolve()
+    except OSError:
+        return False
+
+
 def install_checks() -> list[dict[str, Any]]:
     """Which kraken is actually running, and what is competing with it.
 
@@ -92,8 +106,8 @@ def install_checks() -> list[dict[str, Any]]:
         # Normal for a packaged install. `KRAKEN_SRC` may also have been set
         # deliberately, so a mismatch is a note and not a failure.
         ok("install.pointer", f"absent ({POINTER})")
-    elif pointed == str(root):
-        ok("install.pointer", f"{POINTER} → {pointed}")
+    elif pointed == str(root) or _same_dir(pointed, root):
+        ok("install.pointer", f"{POINTER} → {root}")
     else:
         ok(
             "install.pointer",

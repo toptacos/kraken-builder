@@ -268,6 +268,34 @@ def test_changelog_has_no_unreleased_section():
     assert not top.lower().startswith("unreleased"), f"top section is {top!r}"
 
 
+def test_doctor_does_not_call_a_symlinked_pointer_stale(tmp_path):
+    """macOS `/tmp` is a symlink to `/private/tmp`, so a pointer written by
+    install.sh reads back as a different string from the tree python imported.
+    Comparing strings made every fresh install report itself stale."""
+    from kraken.core.doctor import _same_dir
+
+    real = tmp_path / "real"
+    real.mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(real)
+    assert str(link) != str(real.resolve())
+    assert _same_dir(link, real)
+    assert not _same_dir(link, tmp_path / "elsewhere")
+    assert not _same_dir("/nonexistent/xyz", real)
+
+
+def test_install_pointer_survives_a_symlinked_home(tmp_path):
+    """install.sh writes the pointer with whatever SRC the user passed. When
+    that is a symlinked path, doctor must still call it current."""
+    home = tmp_path / "home"
+    (home / ".kraken").mkdir(parents=True)
+    (home / ".kraken" / "source").write_text(str(ROOT))
+    out = run_wrapper({}, "doctor", home=home, wrapper=None)
+    report = json.loads(out.stdout)
+    pointer = next(c for c in report["checks"] if c["name"] == "install.pointer")
+    assert "stale" not in pointer["detail"]
+
+
 def test_doctor_reports_which_source_is_running():
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT)
