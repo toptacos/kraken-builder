@@ -101,6 +101,34 @@ def main(argv: list[str] | None = None) -> int:
     demo_p = sub.add_parser("demo", help="run geo lookup so first JSON lands in 60s")
     demo_p.add_argument("--ip", default="1.1.1.1")
 
+    cfg_p = sub.add_parser(
+        "config", help="show what is configured, which file won, and validate it"
+    )
+    cfg_sub = cfg_p.add_subparsers(dest="config_action")
+    cfg_sub.add_parser("list", help="every setting with its effective value")
+    cfg_get = cfg_sub.add_parser("get", help="one setting")
+    cfg_get.add_argument("key")
+    cfg_exp = cfg_sub.add_parser("explain", help="which file won for a setting")
+    cfg_exp.add_argument("key")
+    cfg_sub.add_parser("path", help="the config chain, in order")
+    cfg_sub.add_parser("validate", help="check every file in the chain")
+    cfg_init = cfg_sub.add_parser("init", help="write a commented example")
+    cfg_init.add_argument("--scope", default="user", choices=["system", "user", "project"])
+
+    up_p = sub.add_parser(
+        "up",
+        help="plan (or start) the shared `kraken` network from a berth compose plan",
+    )
+    up_p.add_argument("--file", default=None, help="path to a compose.yaml plan")
+    up_p.add_argument(
+        "--arm", default=None, help="planning arm to read (default: berth)"
+    )
+    up_p.add_argument(
+        "--start",
+        action="store_true",
+        help="actually run docker compose up -d (default is plan-only)",
+    )
+
     inst = sub.add_parser(
         "instance", help="named Kraken homes you can export without keys"
     )
@@ -128,7 +156,15 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
     root = args.root.resolve()
-    first_run_init(getattr(args, "home", None))
+    # Read KRAKEN_HOME from environment if not provided via --home
+    home = getattr(args, "home", None)
+    if home is None:
+        import os
+
+        home_env = os.environ.get("KRAKEN_HOME")
+        if home_env:
+            home = Path(home_env)
+    first_run_init(home)
 
     if args.cmd == "init":
         print(str(ensure_user_layout(args.home)))
@@ -163,7 +199,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
     if args.cmd == "list":
-        for row in list_all(root):
+        for row in list_all(root, home=home):
             actions = ",".join(row.get("actions") or [])
             print(
                 f"{row['name']}\t{row.get('version', '')}\t{actions}\t"
@@ -178,16 +214,18 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "monitor":
         payload = {"root": str(root)}
-        snap = run_named(root, "monitor", "snapshot", payload)
+        snap = run_named(root, "monitor", "snapshot", payload, home=home)
         if args.url:
-            snap["ping"] = run_named(root, "monitor", "ping", {"url": args.url})
+            snap["ping"] = run_named(
+                root, "monitor", "ping", {"url": args.url}, home=home
+            )
         print(json.dumps(snap, default=str))
         return 0 if snap.get("ok") else 2
 
     if args.cmd == "workflow":
         try:
             spec = load_workflow(args.file)
-            print(json.dumps(run_workflow(root, spec), default=str))
+            print(json.dumps(run_workflow(root, spec, home=home), default=str))
             return 0
         except (WorkflowError, ResolveError, LicenseError) as exc:
             print(json.dumps({"ok": False, "error": str(exc)}), file=sys.stderr)
@@ -257,6 +295,64 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 2
 
+    if args.cmd == "config":
+        import sys as _sys
+
+        from kraken.core import config_cmd
+
+        action = getattr(args, "config_action", None) or "list"
+        fn = {
+            "list": config_cmd.cmd_list,
+            "get": config_cmd.cmd_get,
+            "explain": config_cmd.cmd_explain,
+            "path": config_cmd.cmd_path,
+            "validate": config_cmd.cmd_validate,
+            "init": config_cmd.cmd_init,
+        }.get(action)
+        if fn is None:
+            print(
+                json.dumps(
+                    {
+                        "ok": False,
+                        "error": {"code": "unknown_action", "message": f"config {action}"},
+                    }
+                )
+            )
+            return 2
+        payload, code = fn(args, root)
+        # Contract: stdout is exactly one JSON object whenever it is not a
+        # terminal, success or failure. Only a human at a prompt gets the text
+        # form. An error must not silently switch formats for a script.
+        if not _sys.stdout.isatty():
+            print(json.dumps({k: v for k, v in payload.items() if k != "text"}, default=str))
+        else:
+            print(payload.get("text") or json.dumps(payload, default=str))
+        return code
+
+    if args.cmd == "up":
+        from kraken.core.compose import ComposeError, up as compose_up
+
+        payload: dict[str, object] = {}
+        if args.file:
+            payload["file"] = args.file
+        if args.arm:
+            payload["arm"] = args.arm
+        try:
+            result = compose_up(payload, root=root, home=home, start=args.start)
+        except ComposeError as exc:
+            print(
+                json.dumps(
+                    {
+                        "ok": False,
+                        "verb": "up",
+                        "error": {"code": "no_plan", "message": str(exc)},
+                    }
+                )
+            )
+            return 2
+        print(json.dumps(result, default=str))
+        return 0 if result.get("ok") else 2
+
     if args.cmd == "grant":
         from kraken.core.grant import grant
 
@@ -271,7 +367,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "tentacle":
         if args.ten_cmd == "list":
-            print(json.dumps(discover_installed(), indent=2))
+            print(json.dumps(discover_installed(home), indent=2))
             return 0
         if args.ten_cmd == "add":
             installed = install_any(str(args.path))
@@ -336,7 +432,12 @@ def main(argv: list[str] | None = None) -> int:
             print(
                 json.dumps(
                     run_named(
-                        root, args.arm, args.action, payload, compose=args.compose
+                        root,
+                        args.arm,
+                        args.action,
+                        payload,
+                        compose=args.compose,
+                        home=home,
                     )
                 )
             )

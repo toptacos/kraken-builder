@@ -47,13 +47,13 @@ def interpolate(value: Any, results: dict[str, Any]) -> Any:
     return value
 
 
-def _run_step(root: Path, step: dict[str, Any], results: dict[str, Any]) -> dict[str, Any]:
+def _run_step(root: Path, step: dict[str, Any], results: dict[str, Any], home: Path | None = None) -> dict[str, Any]:
     if "parallel" in step:
         kids = list(step["parallel"] or [])
         out: dict[str, Any] = {}
         with ThreadPoolExecutor(max_workers=max(1, len(kids))) as pool:
             futs = {
-                pool.submit(_run_step, root, child, results): child.get("id") or str(i)
+                pool.submit(_run_step, root, child, results, home): child.get("id") or str(i)
                 for i, child in enumerate(kids)
             }
             for fut in as_completed(futs):
@@ -65,14 +65,14 @@ def _run_step(root: Path, step: dict[str, Any], results: dict[str, Any]) -> dict
     if not name:
         raise WorkflowError(f"step {step.get('id')} missing tentacle")
     payload = interpolate(step.get("payload") or {}, results)
-    return run_named(root, str(name), str(action), payload, compose=bool(step.get("compose")))
+    return run_named(root, str(name), str(action), payload, compose=bool(step.get("compose")), home=home)
 
 
-def run_workflow(root: Path, spec: dict[str, Any]) -> dict[str, Any]:
+def run_workflow(root: Path, spec: dict[str, Any], home: Path | None = None) -> dict[str, Any]:
     results: dict[str, Any] = {}
     for i, step in enumerate(spec.get("steps") or []):
         sid = str(step.get("id") or f"step{i}")
-        results[sid] = _run_step(root, step, results)
+        results[sid] = _run_step(root, step, results, home)
     emit("workflow", {"name": spec.get("name"), "steps": list(results)})
     return {
         "ok": True,

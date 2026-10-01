@@ -8,13 +8,17 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from kraken import __version__
 from kraken.core.config import load_config
 from kraken.core.contract import PROTOCOL_VERSION
 from kraken.core.loader import load_arms
 from kraken.core.semver import satisfies
 from kraken.core.tentacle import discover_installed
 
-CORE_VERSION = "0.1.1"
+# Single source of truth. Duplicated in three places before 0.3.1, which
+# is how the changelog shipped 0.2.0 and 0.3.0 while every build still
+# called itself 0.1.1.
+CORE_VERSION = __version__
 
 
 class ResolveError(ValueError):
@@ -67,11 +71,11 @@ def _tentacle_reqs(spec: dict[str, Any]) -> dict[str, str]:
     return out
 
 
-def catalog(root) -> dict[str, Node]:
+def catalog(root, home: Path | None = None) -> dict[str, Node]:
     nodes: dict[str, Node] = {}
     for arm in load_arms([root / "arms"]):
         nodes[arm.name] = Node(arm.name, arm.version, arm.raw, "in-process")
-    for spec in (load_config(root).get("tentacles") or []) + discover_installed():
+    for spec in (load_config(root).get("tentacles") or []) + discover_installed(home):
         name = spec.get("name")
         if not name or name in nodes:
             continue
@@ -97,8 +101,8 @@ def _check_static(node: Node) -> None:
         raise ResolveError(f"{node.name} needs core {core_bound}; have {CORE_VERSION}")
 
 
-def resolve(root, name: str) -> Plan:
-    nodes = catalog(root)
+def resolve(root, name: str, home: Path | None = None) -> Plan:
+    nodes = catalog(root, home)
     if name not in nodes:
         raise ResolveError(f"arm not loaded: {name}")
 

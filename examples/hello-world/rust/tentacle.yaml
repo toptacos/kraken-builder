@@ -1,0 +1,7 @@
+name: hello-rs
+version: "0.1.0"
+license: free
+runtime: binary
+binary: hello
+actions: [ping, hello]
+description: Hello world in Rust. rustc -O -o hello handler.rs

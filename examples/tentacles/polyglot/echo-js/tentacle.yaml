@@ -1,0 +1,7 @@
+name: echo-js
+version: "0.1.0"
+description: JavaScript echo tentacle
+binary: echo.js
+actions:
+  - ping
+  - echo

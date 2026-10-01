@@ -13,7 +13,8 @@ def test_docker_network_off_by_default(tmp_path: Path, monkeypatch):
     monkeypatch.setenv("KRAKEN_HOME", str(tmp_path))
     net = resolve_docker({})
     assert net["enabled"] is False
-    assert net["name"] == "kraken_dev"
+    # The shared network across every arm, site, and doc is the bare name.
+    assert net["name"] == "kraken"
     assert net["public"] is False
 
 
@@ -51,7 +52,7 @@ def test_compile_c_plan_and_finish(tmp_path: Path, monkeypatch):
     plan = run_named(ROOT, "compile-c", "plan", {"inner": {"name": "matt"}})
     assert plan["ok"] is True
     assert plan["result"]["needs_docker"] is True
-    assert plan["result"]["network"] == "kraken_dev"
+    assert plan["result"]["network"] == "kraken"
     assert "runtime build" in " ".join(plan["result"]["next"])
     finish = run_named(
         ROOT,

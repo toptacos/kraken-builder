@@ -1,0 +1,7 @@
+name: monitor
+version: "0.1.0"
+entrypoint: arms.monitor.handler:handle
+description: Health snapshot arm for monitoring.
+triggers: [manual, queue]
+actions: [snapshot, ping]
+license: free

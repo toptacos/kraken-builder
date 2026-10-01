@@ -48,11 +48,15 @@ def save_store(store: dict[str, Any], home: Path | None = None) -> Path:
     return path
 
 
-def issue_remote(tentacle: str, plan: str = "beta", api_base: str | None = None, email: str = "") -> dict[str, Any]:
+def issue_remote(
+    tentacle: str, plan: str = "beta", api_base: str | None = None, email: str = ""
+) -> dict[str, Any]:
     """Ask the control plane for a key. Offline tests mock this."""
     base = (api_base or os.environ.get("KRAKEN_API_BASE") or DEFAULT_API).rstrip("/")
     url = f"{base}/api/kraken/licenses/issue"
-    body = json.dumps({"tentacle": tentacle, "plan": plan, "email": email, "product": "kraken"}).encode()
+    body = json.dumps(
+        {"tentacle": tentacle, "plan": plan, "email": email, "product": "kraken"}
+    ).encode()
     req = urllib.request.Request(
         url,
         data=body,
@@ -63,7 +67,9 @@ def issue_remote(tentacle: str, plan: str = "beta", api_base: str | None = None,
         with urllib.request.urlopen(req, timeout=8) as resp:
             payload = json.loads(resp.read().decode() or "{}")
     except urllib.error.HTTPError as exc:
-        raise LicenseError(f"issue API {exc.code}: {exc.read().decode(errors='replace')}") from exc
+        raise LicenseError(
+            f"issue API {exc.code}: {exc.read().decode(errors='replace')}"
+        ) from exc
     except urllib.error.URLError as exc:
         raise LicenseError(f"issue API unreachable ({base}): {exc.reason}") from exc
     if not payload.get("ok") or not payload.get("key"):
@@ -71,7 +77,9 @@ def issue_remote(tentacle: str, plan: str = "beta", api_base: str | None = None,
     return payload
 
 
-def upgrade(tentacle: str, plan: str = "beta", email: str = "", home: Path | None = None) -> dict[str, Any]:
+def upgrade(
+    tentacle: str, plan: str = "beta", email: str = "", home: Path | None = None
+) -> dict[str, Any]:
     issued = issue_remote(tentacle, plan=plan, email=email)
     set_key(tentacle, str(issued["key"]), home=home)
     store = load_store(home)
@@ -100,7 +108,9 @@ def has_local_key(tentacle: str, home: Path | None = None) -> bool:
     return bool(key)
 
 
-def verify_remote(tentacle: str, key: str, api_base: str | None = None, timeout: int = 8) -> dict[str, Any]:
+def verify_remote(
+    tentacle: str, key: str, api_base: str | None = None, timeout: int = 8
+) -> dict[str, Any]:
     base = (api_base or os.environ.get("KRAKEN_API_BASE") or DEFAULT_API).rstrip("/")
     url = f"{base}/api/kraken/licenses/verify"
     body = json.dumps({"tentacle": tentacle, "key": key, "product": "kraken"}).encode()
@@ -115,15 +125,31 @@ def verify_remote(tentacle: str, key: str, api_base: str | None = None, timeout:
             payload = json.loads(resp.read().decode() or "{}")
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode(errors="replace")
+        # 402 is the API saying "this arm needs a paid seat", not "broken".
+        # Surface it as an actionable message instead of a raw status line.
+        if exc.code == 402:
+            reason = "seat required"
+            try:
+                reason = json.loads(detail).get("error", {}).get("message") or reason
+            except (json.JSONDecodeError, AttributeError):
+                pass
+            raise LicenseError(
+                f"'{tentacle}' needs a paid seat: {reason}. "
+                f"Seats: https://kraken.topta.co/pricing"
+            ) from exc
         raise LicenseError(f"license API {exc.code} for {tentacle}: {detail}") from exc
     except urllib.error.URLError as exc:
         raise LicenseError(f"license API unreachable ({base}): {exc.reason}") from exc
     if not payload.get("ok"):
-        raise LicenseError(payload.get("error", {}).get("message") or "license rejected")
+        raise LicenseError(
+            payload.get("error", {}).get("message") or "license rejected"
+        )
     return payload
 
 
-def assert_licensed(tentacle: str, spec: dict[str, Any] | None = None, home: Path | None = None) -> None:
+def assert_licensed(
+    tentacle: str, spec: dict[str, Any] | None = None, home: Path | None = None
+) -> None:
     if not is_premium(spec):
         return
     store = load_store(home)

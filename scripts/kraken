@@ -1,17 +1,78 @@
 #!/bin/sh
-# PATH wrapper. Users type `kraken`, not python3 -m kraken.
+# kraken launcher. Users type `kraken`, not python3 -m kraken.
+#
+# The source tree is resolved at *run time*, never baked in at install time.
+# An earlier version wrote the absolute path of the checkout into the wrapper,
+# so moving or renaming the clone produced
+#   ModuleNotFoundError: No module named 'kraken'
+# with no hint about where the code had gone. Every candidate is now checked
+# for kraken/core/cli.py before it is used, and a miss names the fix.
+#
+# Order: $KRAKEN_SRC, $HOME/.kraken/source, $HOME/.kraken/src, this file's repo.
 set -eu
-ROOT="${KRAKEN_ROOT:-}"
-if [ -z "$ROOT" ]; then
-  if [ -d "$HOME/.kraken/src" ]; then
-    ROOT="$HOME/.kraken/src"
-  else
-    ROOT="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)"
-  fi
+
+die() {
+  printf 'kraken: %s\n' "$1" >&2
+  shift
+  [ "$#" -gt 0 ] && printf '%s\n' "$@" >&2
+  exit 1
+}
+
+is_source() {
+  [ -n "${1:-}" ] && [ -f "$1/kraken/core/cli.py" ]
+}
+
+abspath() {
+  CDPATH= cd -- "$1" 2>/dev/null && pwd
+}
+
+resolve_root() {
+  for candidate in \
+    "${KRAKEN_SRC:-}" \
+    "$(cat "$HOME/.kraken/source" 2>/dev/null || true)" \
+    "$HOME/.kraken/src" \
+    "$(dirname "$0")/.." \
+    ; do
+    [ -n "$candidate" ] || continue
+    candidate="$(abspath "$candidate" || true)"
+    if is_source "$candidate"; then
+      printf '%s' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+if ! command -v python3 >/dev/null 2>&1; then
+  die "python3 not on PATH. Install Python 3.11+ then re-run."
 fi
+
+if ! ROOT="$(resolve_root)"; then
+  cat >&2 <<'MSG'
+kraken: cannot find the kraken source tree.
+
+Looked for kraken/core/cli.py in, in order:
+  $KRAKEN_SRC
+  $HOME/.kraken/source
+  $HOME/.kraken/src
+  the repository containing this script
+
+Fix, pick one:
+
+  # point at an existing checkout
+  export KRAKEN_SRC="$HOME/Projects/Kraken/kraken-builder"
+
+  # or install from scratch (clones to $HOME/.kraken/src)
+  curl -fsSL https://raw.githubusercontent.com/toptacos/kraken-builder/main/install.sh | sh
+
+  # or install from a local checkout
+  KRAKEN_SRC="$PWD" sh ./install.sh
+
+If `kraken` used to work and stopped after you moved or renamed the checkout,
+this is that failure. Nothing was lost: set KRAKEN_SRC to the new path.
+MSG
+  exit 1
+fi
+
 export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
-if command -v python3 >/dev/null 2>&1; then
-  exec python3 -m kraken "$@"
-fi
-echo "kraken: python3 not on PATH. Install Python 3.10+ then re-run." >&2
-exit 127
+exec python3 -m kraken "$@"

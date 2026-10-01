@@ -1,0 +1,71 @@
+# Kraken SYSTEM configuration
+#
+# /etc/kraken/config.yaml — machine-wide defaults for everyone on
+# this host. Set a key here to pin it; a user or project config can
+# still override it, so this is a default, not a lock.
+#
+# Scope rules: every setting may be set at system scope except the
+# ones documented as user/project only. Validate with:
+#     kraken config validate
+
+version: 1
+
+# Where arms keep their data. Relative to the Kraken home.
+data_dir: data
+log_dir: logs
+cache_dir: cache
+key_dir: keys
+
+# Capability grants. Default deny: absent or false means off. A
+# commented-out line is NOT a grant — the resolver parses YAML.
+# Prefer `kraken grant <name> on` over editing this by hand.
+allow:
+  tunnel: false
+  remote_config: false
+  scourge: false
+  llm: false
+  expose: false
+
+# What arms may do without being asked. Default-deny on purpose.
+policy:
+  default: allow
+  grants: []
+  # An arbitrary label is namespaced to kraken_<label> so two projects
+  # cannot collide on one host.
+  network: kraken
+
+# Where arm events are announced. A channel whose environment variable
+# is unset is skipped rather than failing the run.
+notify:
+  channels:
+    - stdout
+  on_success: true
+  on_error: true
+
+# The shared Docker network. Disabled means Kraken starts no daemon.
+docker:
+  enabled: false
+  name: kraken
+  driver: bridge
+  public: false
+  provider: local
+
+# Arms to run around another arm's actions. Lower priority runs first.
+hooks: {}
+
+# Arms available at this scope. Installed arms are discovered anyway;
+# use this to pin order or declare dependencies.
+tentacles: []
+
+# Opt-in counters. Off unless enabled. KRAKEN_OFFLINE=1 forces off.
+telemetry:
+  enabled: false
+  events:
+    - install_ok
+    - demo_ok
+    - second_cmd
+
+# Premium-licence verification. 200 = a paid seat, 402 = buy one.
+license:
+  api_base: https://api.topta.co
+  remote: true

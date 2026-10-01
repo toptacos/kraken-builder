@@ -4,21 +4,49 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kraken-cli"
-version = "0.1.1"
+version = "0.3.1"
 description = "Open-source MIT CLI plugin runner. One binary. Many tentacles."
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.11"
 authors = [{ name = "McAchran Consulting LLC" }]
-keywords = ["cli", "homelab", "raspberry-pi", "plugins", "local-first"]
+keywords = [
+    "cli",
+    "homelab",
+    "raspberry-pi",
+    "plugins",
+    "local-first",
+    "self-hosted",
+    "open-source",
+    "json-rpc",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: System :: Systems Administration",
+]
 dependencies = ["pyyaml"]
 
 [project.optional-dependencies]
+# Optional only. Nothing in the core CLI imports kraken.billing, and every
+# arm runs without it. See docs/BILLING.md.
 billing = []
 
 [project.urls]
 Homepage = "https://kraken.topta.co"
+Documentation = "https://kraken.topta.co/docs"
 Source = "https://github.com/toptacos/kraken-builder"
+Issues = "https://github.com/toptacos/kraken-builder/issues"
+Changelog = "https://kraken.topta.co/changelog"
 
 [project.scripts]
 kraken = "kraken.core.cli:main"

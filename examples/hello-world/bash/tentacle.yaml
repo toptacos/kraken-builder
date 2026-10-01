@@ -1,0 +1,7 @@
+name: hello-sh
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.sh
+actions: [ping, hello]
+description: Hello world in Bash.

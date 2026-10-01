@@ -14,7 +14,8 @@
 
 ```bash
 cd kraken-builder
-python3 -m pip install -e . -r requirements-dev.txt
+sh ./install.sh                              # not `pip install -e .`
+python3 -m pip install -r requirements-dev.txt
 make e2e
 gh repo create toptacos/kraken-builder --public --source . --remote origin --push
 git checkout -b feature/kraken-core-tentacles

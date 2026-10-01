@@ -48,9 +48,35 @@ def config_chain(start: Path | None = None) -> list[Path]:
     return chain
 
 
+#: Directories created under the Kraken home. The first four are configurable
+#: (data_dir, log_dir, cache_dir, key_dir); the rest are structural.
+STRUCTURAL_DIRS = ("tentacles",)
+
+
+def layout_dirs() -> dict[str, str]:
+    """Configured directory names, falling back to the schema defaults."""
+    from kraken.core.config import load_config
+    from kraken.core.config_schema import BY_KEY
+
+    cfg = load_config()
+    out: dict[str, str] = {}
+    for key in ("data_dir", "log_dir", "cache_dir", "key_dir"):
+        value = cfg.get(key)
+        out[key.removesuffix("_dir")] = (
+            str(value) if isinstance(value, str) and value else BY_KEY[key].default
+        )
+    return out
+
+
+def data_root(home: Path | None = None) -> Path:
+    """Where arms keep their data. Honours `data_dir`."""
+    return (home or user_home()) / MARKER / layout_dirs()["data"]
+
+
 def ensure_user_layout(home: Path | None = None) -> Path:
     root = (home or user_home()) / MARKER
-    for name in ("data", "logs", "tentacles", "cache", "keys"):
+    names = set(layout_dirs().values()) | set(STRUCTURAL_DIRS)
+    for name in names:
         (root / name).mkdir(parents=True, exist_ok=True)
     cfg = root / "config.yaml"
     if not cfg.exists():

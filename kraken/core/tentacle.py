@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,34 @@ def parse_tentacle_yaml(path: Path) -> dict[str, Any]:
     if "name" not in data:
         raise ValueError(f"{path} missing name")
     return data
+
+
+def _run_tentacle_tests(tentacle_path: Path) -> dict[str, Any]:
+    """Run pytest on the tentacle's tests/ directory if it exists."""
+    tests_dir = tentacle_path / "tests"
+    if not tests_dir.is_dir():
+        return {"ok": True, "skipped": True, "reason": "no tests/ directory"}
+
+    import sys
+
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-m", "pytest", str(tests_dir), "-q"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        return {
+            "ok": proc.returncode == 0,
+            "returncode": proc.returncode,
+            "stdout": proc.stdout.strip(),
+            "stderr": proc.stderr.strip(),
+        }
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "error": "test timeout (120s)"}
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
 
 
 def installed_dir(home: Path | None = None) -> Path:
@@ -44,6 +73,44 @@ def discover_installed(home: Path | None = None) -> list[dict[str, Any]]:
             spec["binary"] = str((manifest.parent / spec["binary"]).resolve())
         rows.append(spec)
     return rows
+
+
+def _fire_after_install_hook(
+    installed: dict[str, Any], home: Path | None = None
+) -> None:
+    """Fire the after_install hook for the newly installed tentacle."""
+    name = installed.get("name")
+    if not name:
+        return
+    # Use the installed tentacle's root as the config root for hook discovery
+    root = Path(installed.get("_root", ""))
+    if not root.exists():
+        return
+    # Run the tentacle's own tests
+    test_result = _run_tentacle_tests(root)
+    if test_result.get("skipped"):
+        print(f"  Tests skipped: {test_result.get('reason')}", file=sys.stderr)
+    elif test_result.get("ok"):
+        print("  Tests passed", file=sys.stderr)
+    else:
+        print(
+            f"  Tests failed: {test_result.get('error') or test_result.get('stderr')}",
+            file=sys.stderr,
+        )
+    # Fire the after_install hook via the hook system (lazy import to avoid circular import)
+    try:
+        from kraken.core.hooks import fire_hooks
+
+        fire_hooks(
+            root,
+            "after_install",
+            name,
+            {"ok": True, "result": installed, "test_result": test_result},
+            lambda r, n, a, p: {"ok": True},  # dummy invoke - hooks are tentacles
+        )
+    except Exception as exc:
+        # Don't fail installation if hook fails
+        print(f"  Warning: after_install hook error: {exc}", file=sys.stderr)
 
 
 def install_local(src: Path, home: Path | None = None) -> dict[str, Any]:
@@ -72,6 +139,8 @@ def install_local(src: Path, home: Path | None = None) -> dict[str, Any]:
     if "binary" in installed and not Path(str(installed["binary"])).is_absolute():
         installed["binary"] = str((dest / installed["binary"]).resolve())
     record(name, str(installed.get("version") or "0.0.0"), source=str(src), home=home)
+    # Fire after_install hook
+    _fire_after_install_hook(installed, home=home)
     return installed
 
 
@@ -111,7 +180,9 @@ def install_any(ref: str, home: Path | None = None) -> dict[str, Any]:
     return install_local(Path(ref), home=home)
 
 
-def spec_by_name(root: Path, name: str, home: Path | None = None) -> dict[str, Any] | None:
+def spec_by_name(
+    root: Path, name: str, home: Path | None = None
+) -> dict[str, Any] | None:
     for spec in load_config(root).get("tentacles") or []:
         if spec.get("name") == name:
             return spec

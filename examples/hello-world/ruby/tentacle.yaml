@@ -1,0 +1,7 @@
+name: hello-rb
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.rb
+actions: [ping, hello]
+description: Hello world in Ruby.

@@ -30,7 +30,18 @@ def load_yaml(path: Path) -> dict[str, Any]:
 
 
 def load_config(start: Path | None = None) -> dict[str, Any]:
-    merged: dict[str, Any] = {"version": 1, "tentacles": [], "notify": "local"}
+    """Merged config across the chain. Signature-stable on purpose.
+
+    Starts from the schema defaults rather than three hardcoded keys, so a
+    partial file always resolves to a complete config. `data_dir` is a real
+    setting now, so a caller asking for it gets the configured value.
+    """
+    from kraken.core import config_schema as cs
+
+    merged: dict[str, Any] = cs.defaults()
     for directory in config_chain(start):
+        # Unknown keys are merged through, not dropped: a config written by a
+        # newer Kraken should not lose settings to an older one. They are
+        # reported by `kraken config validate` instead of vanishing here.
         merged = _deep_merge(merged, load_yaml(directory / "config.yaml"))
     return merged

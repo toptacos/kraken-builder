@@ -1,0 +1,7 @@
+name: echo-sh
+version: "0.1.0"
+description: Bash echo tentacle
+binary: echo.sh
+actions:
+  - ping
+  - echo

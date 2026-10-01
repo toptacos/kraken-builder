@@ -16,11 +16,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - run: pip install -e .
       - run: pip install pytest pyyaml
-      - name: Tentacle and core tests
+      - name: Full test suite
         env:
           PYTHONPATH: ${{ github.workspace }}
-        run: python -m pytest tests/test_notes_tunnel_llm.py tests/test_expose.py tests/test_scopes_ca.py tests/test_panel.py tests/test_scourge_grant.py tests/test_suckers.py tests/test_install_wrapper.py tests/test_license_upgrade.py tests/test_wx_sucker.py tests/test_browse_js.py tests/test_demo_first_json.py -q
+          # Offline-first: nothing in the suite may reach the network.
+          KRAKEN_OFFLINE: "1"
+        # The whole directory, not a hand-maintained file list — an explicit
+        # list silently stops covering new tests.
+        run: python -m pytest tests -q
       - name: CLI init vanilla demo doctor
         env:
           PYTHONPATH: ${{ github.workspace }}
@@ -29,3 +34,52 @@ jobs:
           python -m kraken vanilla
           python -m kraken demo
           python -m kraken doctor
+      - name: kraken up plans and never starts a daemon by default
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          set -e
+          # A plan written by the test itself. The berth arm is a sibling
+          # repository, so CI cannot assume it is installed here.
+          cat > plan.yaml <<'YAML'
+          services:
+            api:
+              image: nginx:alpine
+              networks:
+                - kraken
+          networks:
+            kraken:
+              name: kraken
+              driver: bridge
+          YAML
+          python -m kraken up --file plan.yaml | tee plan.json
+          grep -q '"daemon": false' plan.json
+          grep -q '"name": "kraken"' plan.json
+      - name: kraken up refuses to start offline
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          KRAKEN_OFFLINE: "1"
+        run: |
+          set -e
+          cat > plan.yaml <<'YAML'
+          services:
+            api:
+              image: nginx:alpine
+              networks:
+                - kraken
+          networks:
+            kraken:
+              name: kraken
+          YAML
+          python -m kraken up --file plan.yaml --start | tee started.json
+          grep -q '"code": "offline"' started.json
+      - name: kraken up without a plan exits cleanly
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          export KRAKEN_HOME="$RUNNER_TEMP/kraken-empty"
+          mkdir -p "$KRAKEN_HOME"
+          # Must report no_plan and exit non-zero, not raise.
+          python -m kraken up | tee out.json
+          grep -q '"code": "no_plan"' out.json
+          python -m pytest tests/test_up_verb.py -q

@@ -16,3 +16,10 @@ tunnel:
   bind: 127.0.0.1
   require_existing_key: true
 tentacles: []
+hooks:
+  after_install:
+    - tentacle: kraken-test-runner
+      action: run
+      optional: true
+      when: "*"
+      priority: 100

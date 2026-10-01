@@ -42,13 +42,13 @@ def _resolve_binary(root: Path, spec: dict[str, Any]) -> Path:
 
 
 def _invoke_one(
-    root: Path, name: str, action: str, payload: dict[str, Any] | None
+    root: Path, name: str, action: str, payload: dict[str, Any] | None, home: Path | None = None
 ) -> dict[str, Any]:
     registry = in_process_registry(root)
     if name in registry.names():
         assert_licensed(name, registry.get(name).raw)
         return registry.run(name, action, payload)
-    spec = spec_by_name(root, name)
+    spec = spec_by_name(root, name, home)
     if spec:
         assert_licensed(name, spec)
         binary = _resolve_binary(root, spec)
@@ -58,12 +58,12 @@ def _invoke_one(
     raise KeyError(f"arm not loaded: {name}")
 
 
-def _default_action(root: Path, name: str) -> str:
+def _default_action(root: Path, name: str, home: Path | None = None) -> str:
     registry = in_process_registry(root)
     if name in registry.names():
         actions = registry.get(name).actions
         return actions[0] if actions else "ping"
-    spec = spec_by_name(root, name) or {}
+    spec = spec_by_name(root, name, home) or {}
     actions = spec.get("actions") or ["ping"]
     return str(actions[0])
 
@@ -74,9 +74,10 @@ def run_named(
     action: str,
     payload: dict[str, Any] | None = None,
     compose: bool = False,
+    home: Path | None = None,
 ) -> dict[str, Any]:
     global _IN_HOOK
-    plan = resolve(root, name)
+    plan = resolve(root, name, home)
     body = dict(payload or {})
     ctx = {"action": action, "plan": plan.order}
     if not _IN_HOOK:
@@ -84,10 +85,10 @@ def run_named(
     if compose and len(plan.order) > 1:
         deps: dict[str, Any] = {}
         for dep in plan.order[:-1]:
-            deps[dep] = _invoke_one(root, dep, _default_action(root, dep), body)
+            deps[dep] = _invoke_one(root, dep, _default_action(root, dep, home), body, home)
         body["_deps"] = deps
     try:
-        result = _invoke_one(root, name, action, body)
+        result = _invoke_one(root, name, action, body, home)
     except Exception as exc:
         if not _IN_HOOK:
             fire_hooks(
@@ -113,7 +114,7 @@ def run_named(
                 result = dict(result)
                 result["_hooks"] = hooks
                 patch = _hook_patch(hooks)
-                spec = spec_by_name(root, name) or {}
+                spec = spec_by_name(root, name, home) or {}
                 actions = spec.get("actions") or []
                 if patch and "finish" in actions and action != "finish":
                     finished = _invoke_one(
@@ -125,6 +126,7 @@ def run_named(
                             "raw": result.get("result"),
                             "patch": patch,
                         },
+                        home,
                     )
                     result["result"] = finished.get("result", finished)
                     result["finished"] = True
@@ -143,7 +145,7 @@ def _hook_patch(hooks: list[dict[str, Any]]) -> dict[str, Any]:
     return patch
 
 
-def list_all(root: Path) -> list[dict[str, Any]]:
+def list_all(root: Path, home: Path | None = None) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     seen: set[str] = set()
     registry = in_process_registry(root)
@@ -161,7 +163,7 @@ def list_all(root: Path) -> list[dict[str, Any]]:
                 "needs_docker": bool(arm.raw.get("needs_docker")),
             }
         )
-    for spec in (load_config(root).get("tentacles") or []) + discover_installed():
+    for spec in (load_config(root).get("tentacles") or []) + discover_installed(home):
         name = spec.get("name")
         if not name or name in seen:
             continue

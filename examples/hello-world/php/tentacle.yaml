@@ -1,0 +1,7 @@
+name: hello-php
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.php
+actions: [ping, hello]
+description: Hello world in PHP.

@@ -1,0 +1,7 @@
+name: hello-go
+version: "0.1.0"
+license: free
+runtime: binary
+binary: handler.go
+actions: [ping, hello]
+description: "Hello world in Go. Optional go build -o hello."
