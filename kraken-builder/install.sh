@@ -14,7 +14,6 @@ REPO="${KRAKEN_REPO:-https://github.com/toptacos/kraken-builder.git}"
 SRC="${KRAKEN_SRC:-$HOME/.kraken/src}"
 BIN_DIR="${KRAKEN_BIN:-$HOME/.local/bin}"
 POINTER="$HOME/.kraken/source"
-LAUNCHER="$(CDPATH= cd -- "$(dirname "$0")" && pwd)/scripts/kraken"
 
 need() {
   command -v "$1" >/dev/null 2>&1 || { echo "need $1 on PATH" >&2; exit 1; }
@@ -44,6 +43,26 @@ fi
 
 printf '%s\n' "$SRC" > "$POINTER"
 chmod 0600 "$POINTER"
+
+# `$0` is meaningless under `curl … | sh`, which is how the README installs it,
+# so the launcher's location cannot be derived from this script's own path.
+# $SRC is the reliable answer: it is a real checkout by this point, whether it
+# was cloned, passed in, or already present.
+LAUNCHER=""
+for candidate in "$SRC/scripts/kraken" "$(dirname "$0")/scripts/kraken"; do
+  if [ -f "$candidate" ]; then
+    LAUNCHER="$candidate"
+    break
+  fi
+done
+if [ -z "$LAUNCHER" ]; then
+  cat >&2 <<MSG
+install: cannot find scripts/kraken in $SRC.
+install: the source tree is incomplete — it must contain scripts/kraken.
+install: re-clone with: git clone --depth 1 $REPO "$SRC"
+MSG
+  exit 1
+fi
 
 # A `kraken` earlier on PATH than $BIN_DIR beats the launcher below. The usual
 # culprit is a stale `pip install -e .` console script, and it fails with a

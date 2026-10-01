@@ -1,5 +1,6 @@
 import json
 import re
+import shutil
 from pathlib import Path
 import os
 import stat
@@ -149,6 +150,67 @@ def test_install_sh_points_the_pointer_and_does_not_pip_install():
     # The old guard was `[ -f "$SRC/kraken/__main__.py" ]`, which passes for a
     # tree that has lost kraken/core.
     assert "kraken/core/cli.py" in body
+
+
+def test_install_sh_works_when_piped_from_curl(tmp_path):
+    """The README installs with `curl … | sh`, where `$0` is `sh` and there is
+    no script directory next to it. Deriving the launcher from `$0` produced
+    `install: /some/cwd/scripts/kraken: No such file or directory` for every
+    user who followed the README — while the test suite, which ran install.sh
+    from inside the repo, passed. Piping is the documented path, so pipe it."""
+    home = tmp_path / "home"
+    src = home / ".kraken" / "src"
+    bindir = home / ".local" / "bin"
+    src.mkdir(parents=True)
+    for part in ("kraken", "examples", "arms", "scripts"):
+        shutil.copytree(ROOT / part, src / part)
+
+    env = os.environ.copy()
+    env.update(HOME=str(home), KRAKEN_SRC=str(src), KRAKEN_BIN=str(bindir))
+    proc = subprocess.run(
+        ["sh"],
+        stdin=(ROOT / "install.sh").open(),
+        env=env,
+        text=True,
+        capture_output=True,
+        cwd=str(tmp_path),  # deliberately NOT the repo, and not $SRC
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert "No such file or directory" not in proc.stderr
+    installed = bindir / "kraken"
+    assert installed.exists()
+    assert installed.read_text() == (ROOT / "scripts" / "kraken").read_text()
+    # And the launcher it installed must find that same source tree.
+    assert (home / ".kraken" / "source").read_text().strip() == str(src)
+    out = subprocess.run(
+        [str(installed), "self", "plan"],
+        env={**env, "PATH": f"{bindir}:{env['PATH']}"},
+        text=True,
+        capture_output=True,
+    )
+    assert_resolved(out)
+
+
+def test_install_sh_fails_loudly_on_an_incomplete_checkout(tmp_path):
+    """A tree missing scripts/kraken must name the fix, not die on `install:`."""
+    home = tmp_path / "home"
+    src = home / ".kraken" / "src"
+    bindir = home / ".local" / "bin"
+    src.mkdir(parents=True)
+    shutil.copytree(ROOT / "kraken", src / "kraken")
+    env = os.environ.copy()
+    env.update(HOME=str(home), KRAKEN_SRC=str(src), KRAKEN_BIN=str(bindir))
+    proc = subprocess.run(
+        ["sh"],
+        stdin=(ROOT / "install.sh").open(),
+        env=env,
+        text=True,
+        capture_output=True,
+        cwd=str(tmp_path),
+    )
+    assert proc.returncode == 1
+    assert "cannot find scripts/kraken" in proc.stdout + proc.stderr
+    assert not (bindir / "kraken").exists()
 
 
 def test_website_serves_the_same_installer():
