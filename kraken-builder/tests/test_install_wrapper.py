@@ -152,6 +152,51 @@ def test_install_sh_points_the_pointer_and_does_not_pip_install():
     assert "kraken/core/cli.py" in body
 
 
+def _pipe_install(home, src, bindir, cwd):
+    env = os.environ.copy()
+    env.update(HOME=str(home), KRAKEN_SRC=str(src), KRAKEN_BIN=str(bindir))
+    return subprocess.run(
+        ["sh"],
+        stdin=(ROOT / "install.sh").open(),
+        env=env,
+        text=True,
+        capture_output=True,
+        cwd=str(cwd),
+    )
+
+
+def _full_checkout(dest):
+    dest.mkdir(parents=True, exist_ok=True)
+    for part in ("kraken", "examples", "arms", "scripts"):
+        shutil.copytree(ROOT / part, dest / part, dirs_exist_ok=True)
+    return dest
+
+
+def test_install_sh_warns_when_it_changes_which_checkout_wins(tmp_path):
+    """Two checkouts is the silent mistake: you edit one and run the other.
+    Re-running install.sh without KRAKEN_SRC used to flip the pointer with no
+    output at all."""
+    home = tmp_path / "home"
+    bindir = home / ".local" / "bin"
+    first = _full_checkout(home / "src-one")
+    second = _full_checkout(tmp_path / "src-two")
+
+    assert _pipe_install(home, first, bindir, tmp_path).returncode == 0
+    assert (home / ".kraken" / "source").read_text().strip() == str(first)
+
+    out = _pipe_install(home, second, bindir, tmp_path)
+    assert out.returncode == 0, out.stderr
+    combined = out.stdout + out.stderr
+    assert str(first) in combined, "must name the checkout it is replacing"
+    assert str(second) in combined
+    assert "KRAKEN_SRC=" in combined, "must say how to switch back"
+    assert (home / ".kraken" / "source").read_text().strip() == str(second)
+
+    # Re-running with the same source is not a change and must stay quiet.
+    again = _pipe_install(home, second, bindir, tmp_path)
+    assert "already pointed at" not in again.stdout + again.stderr
+
+
 def test_install_sh_works_when_piped_from_curl(tmp_path):
     """The README installs with `curl … | sh`, where `$0` is `sh` and there is
     no script directory next to it. Deriving the launcher from `$0` produced
