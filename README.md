@@ -133,8 +133,12 @@ Repos: [kraken-builder](https://github.com/toptacos/kraken-builder) · [tentacle
 Homebrew:
 
 ```
+brew tap toptacos/kraken https://github.com/toptacos/kraken-builder
 brew install toptacos/kraken/kraken-cli
 ```
+
+The tap is this repository — the formula lives in `Formula/`, so the `brew tap`
+step is required and there is nothing else to clone.
 
 Optional billing extra (same tree, not required — everything below runs without it):
 
