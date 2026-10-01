@@ -1,8 +1,8 @@
 class KrakenCli < Formula
   desc "Local-first CLI plugin runner. One binary. Many tentacles."
   homepage "https://kraken.topta.co"
-  url "https://github.com/toptacos/kraken-builder/archive/refs/tags/v0.1.1.tar.gz"
-  sha256 "8a9d4a9cecb783439974d5cbb9fb807be94d12177013d5d60cbedb96906e06e5"
+  url "https://github.com/toptacos/kraken-builder/archive/refs/tags/v0.3.1.tar.gz"
+  sha256 "e2a4bd5af1c6b2c8ce509a3d48eea5fdf830f7d75de315b99d628dc8243f5fee"
   license "MIT"
   head "https://github.com/toptacos/kraken-builder.git", branch: "main"
 
@@ -25,7 +25,19 @@ class KrakenCli < Formula
   end
 
   test do
-    output = shell_output("#{bin}/kraken self plan")
-    assert_match "ok", output
+    require "json"
+    report = JSON.parse(shell_output("#{bin}/kraken doctor"))
+    checks = report["checks"].to_h { |c| [c["name"], c] }
+
+    # The install must resolve to this Cellar's libexec, not to a path frozen
+    # when the formula was written. That regression shipped as
+    # ModuleNotFoundError: No module named 'kraken'.
+    source = checks.fetch("install.source")
+    assert source["ok"], source["detail"]
+    assert_match "libexec", source["detail"]
+
+    # A pip kraken-cli anywhere on the Ruby-visible path can shadow this bin.
+    assert checks["install.pip_kraken_cli"]["ok"],
+           checks["install.pip_kraken_cli"]["detail"]
   end
 end
