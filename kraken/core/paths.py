@@ -3,14 +3,34 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 
 MARKER = ".kraken"
 
+_WARNED_HOME: set[str] = set()
+
 
 def user_home() -> Path:
-    return Path(os.environ.get("KRAKEN_HOME", Path.home()))
+    """KRAKEN_HOME is the home directory, not the .kraken directory.
+
+    Setting it to `~/.kraken` is the natural mistake and it is silent: the
+    resolver appends .kraken, so every tentacle lands in `~/.kraken/.kraken`
+    and nothing complains. Warn once rather than fail -- pointing KRAKEN_HOME at
+    a directory that happens to be named .kraken is legitimate, just unlikely.
+    """
+    raw = os.environ.get("KRAKEN_HOME")
+    if raw and Path(raw).name == MARKER and raw not in _WARNED_HOME:
+        _WARNED_HOME.add(raw)
+        print(
+            f"kraken: KRAKEN_HOME={raw} looks like the .kraken directory, but "
+            f"KRAKEN_HOME is the home directory and .kraken is appended to it. "
+            f"Expect {Path(raw) / MARKER}; set KRAKEN_HOME to its parent to write "
+            f"into {raw} directly.",
+            file=sys.stderr,
+        )
+    return Path(raw) if raw else Path.home()
 
 
 def system_kraken() -> Path:
@@ -80,12 +100,7 @@ def ensure_user_layout(home: Path | None = None) -> Path:
         (root / name).mkdir(parents=True, exist_ok=True)
     cfg = root / "config.yaml"
     if not cfg.exists():
-        cfg.write_text(
-            "version: 1\n"
-            "notify: local\n"
-            "data_dir: data\n"
-            "tentacles: []\n"
-        )
+        cfg.write_text("version: 1\nnotify: local\ndata_dir: data\ntentacles: []\n")
     return root
 
 
