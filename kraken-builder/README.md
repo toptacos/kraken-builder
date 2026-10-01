@@ -16,9 +16,16 @@ stdin/stdout — there is nothing to reverse and nothing to call home to.
 
 ```
 git clone https://github.com/toptacos/kraken-builder
-cd kraken-builder && pip install -e .
+cd kraken-builder && sh ./install.sh
 kraken demo
 ```
+
+Not `pip install -e .`. An editable install freezes the absolute path of your
+checkout into an import finder, so moving or renaming the directory leaves a
+`kraken` on PATH that fails with `ModuleNotFoundError: No module named
+'kraken'` while `pip show` still reports a healthy install. The installer writes
+a launcher that re-resolves the source on every run instead.
+See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
 | Open (MIT) | Metered, not secret |
 |---|---|
@@ -50,6 +57,16 @@ kraken run filesort scan --payload '{"path":"."}'
 kraken grant expose
 kraken run expose plan --payload '{"host":"panel.kraken.localhost"}'
 ```
+
+Moving or renaming your checkout afterwards is one line, not a reinstall:
+
+```bash
+KRAKEN_SRC="$HOME/new/path/to/kraken-builder" sh ./install.sh
+```
+
+`kraken doctor` reports which source tree is actually running, its git
+revision, and whether a competing `kraken` is on PATH — the three facts that
+explain `ModuleNotFoundError`.
 
 ## Configuration
 
@@ -139,3 +156,21 @@ whole review surface. Never commit `~/.kraken`, `keys/`, or `licenses.json`.
 MIT — see [LICENSE](LICENSE). Copyright (c) 2026 McAchran Consulting LLC.
 
 A TopTaco product on topta.co. Brand: tentacle-K, ink `#0B1220`, teal `#2FD0C6`, foam `#E7F6F6`, gold `#e7c56a`.
+
+<!-- SPONSORS:BEGIN -->
+
+## Sponsoring
+
+Kraken is MIT: the CLI, every arm, and the JSON contract. Sponsorship pays for maintenance and releases, never for features held back.
+
+[![Sponsor](https://topta.co/donate)](https://topta.co/donate) [![What your money funds](https://topta.co/projects)](https://topta.co/projects)
+
+| Rail | What it funds |
+| --- | --- |
+| [Card (Stripe)](https://topta.co/donate) | Hosting, the API, and release time. |
+| [Impact Radius](https://impact.topta.co) | The open-source projects this depends on, paid directly. We take no margin. |
+| [Affiliate](https://topta.co/products) | Discgolf gear and delivery commissions. Never a listing fee, never a paywall. |
+
+Prefer not to donate? Issues, discussions and pull requests are the most useful thing you can send.
+
+<!-- SPONSORS:END -->

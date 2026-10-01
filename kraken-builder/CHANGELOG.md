@@ -1,5 +1,42 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- **`ModuleNotFoundError: No module named 'kraken'` after moving the checkout.**
+  `pip install -e .` writes a pip console script with two absolute paths frozen
+  into it: the interpreter in the shebang, and the checkout location in
+  `__editable___kraken_cli_*.py`. Rename or move the repo and the interpreter
+  still runs, the `dist-info` still reports a healthy install, and the import
+  fails — with an error that names neither a path nor the finder, so it reads
+  as "not installed". `scripts/kraken` now re-resolves its source tree on every
+  invocation, validating each candidate for `kraken/core/cli.py` instead of
+  trusting a recorded path, and prints the fix instead of a traceback when no
+  candidate resolves.
+- **`install.sh` baked the checkout path into the wrapper it wrote.** It now
+  installs `scripts/kraken` and records the chosen tree in
+  `$HOME/.kraken/source`, so moving a checkout is a one-line repair. The
+  installer also warns when a `kraken` earlier on `PATH` would shadow the
+  launcher — the other half of this failure, since `/usr/local/bin` usually
+  precedes `~/.local/bin`.
+- **The install guard tested the wrong file.** `install.sh` accepted any tree
+  containing `kraken/__main__.py`, which passes for a checkout that has lost
+  `kraken/core`. It now checks the module the console entry actually imports.
+
+### Added
+- **`kraken doctor` reports the install.** New `install.*` checks name the
+  source tree that is running, its git revision and dirty state, any competing
+  `kraken_cli-*.dist-info` on `sys.path`, whether `$HOME/.kraken/source` agrees
+  with the tree that ran, and where `kraken` and `k` resolve on `PATH`. Only
+  `install.source`, `install.pip_kraken_cli`, and `install.on_path` can fail —
+  a non-git tree is reported, not penalised, so the checks stay meaningful for
+  a Homebrew or pip install.
+- `docs/TROUBLESHOOTING.md` — `ModuleNotFoundError`, source-tree resolution,
+  shadowing, two-clone drift, and a dangling `.git` file, each with the cause
+  before the fix.
+- `tests/test_install_wrapper.py` — 11 tests covering pointer resolution,
+  `KRAKEN_SRC` precedence, the dead-source message, and the install guard.
+
 ## 0.3.0 — 2026-09-28
 
 ### Security

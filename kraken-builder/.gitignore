@@ -20,3 +20,4 @@ dist/
 .ruff_cache/
 .coverage
 e2e-results.log
+.git.dangling-*
