@@ -5,6 +5,7 @@ runtime: binary
 binary: handler.py
 actions: [plan, build, invoke, finish]
 needs_docker: true
+timeout_sec: 180
 description: Compile a C handler to a single binary via Docker, then invoke it. Suckers stamp and tag the result. Dry-run when Docker is missing.
 hooks:
   after_run:

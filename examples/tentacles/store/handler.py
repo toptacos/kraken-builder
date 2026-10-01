@@ -112,8 +112,19 @@ def main() -> int:
         return _ok(req, {"pack": str(out), "count": len(pack["objects"]), "kind": pack["kind"]})
 
     if action == "import-pack":
-        src = Path(p.get("pack") or "")
-        pack = json.loads(src.read_text())
+        raw = p.get("pack") or ""
+        if not raw:
+            return _ok(req, {"error": "import-pack needs a 'pack' path"}, ok=False)
+        src = Path(raw)
+        # Path("") is ".", so a missing argument used to read_text() a
+        # directory and die with IsADirectoryError -- a traceback and exit 1 for
+        # what is an ordinary "you forgot the argument".
+        if not src.is_file():
+            return _ok(req, {"error": f"pack is not a file: {src}"}, ok=False)
+        try:
+            pack = json.loads(src.read_text())
+        except (OSError, json.JSONDecodeError) as exc:
+            return _ok(req, {"error": f"cannot read pack: {exc}"}, ok=False)
         if pack.get("kind") != "kraken.store.pack.v1":
             return _ok(req, {"error": "not a kraken store pack"}, ok=False)
         imported = 0

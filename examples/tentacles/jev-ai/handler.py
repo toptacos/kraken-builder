@@ -17,6 +17,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
+#: Must stay under the core runner's kill time (30s by default, or whatever
+#: timeout_sec the manifest declares). A handler budget above core's can never
+#: be spent: core kills the process first, and this handler has no chance to
+#: report anything but a stack trace.
+INFER_TIMEOUT_SEC = 20
+
 
 def _ok(req: dict, result: dict, ok: bool = True) -> int:
     sys.stdout.write(
@@ -149,7 +155,7 @@ def _ollama_infer(prompt: str, model: str = "llama3", temperature: float = 0.7) 
     proc = subprocess.run(
         [exe, "run", model, prompt],
         capture_output=True,
-        timeout=120,
+        timeout=INFER_TIMEOUT_SEC,
         check=False,
         input="",
         text=True,
@@ -172,7 +178,7 @@ def _llamacpp_infer(prompt: str, model_path: str, temperature: float = 0.7) -> s
     }).encode("utf-8")
     req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
     try:
-        with urllib.request.urlopen(req, timeout=120) as resp:
+        with urllib.request.urlopen(req, timeout=INFER_TIMEOUT_SEC) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             return data.get("content", "")
     except urllib.error.URLError as exc:
@@ -232,14 +238,14 @@ def main() -> int:
             try:
                 output = _ollama_infer(prompt, model, p.get("temperature", 0.7))
                 return _ok(req, {"backend": "ollama", "model": model, "output": output})
-            except (FileNotFoundError, RuntimeError) as exc:
-                return _ok(req, {"error": str(exc)}, ok=False)
+            except (FileNotFoundError, RuntimeError, subprocess.TimeoutExpired) as exc:
+                return _ok(req, {"error": str(exc) or f"{backend} timed out"}, ok=False)
         elif backend == "llamacpp":
             try:
                 output = _llamacpp_infer(prompt, model, p.get("temperature", 0.7))
                 return _ok(req, {"backend": "llamacpp", "model": model, "output": output})
-            except (FileNotFoundError, RuntimeError) as exc:
-                return _ok(req, {"error": str(exc)}, ok=False)
+            except (FileNotFoundError, RuntimeError, subprocess.TimeoutExpired) as exc:
+                return _ok(req, {"error": str(exc) or f"{backend} timed out"}, ok=False)
         else:
             return _ok(req, {"error": f"unknown backend: {backend}"}, ok=False)
 
@@ -256,14 +262,14 @@ def main() -> int:
             try:
                 output = _ollama_infer(prompt, model, p.get("temperature", 0.7))
                 return _ok(req, {"backend": "ollama", "model": model, "output": output})
-            except (FileNotFoundError, RuntimeError) as exc:
-                return _ok(req, {"error": str(exc)}, ok=False)
+            except (FileNotFoundError, RuntimeError, subprocess.TimeoutExpired) as exc:
+                return _ok(req, {"error": str(exc) or f"{backend} timed out"}, ok=False)
         elif backend == "llamacpp":
             try:
                 output = _llamacpp_infer(prompt, model, p.get("temperature", 0.7))
                 return _ok(req, {"backend": "llamacpp", "model": model, "output": output})
-            except (FileNotFoundError, RuntimeError) as exc:
-                return _ok(req, {"error": str(exc)}, ok=False)
+            except (FileNotFoundError, RuntimeError, subprocess.TimeoutExpired) as exc:
+                return _ok(req, {"error": str(exc) or f"{backend} timed out"}, ok=False)
         else:
             return _ok(req, {"error": f"unknown backend: {backend}"}, ok=False)
 

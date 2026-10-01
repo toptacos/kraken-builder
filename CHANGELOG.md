@@ -37,6 +37,60 @@
 - `tests/test_install_wrapper.py` — 11 tests covering pointer resolution,
   `KRAKEN_SRC` precedence, the dead-source message, and the install guard.
 
+### Fixed
+- **`timeout_sec` in tentacle.yaml was dead config.** `invoke_binary` defaulted
+  to 30 and no caller passed anything, so every arm silently got 30s. An arm
+  declaring 120s could never spend its budget: core killed it first, and the
+  handler had no chance to report anything but a stack trace. The manifest
+  value is now read and clamped to `MAX_TIMEOUT_SEC`, so an arm may ask for
+  less than the default but never for an unbounded run.
+- **berth and ledger wrote a correct error body and then exited 1.**
+  `docs/CONTRACT.md` is explicit that a non-zero exit is a transport failure
+  and an application failure is `"ok": false` with exit 0. Both did the
+  opposite, so core discarded the body and raised — asking berth why it failed
+  produced a `RuntimeError` and a stack trace instead of "no project config".
+  Both now exit 0. A scan of all 61 handlers found these two and no others.
+- **`compile-c` imported `kraken.core` and called `run_named()` in-process**,
+  which `docs/CONTRACT.md` forbids outright ("It must not depend on kraken-core
+  source"). It also located the runner with `parents[3]`, which resolves
+  against wherever the tentacle happens to be installed, so `runtime` was
+  looked up under the wrong root. It now delegates over the contract, and a
+  missing or failing dependency is an answer rather than a traceback.
+- **`jev-ai learn` could hang past core's kill time.** `_ollama_infer` allowed
+  120s against core's 30s, and `subprocess.TimeoutExpired` was caught by
+  neither `FileNotFoundError` nor `RuntimeError`, so a timeout escaped as a
+  traceback. Its deadline is now under core's, and a timeout is reported as
+  `ok: false`. It declares `timeout_sec: 180` for the same reason compile-c
+  does: a tentacle that shells out needs more wall clock than one that does not.
+- **`store import-pack` and `vault import-bundle` crashed on a missing
+  argument.** `Path(p.get("pack") or "")` is `.`, so omitting the path made
+  `read_text()` raise `IsADirectoryError`. Both now say what is missing.
+
+### Added
+- **`tests/test_handler_contract.py`** — two properties across every tentacle
+  and example arm. First, a handler that writes `"ok": false` must exit 0; the
+  exit code must not contradict the body. Second, every declared action must
+  answer with one JSON object rather than a traceback. Plus a check that a
+  handler's own subprocess deadline stays under the budget core enforces, which
+  is what caught the `jev-ai` and `compile-c` overshoots.
+- **`scripts/contract_sweep.py`** — installs every tentacle into a throwaway
+  `KRAKEN_HOME` and invokes every declared action through `kraken run`, the
+  path a user actually takes. The per-repo suites call a handler directly and
+  read stdout, which is why none of this was visible: 195 actions across 51
+  tentacles now pass with zero transport failures.
+
+### Known
+- 17 actions report a refusal as `"ok": false` with the reason at
+  `result.error` rather than top-level `error`. Every one carries a
+  machine-readable reason, so this is a shape difference between example arms,
+  not a defect. `contract.py`'s `envelope()`/`unwrap()` (`{kind, value, meta}`)
+  remain dead code — nothing in core calls them and no handler imports them —
+  which is why `kind` is not asserted by the contract tests.
+- Several arms configure hooks (`keeps` → `redact-log`, `compile-c` →
+  `compile-stamp`, `compile-tag`) for arms that are not installed by default,
+  so `_hooks` reports `skipped: true` on every run.
+
+
 ## 0.3.0 — 2026-09-28
 
 ### Security

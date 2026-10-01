@@ -9,12 +9,69 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 
+#: compile-c shells out to `runtime`, which shells out to Docker. Its own
+#: manifest declares timeout_sec: 180 so core allows the delegation to finish;
+#: the inner deadline stays under that so a slow inner call still reports its
+#: own error instead of being killed by core with no message at all.
+DELEGATE_TIMEOUT_SEC = 150
+
 
 def _ok(req: dict, result: dict, ok: bool = True) -> int:
     sys.stdout.write(
         json.dumps({"v": 1, "id": req.get("id"), "ok": ok, "result": result})
     )
     return 0
+
+def _delegate(req: dict, arm: str, action: str, payload: dict, net: dict | None = None) -> int:
+    """Run another tentacle as a subprocess and relay its answer.
+
+    A missing arm, a non-zero exit, or unparseable output are all answered as
+    "ok": false with exit 0 -- an application failure with a usable message,
+    never a transport failure that hides the reason.
+    """
+    import os
+    import subprocess
+
+    env = dict(os.environ)
+    here = Path(__file__).resolve().parent
+    # Find a kraken runner: the checkout this example lives in, if any.
+    for base in (here.parents[3], here.parents[2], ROOT.parent):
+        if (base / "kraken" / "core" / "cli.py").exists():
+            env["PYTHONPATH"] = str(base) + os.pathsep + env.get("PYTHONPATH", "")
+            break
+
+    cmd = [sys.executable, "-m", "kraken", "run", arm, action,
+           "--payload", json.dumps(payload)]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=DELEGATE_TIMEOUT_SEC, env=env)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return _ok(req, {"error": f"cannot run {arm}: {exc}"}, ok=False)
+
+    line = next((ln for ln in reversed(proc.stdout.splitlines()) if ln.startswith("{")), None)
+    if line is None:
+        detail = (proc.stderr or proc.stdout).strip()[-300:]
+        return _ok(
+            req,
+            {
+                "error": f"{arm} {action} produced no JSON (exit {proc.returncode})",
+                "detail": detail,
+                "hint": f"kraken tentacle add examples/tentacles/{arm}",
+            },
+            ok=False,
+        )
+    try:
+        out = json.loads(line)
+    except json.JSONDecodeError as exc:
+        return _ok(req, {"error": f"{arm} {action} wrote invalid JSON: {exc}"}, ok=False)
+
+    result = out.get("result") or {}
+    if not isinstance(result, dict):
+        result = {"value": result}
+    if net is not None:
+        result["docker"] = net
+    if out.get("ok") is False:
+        return _ok(req, result or {"error": f"{arm} {action} failed"}, ok=False)
+    return _ok(req, result)
 
 
 def main() -> int:
@@ -58,25 +115,20 @@ def main() -> int:
         )
 
     if action in {"build", "invoke"}:
-        from kraken.core.runner import run_named
-        from pathlib import Path as P
-
-        root = P(__file__).resolve().parents[3]
-        out = run_named(
-            root,
-            "runtime",
-            action,
-            {
-                "dockerfile": dockerfile,
-                "image": image,
-                "network": net["name"],
-                "inner": inner,
-                **p,
-            },
-        )
-        result = out.get("result") or out
-        result["docker"] = net
-        return _ok(req, result, ok=bool(out.get("ok", True)))
+        # Shell out to the runner rather than importing it.
+        # docs/CONTRACT.md: "It must not depend on kraken-core source." This
+        # imported kraken.core.runner and called run_named() in-process, which
+        # broke twice over -- `parents[3]` resolves against wherever the
+        # tentacle happens to be installed, so `runtime` was looked up under the
+        # wrong root, and an unresolved arm escaped as a traceback and exit 1
+        # instead of a v1 answer.
+        return _delegate(req, "runtime", action, {
+            "dockerfile": dockerfile,
+            "image": image,
+            "network": net["name"],
+            "inner": inner,
+            **p,
+        }, net)
 
     return _ok(req, {"error": f"unknown action {action}"}, ok=False)
 
