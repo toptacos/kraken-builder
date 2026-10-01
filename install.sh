@@ -41,8 +41,39 @@ if [ ! -f "$SRC/kraken/core/cli.py" ]; then
   exit 1
 fi
 
+# Two checkouts is the expensive mistake, because it is silent: you edit one
+# and run the other. Re-running this installer without KRAKEN_SRC would flip
+# which tree is authoritative without saying so. Read the old pointer *before*
+# overwriting it, or this compares $SRC with itself and never fires.
+previous=""
+if [ -f "$POINTER" ]; then
+  previous="$(cat "$POINTER" 2>/dev/null || true)"
+fi
+
 printf '%s\n' "$SRC" > "$POINTER"
 chmod 0600 "$POINTER"
+
+if [ -n "$previous" ] && [ "$previous" != "$SRC" ]; then
+  cat >&2 <<MSG
+install: note — $POINTER already pointed at
+install:     $previous
+install: and now points at
+install:     $SRC
+install: \`kraken\` will run $SRC from here on. If you meant to keep working in
+install: the other tree, re-run with: KRAKEN_SRC="$previous" sh ./install.sh
+MSG
+fi
+
+if [ -n "$previous" ] && [ "$previous" != "$SRC" ]; then
+  cat >&2 <<MSG
+install: note — $POINTER already pointed at
+install:     $previous
+install: and now points at
+install:     $SRC
+install: `kraken` will run $SRC from here on. If you meant to keep working in
+install: the other tree, re-run with: KRAKEN_SRC="$previous" sh ./install.sh
+MSG
+fi
 
 # `$0` is meaningless under `curl … | sh`, which is how the README installs it,
 # so the launcher's location cannot be derived from this script's own path.
