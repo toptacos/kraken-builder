@@ -236,6 +236,38 @@ def test_install_wrapper_lives_in_one_place():
     )
 
 
+def test_version_has_exactly_one_source():
+    """0.2.0 and 0.3.0 shipped in the changelog while every build still called
+    itself 0.1.1, because the version was written out in five places. Core
+    reads `kraken.__version__`; this asserts the packaging metadata agrees."""
+    import tomllib
+
+    import kraken
+    from kraken.core.resolve import CORE_VERSION
+
+    pkg = tomllib.loads((ROOT / "pyproject.toml").read_text())
+    assert pkg["project"]["version"] == kraken.__version__
+    assert CORE_VERSION == kraken.__version__
+
+    # No hardcoded version may reappear in core or the examples.
+    for path in list((ROOT / "kraken").rglob("*.py")) + list(
+        (ROOT / "examples").rglob("*.py")
+    ):
+        for n, line in enumerate(path.read_text().splitlines(), 1):
+            assert not re.search(r"kraken-cli/0\.", line), f"{path}:{n}"
+            assert not re.search(r'__version__\s*=\s*"', line) or (
+                path == ROOT / "kraken" / "__init__.py"
+            ), f"{path}:{n} defines a second __version__"
+
+
+def test_changelog_has_no_unreleased_section():
+    """An Unreleased heading at tag time is how 0.2.0 and 0.3.0 shipped without
+    a version bump. The release checklist is this assertion failing."""
+    text = (ROOT / "CHANGELOG.md").read_text()
+    top = text.split("## ", 2)[1].splitlines()[0]
+    assert not top.lower().startswith("unreleased"), f"top section is {top!r}"
+
+
 def test_doctor_reports_which_source_is_running():
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT)

@@ -12,6 +12,10 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+# Arms must not import core — the contract is JSON in, JSON out. A hardcoded
+# core version here would silently rot, so this example names no version.
+USER_AGENT = "kraken-cli/example-arm"
+
 
 DEFAULT: dict[str, Any] = {
     "enabled": False,
@@ -29,7 +33,7 @@ def _normalize_name(name: str) -> str:
 
 
 def _fetch(url: str, timeout: float = 3.0) -> dict[str, Any]:
-    req = urllib.request.Request(url, headers={"User-Agent": "kraken-cli/0.1.1"})
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         raw = resp.read()
     text = raw.decode("utf-8", "replace")

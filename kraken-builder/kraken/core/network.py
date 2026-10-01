@@ -16,6 +16,7 @@ import os
 import urllib.request
 from typing import Any
 
+from kraken import __version__
 from kraken.core.config import load_config
 
 #: The one shared network name across arms, sites, and docs.
@@ -55,7 +56,9 @@ def _offline() -> bool:
 
 
 def _fetch(url: str, timeout: float = 3.0) -> dict[str, Any]:
-    req = urllib.request.Request(url, headers={"User-Agent": "kraken-cli/0.1.1"})
+    req = urllib.request.Request(
+        url, headers={"User-Agent": f"kraken-cli/{__version__}"}
+    )
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         raw = resp.read()
     text = raw.decode("utf-8", "replace")

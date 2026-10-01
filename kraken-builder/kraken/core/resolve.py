@@ -8,13 +8,17 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from kraken import __version__
 from kraken.core.config import load_config
 from kraken.core.contract import PROTOCOL_VERSION
 from kraken.core.loader import load_arms
 from kraken.core.semver import satisfies
 from kraken.core.tentacle import discover_installed
 
-CORE_VERSION = "0.1.1"
+# Single source of truth. Duplicated in three places before 0.3.1, which
+# is how the changelog shipped 0.2.0 and 0.3.0 while every build still
+# called itself 0.1.1.
+CORE_VERSION = __version__
 
 
 class ResolveError(ValueError):

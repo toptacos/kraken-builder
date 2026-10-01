@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.1 — 2026-10-01
 
 ### Fixed
 - **`ModuleNotFoundError: No module named 'kraken'` after moving the checkout.**
