@@ -59,12 +59,18 @@ def ok(ident: Any, result: dict[str, Any]) -> int:
 
 
 def err(ident: Any, code: str, message: str) -> int:
+    """An application failure is a valid v1 response, so it exits 0.
+
+    docs/CONTRACT.md: a non-zero exit is a transport failure, and core
+    discards the body and raises. Returning 1 here turned "no project config"
+    into a RuntimeError and a stack trace, and threw the reason away.
+    """
     json.dump(
         {"v": 1, "id": ident, "ok": False, "error": {"code": code, "message": message}},
         sys.stdout,
     )
     sys.stdout.write("\n")
-    return 1
+    return 0
 
 
 def data_dir() -> Path:

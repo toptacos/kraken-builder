@@ -135,8 +135,18 @@ def main() -> int:
         return _ok(req, {"bundle": str(out), "count": len(blob["items"])})
 
     if action == "import-bundle":
-        src = Path(p.get("bundle") or "")
-        blob = json.loads(src.read_text())
+        raw = p.get("bundle") or ""
+        if not raw:
+            return _ok(req, {"error": "import-bundle needs a 'bundle' path"}, ok=False)
+        src = Path(raw)
+        # Path("") is ".", so a missing argument used to read_text() a
+        # directory and die with IsADirectoryError.
+        if not src.is_file():
+            return _ok(req, {"error": f"bundle is not a file: {src}"}, ok=False)
+        try:
+            blob = json.loads(src.read_text())
+        except (OSError, json.JSONDecodeError) as exc:
+            return _ok(req, {"error": f"cannot read bundle: {exc}"}, ok=False)
         count = 0
         for item in blob.get("items") or []:
             name = item["name"]

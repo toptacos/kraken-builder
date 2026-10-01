@@ -284,13 +284,19 @@ def main() -> int:
     try:
         req = json.loads(raw)
     except json.JSONDecodeError:
+        # Unparseable stdin is still an application failure with a useful
+        # message, not a broken transport. Exiting 1 would make core discard
+        # the body and raise.
         json.dump(err(None, "bad_json", "stdin must be JSON"), sys.stdout)
         sys.stdout.write("\n")
-        return 1
+        return 0
     out = dispatch(req)
     json.dump(out, sys.stdout)
     sys.stdout.write("\n")
-    return 0 if out.get("ok") else 1
+    # Always 0. A well-formed "ok": false is an application failure, not a
+    # transport failure; core reads the body and reports the reason. Exiting 1
+    # made core raise and discard the message.
+    return 0
 
 
 if __name__ == "__main__":

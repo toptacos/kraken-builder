@@ -41,8 +41,36 @@ def _resolve_binary(root: Path, spec: dict[str, Any]) -> Path:
     return (root / path).resolve()
 
 
+#: Ceiling on a manifest's `timeout_sec`. A tentacle may ask for less than the
+#: default, never for an unbounded run.
+MAX_TIMEOUT_SEC = 300
+DEFAULT_TIMEOUT_SEC = 30
+
+
+def tentacle_timeout(spec: dict[str, Any]) -> int:
+    """The manifest's `timeout_sec`, clamped.
+
+    This used to be ignored. invoke_binary defaulted to 30 and no caller passed
+    anything, so `timeout_sec` was dead config in every tentacle.yaml: an arm
+    that declared 20s silently got 30, and one that declared 120 could never
+    spend its budget because core killed it at 30 first.
+    """
+    raw = spec.get("timeout_sec")
+    if raw is None:
+        return DEFAULT_TIMEOUT_SEC
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return DEFAULT_TIMEOUT_SEC
+    return max(1, min(value, MAX_TIMEOUT_SEC))
+
+
 def _invoke_one(
-    root: Path, name: str, action: str, payload: dict[str, Any] | None, home: Path | None = None
+    root: Path,
+    name: str,
+    action: str,
+    payload: dict[str, Any] | None,
+    home: Path | None = None,
 ) -> dict[str, Any]:
     registry = in_process_registry(root)
     if name in registry.names():
@@ -54,7 +82,7 @@ def _invoke_one(
         binary = _resolve_binary(root, spec)
         if not binary.exists():
             raise FileNotFoundError(f"tentacle binary missing: {binary}")
-        return invoke_binary(binary, action, payload)
+        return invoke_binary(binary, action, payload, timeout=tentacle_timeout(spec))
     raise KeyError(f"arm not loaded: {name}")
 
 
@@ -85,7 +113,9 @@ def run_named(
     if compose and len(plan.order) > 1:
         deps: dict[str, Any] = {}
         for dep in plan.order[:-1]:
-            deps[dep] = _invoke_one(root, dep, _default_action(root, dep, home), body, home)
+            deps[dep] = _invoke_one(
+                root, dep, _default_action(root, dep, home), body, home
+            )
         body["_deps"] = deps
     try:
         result = _invoke_one(root, name, action, body, home)
