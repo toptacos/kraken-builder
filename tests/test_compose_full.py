@@ -522,6 +522,9 @@ def test_docker_available_false(monkeypatch):
 
 
 def test_up_inline_compose(tmp_path, monkeypatch):
+    # Asserts the plan's shape when not offline; CI runs the suite with
+    # KRAKEN_OFFLINE=1, so this test has to take the env back explicitly.
+    monkeypatch.delenv("KRAKEN_OFFLINE", raising=False)
     monkeypatch.setenv("KRAKEN_HOME", str(tmp_path))
     result = up({"compose": BERTH_COMPOSE}, home=tmp_path)
     assert result["ok"] is True

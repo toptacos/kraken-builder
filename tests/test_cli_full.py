@@ -217,16 +217,28 @@ def test_vanilla(tmp_path, monkeypatch, capsys):
     assert "installed" in data
 
 
-def test_demo(capsys):
+def _demo_home(tmp_path):
+    """A home with the vanilla tentacles installed, so `demo` does not depend
+    on whatever the developer's ~/.kraken happens to contain."""
+    from kraken.core.vanilla import install_vanilla
+
+    home = tmp_path / "home"
+    install_vanilla(ROOT, home)
+    return home
+
+
+def test_demo(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("KRAKEN_HOME", str(_demo_home(tmp_path)))
     assert main(["--root", str(ROOT), "demo"]) == 0
     data = json.loads(capsys.readouterr().out)
-    assert "ok" in data
+    assert data["ok"] is True
 
 
-def test_demo_custom_ip(capsys):
+def test_demo_custom_ip(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("KRAKEN_HOME", str(_demo_home(tmp_path)))
     assert main(["--root", str(ROOT), "demo", "--ip", "8.8.8.8"]) == 0
     data = json.loads(capsys.readouterr().out)
-    assert "ok" in data
+    assert data["ok"] is True
 
 
 def test_demo_resolve_error(tmp_path, capsys):

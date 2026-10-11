@@ -27,6 +27,9 @@ def test_docker_network_from_env(tmp_path: Path, monkeypatch):
 
 
 def test_docker_network_from_url(tmp_path: Path, monkeypatch):
+    # The suite runs offline-first in CI; this test is about the URL fetch
+    # itself (a local file:// path), so it takes the env back.
+    monkeypatch.delenv("KRAKEN_OFFLINE", raising=False)
     monkeypatch.setenv("KRAKEN_HOME", str(tmp_path))
     cfg = tmp_path / "net.json"
     cfg.write_text('{"enabled": true, "name": "kraken_ci", "isolated": true}')
@@ -39,6 +42,7 @@ def test_docker_network_from_url(tmp_path: Path, monkeypatch):
 
 
 def test_docker_network_url_fail_closed(tmp_path: Path, monkeypatch):
+    monkeypatch.delenv("KRAKEN_OFFLINE", raising=False)
     monkeypatch.setenv("KRAKEN_HOME", str(tmp_path))
     monkeypatch.setenv("KRAKEN_DOCKER_CONFIG_URL", "file:///no/such/kraken-net.json")
     net = resolve_docker({})

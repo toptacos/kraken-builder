@@ -1,7 +1,11 @@
 import os
+import os
+
+import pytest
 import shutil
 import subprocess
 from pathlib import Path
+
 
 from kraken.core.contract import invoke_binary
 from kraken.core.runner import run_named
@@ -22,6 +26,13 @@ SCRIPTS = [
 ]
 
 
+NT_SKIP = pytest.mark.skipif(
+    os.name == "nt",
+    reason="POSIX-only: needs a shell or exec bits Windows does not have",
+)
+
+
+@NT_SKIP
 def test_script_hellos(tmp_path, monkeypatch):
     monkeypatch.setenv("KRAKEN_HOME", str(tmp_path))
     need = {
@@ -44,6 +55,7 @@ def test_script_hellos(tmp_path, monkeypatch):
     assert ran >= 3
 
 
+@NT_SKIP
 def test_compiled_c_cpp_rust_java(tmp_path):
     # Try to build, but skip if compilers not available
     import subprocess as sp
@@ -88,7 +100,6 @@ def test_compiled_c_cpp_rust_java(tmp_path):
     if (HW / "java" / "run.sh").exists() and java_available:
         cases.append(("java", HW / "java" / "run.sh"))
     if not cases:
-        import pytest
         pytest.skip("No compiled binaries available (compilers not installed)")
     for name, binary in cases:
         # For shell scripts (java run.sh), invoke_binary may not work directly

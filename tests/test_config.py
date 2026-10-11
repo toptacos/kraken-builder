@@ -82,6 +82,14 @@ def sandbox(test):
             cwd = Path.cwd()
             env = Env(tmp)
             env.apply()
+            # KRAKEN_OFFLINE, KRAKEN_DOCKER_CONFIG_URL and KRAKEN_LICENSE_REMOTE
+            # are env-level overrides in _ENV_SOURCE. CI runs the whole suite
+            # with KRAKEN_OFFLINE=1 (offline-first), which silently rewrites
+            # the telemetry setting and breaks "no files -> defaults". Clear
+            # them for the duration; a test that tests an override sets it.
+            envvars = ("KRAKEN_OFFLINE", "KRAKEN_DOCKER_CONFIG_URL", "KRAKEN_LICENSE_REMOTE")
+            for k in envvars:
+                os.environ.pop(k, None)
             try:
                 return test(self, env)
             finally:

@@ -48,11 +48,11 @@ def problems() -> list[str]:
     pages = sorted(SITE.glob("*.html"))
     if not pages:
         found.append("no html pages found in website/")
-    sitemap = (SITE / "sitemap.xml").read_text()
+    sitemap = (SITE / "sitemap.xml").read_text(encoding="utf-8")
     taxonomy_pages: list[str] = []
 
     for page in pages:
-        text = page.read_text()
+        text = page.read_text(encoding="utf-8")
         # local href/src must resolve to a file in website/
         for attr in re.findall(r'(?:href|src)="([^"]+)"', text):
             if NON_FILE.match(attr):
@@ -111,7 +111,7 @@ def problems() -> list[str]:
 def load_registry() -> dict:
     if not REGISTRY.is_file():
         return {}
-    return json.loads(REGISTRY.read_text())
+    return json.loads(REGISTRY.read_text(encoding="utf-8"))
 
 
 def main() -> int:

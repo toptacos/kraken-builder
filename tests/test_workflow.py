@@ -1,4 +1,7 @@
 from pathlib import Path
+import os
+
+import pytest
 import tempfile
 
 from kraken.core.cli import main
@@ -9,6 +12,12 @@ from kraken.core.workflow import interpolate, load_workflow, run_workflow
 ROOT = Path(__file__).resolve().parents[1]
 WF = ROOT / "examples" / "workflows" / "polyglot-goal.yaml"
 POLY = ROOT / "examples" / "tentacles" / "polyglot"
+
+
+NT_SKIP = pytest.mark.skipif(
+    os.name == "nt",
+    reason="POSIX-only: needs a shell or exec bits Windows does not have",
+)
 
 
 def _install_polyglot_tentacles(tmp_path: Path) -> None:
@@ -26,6 +35,7 @@ def test_interpolate_path():
     assert interpolate({"x": "$seed"}, data)["x"]["result"]["zip"] == "27284"
 
 
+@NT_SKIP
 def test_polyglot_workflow(tmp_path):
     # Install polyglot tentacles to temp home
     _install_polyglot_tentacles(tmp_path)
@@ -38,6 +48,7 @@ def test_polyglot_workflow(tmp_path):
         assert lang in blob
 
 
+@NT_SKIP
 def test_cli_workflow(tmp_path, capsys):
     # Install polyglot tentacles to temp home
     _install_polyglot_tentacles(tmp_path)

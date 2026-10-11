@@ -1,5 +1,8 @@
 """Run each language fixture if the interpreter exists."""
 
+import os
+
+import pytest
 import json
 import shutil
 import tempfile
@@ -23,6 +26,12 @@ CASES = [
 ]
 
 
+NT_SKIP = pytest.mark.skipif(
+    os.name == "nt",
+    reason="POSIX-only: needs a shell or exec bits Windows does not have",
+)
+
+
 def _install_polyglot_tentacles(tmp_path: Path) -> None:
     """Install all polyglot tentacles to a temporary home."""
     for tentacle_dir in sorted(POLY.iterdir()):
@@ -32,6 +41,7 @@ def _install_polyglot_tentacles(tmp_path: Path) -> None:
                 install_local(tentacle_yaml, home=tmp_path)
 
 
+@NT_SKIP
 def test_each_language_speaks_v1():
     ran = 0
     for exe, path in CASES:
@@ -46,6 +56,7 @@ def test_each_language_speaks_v1():
     assert ran >= 2
 
 
+@NT_SKIP
 def test_polyglot_workflow_still_folds(tmp_path):
     from kraken.core.cli import main
     import os

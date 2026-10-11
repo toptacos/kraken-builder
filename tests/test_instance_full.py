@@ -1,9 +1,16 @@
 import json
+import pytest
 import tarfile
 from io import BytesIO
 from pathlib import Path
 
-import pytest
+import os
+
+
+NT_SKIP = pytest.mark.skipif(
+    os.name == "nt",
+    reason="POSIX-only: needs a shell or exec bits Windows does not have",
+)
 
 
 def test_instances_root_creates_dir(tmp_path, monkeypatch):
@@ -263,6 +270,7 @@ def test_import_bundle_creates_dirs(tmp_path, monkeypatch):
     ).is_dir()
 
 
+@NT_SKIP
 def test_import_bundle_chmod_yaml(tmp_path, monkeypatch):
     from kraken.core.instance import import_bundle
 

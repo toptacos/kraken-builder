@@ -264,3 +264,36 @@ def test_inspect_with_unresolvable_tentacle(tmp_path, monkeypatch):
     plan_checks = [c for c in report["checks"] if c["name"] == "plan.bad-tentacle"]
     assert len(plan_checks) == 1
     assert plan_checks[0]["ok"] is False
+
+
+def test_editable_install_pointing_here_is_not_a_shadow(tmp_path, monkeypatch):
+    """`pip install -e .` is the documented dev setup and what CI does; the
+    dist-info it leaves must not read as a competing install. This check
+    failed on every CI run for that reason before 2026-10-11."""
+    import json
+
+    from kraken.core import doctor as doctor_mod
+
+    dist = tmp_path / "site" / "kraken_cli-0.3.1.dist-info"
+    dist.mkdir(parents=True)
+    (dist / "direct_url.json").write_text(
+        json.dumps({"url": "file://" + str(tmp_path)})
+    )
+    root = tmp_path
+    assert doctor_mod._same_dir(tmp_path, root) is True
+    assert doctor_mod._direct_url_dir(dist) == tmp_path
+
+
+def test_foreign_pip_install_still_fails(tmp_path):
+    import json
+
+    from kraken.core import doctor as doctor_mod
+
+    dist = tmp_path / "site" / "kraken_cli-0.3.1.dist-info"
+    dist.mkdir(parents=True)
+    (dist / "direct_url.json").write_text(
+        json.dumps({"url": "file:///some/other/checkout"})
+    )
+    target = doctor_mod._direct_url_dir(dist)
+    assert target is not None
+    assert doctor_mod._same_dir(target, tmp_path) is False

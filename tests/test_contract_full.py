@@ -1,10 +1,12 @@
 import json
+import pytest
 import subprocess
 import sys
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
+import os
+
 
 from kraken.core.contract import (
     PROTOCOL_VERSION,
@@ -15,6 +17,12 @@ from kraken.core.contract import (
     envelope,
     invoke_binary,
     unwrap,
+)
+
+
+NT_SKIP = pytest.mark.skipif(
+    os.name == "nt",
+    reason="POSIX-only: needs a shell or exec bits Windows does not have",
 )
 
 
@@ -590,6 +598,7 @@ def test_invoke_binary_nonzero_exit_error_with_leading_newline(tmp_path):
         invoke_binary(script, "ping")
 
 
+@NT_SKIP
 def test_invoke_binary_nonzero_exit_multiline_error(tmp_path):
     script = tmp_path / "handler.py"
     script.write_text(
@@ -1002,6 +1011,7 @@ def test_invoke_binary_sends_encoded_request(tmp_path):
         assert body["id"] == "99"
 
 
+@NT_SKIP
 def test_invoke_binary_shell_script(tmp_path):
     script = tmp_path / "handler.sh"
     script.write_text("#!/bin/bash\necho '{\"ok\": true}'\n")
@@ -1404,6 +1414,7 @@ def test_invoke_binary_binary_not_found(tmp_path):
         invoke_binary(binary, "ping")
 
 
+@NT_SKIP
 def test_invoke_binary_permission_denied(tmp_path):
     script = tmp_path / "handler.py"
     script.write_text("import sys, json; print(json.dumps({'ok': True}))\n")

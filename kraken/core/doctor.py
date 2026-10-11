@@ -12,6 +12,34 @@ import kraken
 from kraken.core.contract import PROTOCOL_VERSION
 from kraken.core.license import load_store
 from kraken.core.paths import layout_dirs, ensure_user_layout
+
+
+def _direct_url_dir(dist: Path) -> Path | None:
+    """Where an editable dist-info points, per PEP 610 direct_url.json.
+
+    None means unknown (a regular site-packages install has no such file).
+    """
+    import json
+
+    direct = dist / "direct_url.json"
+    if not direct.is_file():
+        return None
+    try:
+        url = json.loads(direct.read_text()).get("url") or ""
+    except (OSError, ValueError):
+        return None
+    if url.startswith("file://"):
+        return Path(url[len("file://") :])
+    return None
+
+
+def _same_dir(a: Path, b: Path) -> bool:
+    try:
+        return a.resolve() == b.resolve()
+    except OSError:
+        return str(a) == str(b)
+
+
 from kraken.core.resolve import CORE_VERSION, ResolveError, catalog, resolve
 from kraken.core.tentacle import discover_installed
 
@@ -79,21 +107,33 @@ def install_checks() -> list[dict[str, Any]]:
 
     # A pip console script bakes its checkout path into an editable finder.
     # When that path dies, `import kraken` fails while the dist-info still
-    # claims a healthy install.
-    # A pip console script bakes its checkout path into an editable finder.
-    # When that path dies, `import kraken` fails while the dist-info still
     # claims a healthy install. Finding one here means a console script likely
-    # exists on PATH and may sit ahead of the launcher.
-    stale = sorted(
-        {str(d) for e in sys.path if e for d in Path(e).glob("kraken_cli-*.dist-info")}
-    )
-    if stale:
+    # exists on PATH and may sit ahead of the launcher -- UNLESS it is an
+    # editable install pointing at the tree that is running right now, which
+    # is exactly what the documented dev setup and CI do (`pip install -e .`).
+    foreign = []
+    editable_here = 0
+    for entry in sys.path:
+        if not entry:
+            continue
+        for dist in Path(entry).glob("kraken_cli-*.dist-info"):
+            target = _direct_url_dir(dist)
+            if target is not None and _same_dir(target, root):
+                editable_here += 1
+                continue
+            foreign.append(str(dist))
+    if foreign:
         ok(
             "install.pip_kraken_cli",
-            f"{', '.join(stale)} — a pip kraken-cli is installed; run "
+            f"{', '.join(sorted(foreign))} — a pip kraken-cli is installed; run "
             "`python3 -m pip uninstall kraken-cli` so its console script "
             "cannot shadow the launcher",
             passed=False,
+        )
+    elif editable_here:
+        ok(
+            "install.pip_kraken_cli",
+            f"{editable_here} editable install(s) → {root} (the running tree)",
         )
     else:
         ok("install.pip_kraken_cli", "none")
