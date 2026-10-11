@@ -5,7 +5,7 @@ services:
     ports:
       - "127.0.0.1:8080:80"
     volumes:
-      - /private/tmp/kb-remote:/usr/share/nginx/html:ro
+      - /private/tmp/kb-push:/usr/share/nginx/html:ro
     networks: [kraken_sites]
     labels:
       kraken.tentacle: sites

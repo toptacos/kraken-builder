@@ -12,8 +12,12 @@ seats, storage. These are prices, not features behind a wall. The free tier is
 a real product, not a trial.
 
 **Never in git:** review PII dumps, API keys, `$KRAKEN_HOME`, license private
-keys, `keys/`, `licenses.json`, catalog dumps. The CLI refuses those paths at
-runtime too — see `kraken/core/paths.py` and the per-arm `jail()`.
+keys, `keys/`, `licenses.json`, catalog dumps. Arms that own a directory also
+refuse forbidden ones at runtime — see `_check_dir()` in the `keeps` handler
+and `jail()` in the `berth` handler. That guard is per-arm by design (core
+does not know what a tentacle stores), so it is not universal yet: an arm you
+write yourself is only as careful as you make it, and the ones that ship here
+show the pattern.
 
 ## What the code will not do
 
