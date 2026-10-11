@@ -1,0 +1,17 @@
+{
+  "$comment": "Taxonomy registry for TopTaco content. One taxonomy groups like things; a term is a value inside it. The site and the blog publisher read this file, so adding a project means adding one string here and tagging content with data-taxonomy.",
+  "taxonomies": {
+    "project": {
+      "label": "Internal Projects",
+      "description": "Which TopTaco project a piece of content belongs to. Content without a project term is company-wide.",
+      "terms": [
+        {
+          "slug": "kraken",
+          "name": "Kraken",
+          "description": "The local-first CLI plugin runner: core CLI, tentacles, the JSON v1 contract, and the sites around them.",
+          "home": "https://kraken.topta.co"
+        }
+      ]
+    }
+  }
+}

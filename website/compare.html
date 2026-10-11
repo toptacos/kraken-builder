@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kraken vs the alternatives — measured, not asserted</title>
+  <meta name="description" content="Kraken compared with n8n, Zapier, GitHub Actions, Terraform, Docker Compose, make/task, and agent CLIs — with benchmark commands you can run yourself.">
+  <link rel="canonical" href="https://kraken.topta.co/compare.html">
+  <meta name="taxonomy" content="project:kraken">
+  <link rel="stylesheet" href="css/brand.css">
+  <style>
+    .cmp-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.92rem}
+    .cmp-table th,.cmp-table td{border-bottom:1px solid rgba(47,208,198,.18);padding:.5rem .6rem;text-align:left;vertical-align:top}
+    .cmp-table th{color:#2FD0C6}
+    .cmp-table td:first-child{color:#E7F6F6;font-weight:600;white-space:nowrap}
+    .yes{color:#2FD0C6;font-weight:700}
+    .no{color:#8ea3a3}
+    .why{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin:1rem 0}
+    .why article{background:rgba(11,18,32,.55);border:1px solid rgba(47,208,198,.18);border-radius:10px;padding:1rem}
+    .why h3{margin:0 0 .4rem;color:#2FD0C6;font-size:1rem}
+    .bench{background:rgba(11,18,32,.55);border:1px solid rgba(47,208,198,.18);border-radius:10px;padding:1rem;margin:1rem 0}
+    .bench table{width:100%;border-collapse:collapse}
+    .bench th,.bench td{padding:.35rem .5rem;border-bottom:1px solid rgba(47,208,198,.12);text-align:left}
+    .bench td.num{text-align:right;font-variant-numeric:tabular-nums}
+    .fine{font-size:.82rem;color:#8ea3a3}
+  </style>
+</head>
+<body class="docs" data-taxonomy="project:kraken">
+  <header class="nav">
+    <a class="brand" href="./"><img class="mark" src="img/logo-k-128.png" alt=""> KRAKEN</a>
+    <nav>
+      <a href="./">Home</a>
+      <a href="docs.html">Docs</a>
+      <a href="tutorial-tentacles.html">Tutorial</a>
+      <a href="languages.html">Languages</a>
+      <a href="blog-why-kraken.html">Why Kraken</a>
+    </nav>
+  </header>
+  <main class="panel" style="opacity:1;transform:none;min-height:auto">
+    <h1>Kraken vs the alternatives — measured, not asserted</h1>
+    <p>
+      Kraken is a <strong>local-first CLI plugin runner</strong>: one JSON envelope on stdin,
+      one on stdout, any language, no server. This page compares it with the tools people
+      actually reach for, and puts the numbers on the table. Every benchmark below is
+      produced by scripts in the repository, on a machine you can point at
+      <code>docs/BENCHMARKS.md</code> for the method.
+    </p>
+
+    <h2>The short version</h2>
+    <div class="why">
+      <article>
+        <h3>Smallest thing that works</h3>
+        <p>0.4&nbsp;MB of core, one dependency (pyyaml, MIT). The whole Homebrew install is
+        0.5&nbsp;MB — measured, after trimming 16&nbsp;MB of demo toolchains out of the
+        package. No daemon, no server, no account.</p>
+      </article>
+      <article>
+        <h3>Language-free contract</h3>
+        <p>The same tentacle runs as <code>.py</code>, <code>.sh</code>, <code>.js</code>,
+        <code>.php</code>, <code>.rb</code>, <code>.pl</code>, or <code>.go</code> — one
+        manifest shape, no SDK. n8n wants TypeScript; Terraform wants Go.</p>
+      </article>
+      <article>
+        <h3>Safe by default, off the network</h3>
+        <p>Verified with the network cable cut. Exposure is default-deny and binds
+        <code>127.0.0.1</code> until a human grants more. Nothing in a run calls home.</p>
+      </article>
+      <article>
+        <h3>Composable without a plugin host</h3>
+        <p>A hook is another tentacle: it returns a <code>patch</code> and core calls
+        <code>finish</code> on the original tentacle with it. No event bus, no wrappers.</p>
+      </article>
+    </div>
+
+    <h2>The comparison table</h2>
+    <table class="cmp-table">
+      <thead>
+        <tr><th>Tool</th><th>What it is</th><th>Extension model</th><th>Language lock</th><th>Network posture</th><th>Footprint</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Kraken</td>
+          <td>CLI plugin runner, local-first</td>
+          <td><code>tentacle.yaml</code> + stdin/stdout JSON</td>
+          <td class="yes">None — py, sh, js, php, rb, pl, go</td>
+          <td class="yes">Loopback; grant before expose</td>
+          <td class="yes">0.4&nbsp;MB core, 0.5&nbsp;MB installed</td>
+        </tr>
+        <tr>
+          <td>n8n</td>
+          <td>Workflow engine + web editor</td>
+          <td>Nodes inside the product</td>
+          <td>TypeScript</td>
+          <td class="no">Server opens ports</td>
+          <td class="no">Node runtime + server process</td>
+        </tr>
+        <tr>
+          <td>Zapier / Make</td>
+          <td>Hosted iPaaS</td>
+          <td>Built-in apps</td>
+          <td>None for users; no local code</td>
+          <td class="no">Always public SaaS; data leaves</td>
+          <td class="no">Not installable</td>
+        </tr>
+        <tr>
+          <td>GitHub Actions</td>
+          <td>CI on git events</td>
+          <td>Actions (containers/JS)</td>
+          <td>YAML + whatever the action ships</td>
+          <td class="no">GitHub network</td>
+          <td class="no">Not a local tool</td>
+        </tr>
+        <tr>
+          <td>Terraform / OpenTofu</td>
+          <td>Infrastructure as code</td>
+          <td>Providers</td>
+          <td>HCL + Go providers</td>
+          <td>Talks to cloud APIs</td>
+          <td class="no">State files, cloud creds</td>
+        </tr>
+        <tr>
+          <td>Docker Compose</td>
+          <td>Process + network graph</td>
+          <td>Compose YAML</td>
+          <td>Images, not a contract</td>
+          <td class="no">Publishes ports as written</td>
+          <td class="no">Docker engine required</td>
+        </tr>
+        <tr>
+          <td>make / task / just</td>
+          <td>Command runners</td>
+          <td>Recipes in a file</td>
+          <td>Shell</td>
+          <td>Whatever the recipe does</td>
+          <td class="yes">Tiny — but no contract, no policy</td>
+        </tr>
+        <tr>
+          <td>Agent CLIs</td>
+          <td>Model drives the UI</td>
+          <td>Tools the model may call</td>
+          <td>Model + tool schema</td>
+          <td class="no">Often cloud + local</td>
+          <td class="no">Weights, tokens, accounts</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="fine">Full prose version, including where Kraken is the worse choice: <code>docs/COMPARE.md</code>.</p>
+
+    <h2>Where Kraken is outright wrong</h2>
+    <p>
+      Per-invoke speed is not the bet. A binary tentacle costs one interpreter start,
+      so a trivial <code>kraken run</code> is an order of magnitude slower than a C
+      binary like <code>make</code>. If your job is "run this one shell line," a
+      Makefile is faster and smaller — use it. Kraken earns its keep when a line
+      becomes a plugin someone else ships in another language, with a typed envelope,
+      a grant, and no daemon.
+    </p>
+
+    <h2>Benchmarks you can run</h2>
+    <div class="bench">
+      <p><strong>Wall time and peak RSS</strong> — one JSON answer per tool, round-robin, min of N:</p>
+      <table>
+        <thead><tr><th>Command</th><th class="num">min (ms)</th><th class="num">peak RSS (MB)</th></tr></thead>
+        <tbody>
+          <tr><td><code>kraken run &lt;tentacle&gt; ping</code></td><td class="num">330.1</td><td class="num">19.2</td></tr>
+          <tr><td><code>make ping</code></td><td class="num">28.5</td><td class="num">1.0</td></tr>
+          <tr><td><code>node -e …</code> (the JS-tentacle floor)</td><td class="num">86.6</td><td class="num">30.3</td></tr>
+          <tr><td><code>bash -c echo</code></td><td class="num">16.8</td><td class="num">2.6</td></tr>
+        </tbody>
+      </table>
+      <p class="fine">
+        macOS, Apple Silicon, python 3.14, recorded under load — absolute numbers inflate
+        for every tool; the ranking is what holds. Method, before/after of the 2026-10
+        startup work (CLI import 372.6&nbsp;→&nbsp;61.8&nbsp;ms), and the full transport
+        breakdown are in <code>docs/BENCHMARKS.md</code>.
+      </p>
+    </div>
+    <pre>python3 scripts/bench_alternatives.py --runs 25
+python3 scripts/bench_contract.py</pre>
+
+    <h2>Examples, run for real</h2>
+    <p>Every output on this site was produced by executing the command — the same
+    harness that keeps the docs honest verifies them:</p>
+    <pre>$ kraken tentacle add examples/tentacles/polyglot/echo-sh
+$ kraken run echo-sh ping
+{"v": 1, "id": "1", "ok": true, "result": ...}</pre>
+    <p>Read the worked, verified articles: <a href="blog-why-kraken.html">why Kraken</a>,
+    the <a href="tutorial-tentacles.html">tutorial</a>, and
+    <code>docs/articles/</code> in the repository (each block there is executed by
+    <code>scripts/verify_articles.py</code> in CI).</p>
+  </main>
+</body>
+</html>

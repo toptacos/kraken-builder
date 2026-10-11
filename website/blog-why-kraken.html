@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Why Kraken beats the alternatives — Kraken blog</title>
+  <meta name="description" content="Kraken is a 0.4 MB local-first CLI plugin runner with a JSON contract any language can speak. Why that beats n8n, Zapier, Terraform, make, and agent CLIs for local work.">
+  <link rel="canonical" href="https://kraken.topta.co/blog-why-kraken.html">
+  <meta name="taxonomy" content="project:kraken">
+  <link rel="stylesheet" href="css/brand.css">
+  <style>
+    .lang-btn{margin-right:.4rem;padding:.2rem .6rem;border:1px solid #2FD0C6;background:transparent;color:#E7F6F6;cursor:pointer}
+    .lang-btn.on{background:#2FD0C6;color:#0B1220}
+    [data-lang]{display:none} [data-lang].on{display:block}
+    blockquote{border-left:3px solid #2FD0C6;margin:1rem 0;padding:.2rem 1rem;color:#cfe8e8}
+  </style>
+</head>
+<body class="docs" data-taxonomy="project:kraken">
+  <header class="nav">
+    <a class="brand" href="./"><img class="mark" src="img/logo-k-128.png" alt=""> KRAKEN</a>
+    <nav><a href="compare.html">Compare</a><a href="docs.html">Docs</a><a href="tutorial-tentacles.html">Tutorial</a></nav>
+  </header>
+  <main class="panel" style="opacity:1;transform:none">
+    <p>
+      <button class="lang-btn on" data-set="en">Python</button>
+      <button class="lang-btn" data-set="go">Go</button>
+      <button class="lang-btn" data-set="js">JS</button>
+    </p>
+    <h1>Why Kraken beats the alternatives</h1>
+    <p class="fine">Posted under <strong>Internal Projects → Kraken</strong>. Benchmarks and examples on this page are produced by scripts in the repository and verified in CI.</p>
+
+    <p>
+      Most plugin systems pick a language for you. Node for n8n. TypeScript inside the
+      n8n process. Go providers for Terraform. JS actions for GitHub. Kraken picks the
+      <em>interface</em> instead: one JSON object on stdin, one JSON object on stdout,
+      exit 0. Everything below follows from that one decision.
+    </p>
+
+    <h2>1. It is the smallest thing that does the job</h2>
+    <p>
+      The core is <strong>0.4&nbsp;MB</strong> with exactly one dependency (pyyaml, MIT).
+      The entire Homebrew install is <strong>0.5&nbsp;MB</strong> — we measured 33&nbsp;MB
+      once and cut it to that by shipping <code>examples/tentacles</code> without the
+      16&nbsp;MB of vendored demo toolchains. No daemon. No server. No account. Run it on
+      a Pi with the network unplugged; <code>kraken demo</code> still answers.
+    </p>
+    <div data-lang="en" class="on">
+      <pre>$ curl -fsSL https://kraken.topta.co/install.sh | sh
+$ kraken demo
+{"v": 1, "id": "1", "ok": true, "result": {"arm": "geo", ...}}</pre>
+    </div>
+    <div data-lang="go">
+      <pre>// same contract, no SDK:
+os.Stdin → json.Unmarshal → handle → os.Stdout → exit 0</pre>
+    </div>
+    <div data-lang="js">
+      <pre>process.stdin.on('end', () => {
+  process.stdout.write(JSON.stringify({ v: 1, id: req.id, ok: true, result: {} }));
+});</pre>
+    </div>
+
+    <h2>2. The contract is the integration surface</h2>
+    <p>
+      The same tentacle written six ways, all answering one command. This is not a
+      slide — it is the verified output of <code>docs/articles/polyglot.md</code>:
+    </p>
+    <pre>sh       {"lang": "sh", "id": "1", "ok": true}
+python   {"lang": "python", "id": "1", "ok": true}
+node     {"lang": "node", "id": "1", "ok": true}
+php      {"lang": "php", "id": "1", "ok": true}
+ruby     {"lang": "ruby", "id": "1", "ok": true}
+perl     {"lang": "perl", "id": "1", "ok": true}
+go       {"lang": "go", "id": "1", "ok": true}</pre>
+    <p>
+      One <code>tentacle.yaml</code> shape each. No lockfile, no plugin host, no
+      rebuild. Rewrite the tentacle in another language tomorrow and the caller never
+      notices.
+    </p>
+
+    <h2>3. Safe by default, off the network</h2>
+    <p>
+      Two guarantees, proven on this page's build machine, which had no internet:
+    </p>
+    <ul>
+      <li><strong>Nothing calls home.</strong> An AST parse of core's imports finds
+      <code>urllib</code> in exactly four modules — license, notify, network, sync — and
+      every one of them is something a user opts into. A normal <code>kraken run</code>
+      makes no outbound request.</li>
+      <li><strong>Exposure is refused before it is granted.</strong> Ask the
+      <code>expose</code> tentacle for a plan and you get a refusal that names the fix:
+      <code>{"ok": false, "result": {"error": "grant expose first: kraken grant expose"}}</code>.
+      After <code>kraken grant expose</code>, the same command returns a
+      <code>127.0.0.1</code> bind with a note saying loopback only.</li>
+    </ul>
+
+    <h2>4. Composable without an event bus</h2>
+    <p>
+      A hook is just another tentacle. It returns a <code>patch</code>; core calls
+      <code>finish</code> on the original tentacle with the raw result plus that patch.
+      Verified end to end in <code>docs/articles/hooks.md</code>:
+    </p>
+    <pre>$ kraken run stamper grow
+{"v": 1, "id": "1", "ok": true, "result": {"arm": "stamper", "value": 3,
+ "multiplier": 7, "saw_value": 3, "finished": true},
+ "_hooks": [{"tentacle": "stamp", "ok": true, ...}], "finished": true}</pre>
+    <p>
+      Audit logs, notifications, cache warmers, post-processors — each is a tentacle you
+      already know how to write, hanging off a run without touching its code.
+    </p>
+
+    <h2>5. And honest about where it loses</h2>
+    <blockquote>
+      A binary tentacle costs one interpreter start, so a trivial <code>kraken run</code>
+      is an order of magnitude slower than a C binary like <code>make</code>. Measured on
+      one box, round-robin, min of N: <code>kraken run</code> 330&nbsp;ms / 19&nbsp;MB RSS,
+      <code>make ping</code> 28&nbsp;ms / 1&nbsp;MB, <code>node -e</code> 87&nbsp;ms /
+      30&nbsp;MB.
+    </blockquote>
+    <p>
+      What was in Kraken's control, we took: the CLI import chain went from 372.6&nbsp;ms
+      to 61.8&nbsp;ms by making license, yaml, and the workflow thread pool load on first
+      use instead of on <code>--help</code>, and one <code>kraken run</code> now parses
+      its config chain once instead of four times. Method and before/after numbers:
+      <code>docs/BENCHMARKS.md</code>.
+    </p>
+
+    <h2>So when is Kraken the wrong tool?</h2>
+    <p>
+      When the work is remote and long-lived: a 40-step CRM sync with OAuth refresh is
+      n8n's job. Desired-state cloud infrastructure is Terraform's. Running one shell
+      line is make's, and make will be faster. Kraken wins when the work is local,
+      small, and you already trust the process — and it stays out of the way when it
+      is not.
+    </p>
+    <p>
+      <a href="compare.html">Compare with the numbers →</a> ·
+      <a href="tutorial-tentacles.html">Tutorial →</a> ·
+      <a href="./">Home →</a>
+    </p>
+  </main>
+  <script>
+    document.querySelectorAll('.lang-btn').forEach(b => b.onclick = () => {
+      document.querySelectorAll('.lang-btn').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      document.querySelectorAll('[data-lang]').forEach(x => x.classList.toggle('on', x.dataset.lang === b.dataset.set));
+    });
+  </script>
+</body>
+</html>
