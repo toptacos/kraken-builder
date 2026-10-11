@@ -9,7 +9,16 @@ class KrakenCli < Formula
   depends_on "python@3.12"
 
   def install
-    libexec.install Dir["kraken", "examples", "arms", "install.sh", "requirements.txt"]
+    # `examples` is 32 MB, and 16 MB of that is the hello-world demo's
+    # vendored toolchains (rust, go) -- sources a user wanting the C demo
+    # checks out from git, not something a package manager should ship.
+    # `kraken vanilla` reads examples/tentacles, so that stays (including
+    # the _template scaffold, which is two files and is how a user starts
+    # a new tentacle).
+    libexec.install Dir["kraken", "arms", "install.sh", "requirements.txt"]
+    (libexec/"examples/tentacles").install Dir["examples/tentacles/*"].reject { |f|
+      File.basename(f) == "hello-world"
+    }
     (bin/"kraken").write <<~EOS
       #!/bin/bash
       export PYTHONPATH="#{libexec}${PYTHONPATH:+:$PYTHONPATH}"

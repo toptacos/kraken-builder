@@ -20,13 +20,30 @@ def _deep_merge(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]
     return out
 
 
+#: (resolved path, mtime_ns, size) -> parsed mapping. One `kraken run` used
+#: to parse the same three-scope config chain three or four times over --
+#: first_run_init, resolve, and the runner each called load_config. A file
+#: that cannot change mid-process is parsed once. Shallow copies go out so
+#: a caller mutating a top-level key cannot poison the cache.
+_YAML_CACHE: dict[tuple[str, int, int], dict[str, Any]] = {}
+
+
 def load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
-    data = yaml.safe_load(path.read_text()) or {}
-    if not isinstance(data, dict):
-        raise ValueError(f"{path} must be a mapping")
-    return data
+    try:
+        st = path.stat()
+        key = (str(path.resolve()), st.st_mtime_ns, st.st_size)
+    except OSError:
+        return {}
+    cached = _YAML_CACHE.get(key)
+    if cached is None:
+        data = yaml.safe_load(path.read_text()) or {}
+        if not isinstance(data, dict):
+            raise ValueError(f"{path} must be a mapping")
+        _YAML_CACHE[key] = data
+        return data
+    return dict(cached)
 
 
 def load_config(start: Path | None = None) -> dict[str, Any]:
