@@ -73,17 +73,22 @@ def test_node_version_parses_to_x_y_z():
 
 
 def test_probe_survives_a_broken_binary(tmp_path, monkeypatch):
-    """A tool on PATH that cannot run is 'not installed', not a crash."""
-    fake = tmp_path / "rustc"
+    """A tool on PATH that cannot run is 'not installed', not a crash.
+
+    The name is one no runner has: CI images ship rustc, which would turn
+    this into a test of the image instead of of the probe.
+    """
+    name = "kraken-test-broken-tool"
+    fake = tmp_path / name
     fake.write_text("#!/bin/sh\nexit 1\n")
     fake.chmod(0o755)
     monkeypatch.setenv(
         "PATH",
         f"{tmp_path}{__import__('os').pathsep}{__import__('os').environ['PATH']}",
     )
-    monkeypatch.setattr(toolchain, "_VERSION_CMD", {"rustc": ("rustc", "--version")})
-    toolchain._CACHE.pop("rustc", None)
-    assert toolchain.probe("rustc") is None
+    monkeypatch.setattr(toolchain, "_VERSION_CMD", {name: (name, "--version")})
+    toolchain._CACHE.pop(name, None)
+    assert toolchain.probe(name) is None
 
 
 # --- declared requirements --------------------------------------------------
