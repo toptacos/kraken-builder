@@ -372,8 +372,13 @@ class Validation(unittest.TestCase):
     def test_problems_name_the_offending_file(self, env):
         env.write("project", "wibble: 1\n")
         problems = cc.validate_config()
+        # The chain reports resolved (long) paths while the env's tmp dir is
+        # spelled in 8.3 short form on the Windows runner; compare the
+        # resolved spelling so one directory's two names still match.
+        want = env.project.resolve().as_posix()
         self.assertTrue(
-            any(env.project.as_posix() in p.replace("\\", "/") for p in problems)
+            any(want in p.replace("\\", "/") for p in problems),
+            msg=str(problems),
         )
 
     def test_every_generated_example_validates(self):

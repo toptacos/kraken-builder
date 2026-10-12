@@ -64,7 +64,7 @@ def test_kraken_home_pointed_at_the_kraken_dir_warns():
         capture_output=True,
         text=True,
     )
-    assert correct.stdout.strip().endswith("/tmp/x/.kraken")
+    assert correct.stdout.strip().replace("\\", "/").endswith("/tmp/x/.kraken")
     assert correct.stderr == ""
 
 
