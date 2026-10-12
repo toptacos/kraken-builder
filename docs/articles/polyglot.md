@@ -44,7 +44,10 @@ JSON, it is on that list by construction.
 Each tentacle is the same five-line program: read the envelope, answer with
 the language you were written in. Availability is probed first, so on a box
 without php you will see `php: not installed` rather than a failure — the
-article and the contract both degrade honestly.
+article and the contract both degrade honestly. For the same reason the
+output blocks below are marked `output,vary`: the verifier still executes
+every command and records what printed on this machine, but the exact set
+of languages is yours, not everyone's.
 
 ```run,sh
 mk() {  # mk <name> <file>
@@ -185,7 +188,7 @@ PY
 for d in echo-*; do python3 -m kraken tentacle add "$d" >/dev/null 2>&1 && echo "installed $d"; done
 ```
 
-```output
+```output,vary
 installed echo-fold
 installed echo-go
 installed echo-node
@@ -209,7 +212,7 @@ for d in echo-sh echo-python echo-node echo-php echo-ruby echo-perl echo-go; do
 done
 ```
 
-```output
+```output,vary
 sh           {"lang": "sh", "id": "1", "ok": true}
 python       {"lang": "python", "id": "1", "ok": true}
 node         {"lang": "node", "id": "1", "ok": true}
@@ -235,7 +238,7 @@ else
 fi
 ```
 
-```output
+```output,vary
 {"id": "1", "lang": "go", "ok": true}
 {"id": "1", "lang": "go", "ok": true}
 ```
@@ -281,7 +284,7 @@ for lang in fold['received']:
 "
 ```
 
-```output
+```output,vary
 workflow ok: True
 fold received 7 language answers:
   go -> go ok=True

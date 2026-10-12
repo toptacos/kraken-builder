@@ -163,8 +163,12 @@ class Resolution(unittest.TestCase):
     @sandbox
     def test_a_partial_file_still_resolves_completely(self, env):
         env.write("user", "data_dir: elsewhere\n")
-        merged, _ = cc.resolve()
-        self.assertEqual(merged["data_dir"], "elsewhere")
+        merged, origins = cc.resolve()
+        self.assertEqual(
+            merged["data_dir"],
+            "elsewhere",
+            msg="origins=" + str([(o.scope, o.source) for o in origins.values()]),
+        )
         self.assertEqual(merged["log_dir"], "logs", "untouched key keeps its default")
 
     @sandbox

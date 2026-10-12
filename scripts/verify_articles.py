@@ -150,14 +150,20 @@ def verify_article(path: Path, work: Path, check_only: bool) -> tuple[int, list[
             "\n"
         )
 
-        # The next block must be the output slot.
+        # The next block must be the output slot. `output,vary` marks output
+        # that legitimately differs per machine -- the polyglot article's
+        # answer set depends on which language runtimes are installed -- so it
+        # is still executed and recorded, but drift is not a failure.
         nxt = blocks[i + 1] if i + 1 < len(blocks) else None
-        if nxt is None or nxt.group("info").strip() != "output":
+        if nxt is None or not nxt.group("info").strip().startswith("output"):
             problems.append(
                 f"{path.name}: run block {i} has no ```output block after it"
             )
             continue
-        if nxt.group("body").strip() != observed:
+        if (
+            nxt.group("info").strip() == "output"
+            and nxt.group("body").strip() != observed
+        ):
             if check_only:
                 problems.append(
                     f"{path.name}: output block {i + 1} is stale\n"
