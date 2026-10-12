@@ -132,3 +132,9 @@ jobs:
         run: |
           python scripts/verify_site.py
           python -m pytest tests/test_site.py -q
+      - name: Docs, wiki, and the version matrix are confirmed
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          python scripts/verify_docs.py
+          python -m pytest tests/test_install_wrapper.py -q -k changelog

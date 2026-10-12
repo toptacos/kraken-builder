@@ -13,6 +13,7 @@ from kraken.core.config import load_config
 from kraken.core.contract import PROTOCOL_VERSION
 from kraken.core.loader import load_arms
 from kraken.core.semver import satisfies
+from kraken.core import toolchain
 from kraken.core.tentacle import discover_installed
 
 # Single source of truth. Duplicated in three places before 0.3.1, which
@@ -99,6 +100,14 @@ def _check_static(node: Node) -> None:
     core_bound = req.get("core")
     if core_bound and not satisfies(CORE_VERSION, str(core_bound)):
         raise ResolveError(f"{node.name} needs core {core_bound}; have {CORE_VERSION}")
+    # A tentacle may also declare the runtime its handler needs (python,
+    # node, bash, ...). Only declared toolchains are probed, so a manifest
+    # that asks for nothing costs nothing -- and one that asks for
+    # something missing fails here, with a sentence, instead of inside the
+    # handler where the traceback names the tentacle's language and not
+    # the reason.
+    for problem in toolchain.check(node.spec):
+        raise ResolveError(f"{node.name} {problem}")
 
 
 def resolve(root, name: str, home: Path | None = None) -> Plan:
