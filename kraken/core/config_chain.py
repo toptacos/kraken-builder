@@ -78,13 +78,15 @@ def scope_of(directory: Path) -> str:
 
 
 def _same_dir(a: Path, b: Path) -> bool:
-    try:
-        ra, rb = a.resolve(), b.resolve()
-    except OSError:
-        ra, rb = a, b
-    if os.name == "nt":
-        return str(ra).lower() == str(rb).lower()
-    return ra == rb
+    # stat identity, for the same reason walk_kraken_dirs uses it: the short
+    # and long spellings of one Windows path are equal to os.stat and to
+    # nothing else, and a mismatch here labels ~/.kraken a project scope.
+    from kraken.core.paths import _identity
+
+    ia, ib = _identity(a), _identity(b)
+    if ia is not None and ib is not None:
+        return ia == ib
+    return os.path.normcase(str(a)) == os.path.normcase(str(b))
 
 
 def resolve(start: Path | None = None) -> tuple[dict[str, Any], dict[str, Origin]]:

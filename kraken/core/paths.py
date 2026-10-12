@@ -55,48 +55,51 @@ def _key(path: Path) -> str:
     return text.lower() if os.name == "nt" else text
 
 
+def _identity(path: Path) -> tuple[int, int] | None:
+    """(device, inode) for a directory, or None if it cannot be stated.
+
+    Spelling is not identity on Windows: the runner's temp path arrives as
+    the 8.3 short name (C:\\Users\\RUNNER~1\\...) while resolving it yields
+    the long name, so two strings for one directory -- and the chain then
+    treats ~/.kraken as a project scope that outranks the user scope.
+    stat() answers the same for every spelling of the same directory.
+    """
+    try:
+        st = os.stat(path)
+    except OSError:
+        return None
+    return (st.st_dev, st.st_ino)
+
+
 def walk_kraken_dirs(start: Path | None = None) -> list[Path]:
     """Closest project .kraken last so it wins on merge.
 
     The system and user scopes are first-class entries in the chain already,
-    so they are skipped here. Without that, running from anywhere under the
-    home directory -- which is most invocations -- finds ~/.kraken twice:
-    once as the user scope and again as a "project" scope that outranks it.
-
-    The walk also stops at the home directory. Climbing all the way to the
-    filesystem root picks up .kraken directories that belong to nobody's
-    project: on a CI runner, ~/.kraken is created by the CLI smoke steps and
-    every later "sandboxed" config test then read it as project config,
-    silently overriding the user scope. A project lives below the home, or
-    it is not a project.
+    so they are skipped here, and the walk stops at the home directory: a
+    project lives below the home or it is not a project. Both comparisons use
+    stat identity, because the short and long spellings of one Windows path
+    are equal to os.stat and equal to nothing else.
     """
     here = (start or Path.cwd()).resolve()
-    reserved = set()
-    for scope in (system_kraken(), user_kraken()):
-        reserved.add(_key(scope))
-        try:
-            reserved.add(_key(scope.resolve()))
-        except OSError:
-            pass
-    home = user_home()
-    home_keys = {_key(home)}
-    try:
-        home_keys.add(_key(home.resolve()))
-    except OSError:
-        pass
+    home_id = _identity(user_home())
+    reserved_ids = {
+        ident for ident in (_identity(system_kraken()), home_id) if ident is not None
+    }
     found: list[Path] = []
     seen: set[str] = set()
     for parent in [here, *here.parents]:
-        if _key(parent) in home_keys:
+        ident = _identity(parent)
+        if ident is not None and ident == home_id:
             break
         candidate = parent / MARKER
-        if not candidate.is_dir() or _key(candidate) in reserved:
+        if not candidate.is_dir():
             continue
-        # Windows paths are case-insensitive, so the same directory can be
-        # reached under two spellings; one entry per directory, not per
-        # spelling, or the chain reports duplicate scopes.
-        if _key(candidate) not in seen:
-            seen.add(_key(candidate))
+        candidate_id = _identity(candidate)
+        if candidate_id is not None and candidate_id in reserved_ids:
+            continue
+        key = _key(candidate)
+        if key not in seen:
+            seen.add(key)
             found.append(candidate)
     found.reverse()
     return found
