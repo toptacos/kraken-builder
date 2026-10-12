@@ -201,7 +201,7 @@ def test_invoke_one_binary(tmp_path, monkeypatch):
 def test_invoke_one_binary_passes_timeout(tmp_path, monkeypatch):
     _patch_runner(
         monkeypatch,
-        specs={"ext": {"name": "ext", "binary": "/usr/bin/true", "timeout_sec": 10}},
+        specs={"ext": {"name": "ext", "binary": sys.executable, "timeout_sec": 10}},
     )
     captured = {}
 
@@ -287,7 +287,7 @@ def test_run_named_in_process_success(tmp_path, monkeypatch):
 def test_run_named_binary_success(tmp_path, monkeypatch):
     _patch_runner(
         monkeypatch,
-        specs={"ext": {"name": "ext", "binary": "/usr/bin/true"}},
+        specs={"ext": {"name": "ext", "binary": sys.executable}},
     )
     monkeypatch.setattr(
         runner,

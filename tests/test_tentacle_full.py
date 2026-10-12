@@ -180,7 +180,11 @@ def test_discover_installed_binary_absolute_path(tmp_path):
     src = tentacles_dir / "my-tentacle"
     _write_tentacle_yaml(src, "my-tentacle", binary="/usr/local/bin/myapp")
     result = discover_installed(tmp_path)
-    assert result[0]["binary"].replace("\\", "/") == "/usr/local/bin/myapp"
+    # a rooted POSIX manifest path stays rooted; on Windows resolve()
+    # gives it the current drive, which is the same "absolute".
+    binary = Path(result[0]["binary"])
+    assert binary.is_absolute()
+    assert binary.as_posix().endswith("usr/local/bin/myapp")
 
 
 def test_discover_installed_binary_relative_path(tmp_path):
@@ -315,7 +319,9 @@ def test_install_local_keeps_absolute_binary(tmp_path):
     _write_tentacle_yaml(src, "my-tentacle", binary="/opt/bin/run.sh")
     home = tmp_path / "home"
     result = install_local(src, home=home)
-    assert result["binary"].replace("\\", "/") == "/opt/bin/run.sh"
+    binary = Path(result["binary"])
+    assert binary.is_absolute()
+    assert binary.as_posix().endswith("opt/bin/run.sh")
 
 
 def test_install_local_records_lockfile(tmp_path):

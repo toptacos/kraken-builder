@@ -62,8 +62,13 @@ def walk_kraken_dirs(start: Path | None = None) -> list[Path]:
     so they are skipped here. Without that, running from anywhere under the
     home directory -- which is most invocations -- finds ~/.kraken twice:
     once as the user scope and again as a "project" scope that outranks it.
-    The same file then appears in the chain twice, `config explain` blames
-    the wrong scope, and a user setting can be silently re-applied by itself.
+
+    The walk also stops at the home directory. Climbing all the way to the
+    filesystem root picks up .kraken directories that belong to nobody's
+    project: on a CI runner, ~/.kraken is created by the CLI smoke steps and
+    every later "sandboxed" config test then read it as project config,
+    silently overriding the user scope. A project lives below the home, or
+    it is not a project.
     """
     here = (start or Path.cwd()).resolve()
     reserved = set()
@@ -73,9 +78,17 @@ def walk_kraken_dirs(start: Path | None = None) -> list[Path]:
             reserved.add(_key(scope.resolve()))
         except OSError:
             pass
+    home = user_home()
+    home_keys = {_key(home)}
+    try:
+        home_keys.add(_key(home.resolve()))
+    except OSError:
+        pass
     found: list[Path] = []
     seen: set[str] = set()
     for parent in [here, *here.parents]:
+        if _key(parent) in home_keys:
+            break
         candidate = parent / MARKER
         if not candidate.is_dir() or _key(candidate) in reserved:
             continue

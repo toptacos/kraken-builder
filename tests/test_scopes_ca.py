@@ -86,8 +86,34 @@ def test_home_kraken_is_not_also_a_project_scope(tmp_path, monkeypatch):
     dirs = [d for d in config_chain()]
     scopes = [scope_of(d) for d in dirs]
     assert scopes.count("user") == 1
-    assert scopes.count("project") == 1, scopes
+    assert scopes.count("project") == 1, [
+        (scope, str(d)) for scope, d in zip(scopes, dirs)
+    ]
     # the project entry is the one in proj/, not a second copy of ~/.kraken
     projects = [d for d in dirs if scope_of(d) == "project"]
     assert projects[0] == work / ".kraken"
     assert [s for s, _, _ in chain_files()] == scopes
+
+
+def test_walk_stops_at_the_home_directory(tmp_path, monkeypatch):
+    """The exact CI failure: the walk used to climb to the filesystem root,
+    so the ~/.kraken that CI's own smoke steps create became a *project*
+    scope -- outranking the user scope -- and fifteen tests failed on the
+    runners while passing on laptops whose temp dirs live outside $HOME."""
+    above = tmp_path / "runner"          # stands in for C:\\Users\\runneradmin
+    home = above / "home"
+    work = home / "proj"
+    (work / ".kraken").mkdir(parents=True)
+    (home / ".kraken").mkdir(parents=True)
+    (above / ".kraken").mkdir(parents=True)  # the CI-created one
+    monkeypatch.setenv("KRAKEN_HOME", str(home))
+    monkeypatch.chdir(work)
+
+    from kraken.core.config_chain import scope_of
+    from kraken.core.paths import config_chain
+
+    dirs = config_chain()
+    scopes = [scope_of(d) for d in dirs]
+    assert scopes.count("project") == 1, [(s, str(d)) for s, d in zip(scopes, dirs)]
+    assert scopes.count("user") == 1
+    assert [d for d, s in zip(dirs, scopes) if s == "project"] == [work / ".kraken"]
