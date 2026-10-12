@@ -54,7 +54,7 @@ def test_kraken_home_pointed_at_the_kraken_dir_warns():
         capture_output=True,
         text=True,
     )
-    assert "/tmp/x/.kraken/.kraken" in nested.stdout
+    assert "/tmp/x/.kraken/.kraken" in nested.stdout.replace("\\", "/")
     assert "KRAKEN_HOME" in nested.stderr
     assert "is the home directory" in nested.stderr
 

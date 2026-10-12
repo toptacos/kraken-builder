@@ -276,8 +276,11 @@ def test_editable_install_pointing_here_is_not_a_shadow(tmp_path, monkeypatch):
 
     dist = tmp_path / "site" / "kraken_cli-0.3.1.dist-info"
     dist.mkdir(parents=True)
+    # as_uri() writes file:///C:/... on Windows; hand-building file:// +
+    # str(path) drops the third slash and url2pathname reads the result as
+    # the current directory.
     (dist / "direct_url.json").write_text(
-        json.dumps({"url": "file://" + str(tmp_path)})
+        json.dumps({"url": tmp_path.as_uri()})
     )
     root = tmp_path
     assert doctor_mod._same_dir(tmp_path, root) is True

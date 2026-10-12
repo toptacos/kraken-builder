@@ -372,7 +372,9 @@ class Validation(unittest.TestCase):
     def test_problems_name_the_offending_file(self, env):
         env.write("project", "wibble: 1\n")
         problems = cc.validate_config()
-        self.assertTrue(any(str(env.project) in p for p in problems))
+        self.assertTrue(
+            any(env.project.as_posix() in p.replace("\\", "/") for p in problems)
+        )
 
     def test_every_generated_example_validates(self):
         for scope in ("system", "user", "project"):
