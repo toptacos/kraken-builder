@@ -1,9 +1,0 @@
-{
-  "name": "clip",
-  "version": "0.1.0",
-  "license": "free",
-  "author_email": "dev@localhost",
-  "source": "",
-  "description": "Local share-URL index. Does not fetch Facebook video.",
-  "actions": "ping,add,list,get,note,remove,finish,clear"
-}

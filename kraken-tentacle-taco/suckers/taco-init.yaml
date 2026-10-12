@@ -1,8 +1,0 @@
-sucker: taco-init
-tentacle: taco
-action: after_install
-optional: false
-priority: 1
-when: ["taco"]
-payload:
-  defaults: true

@@ -1,7 +1,0 @@
-test_free_assert_and_premium_overlay (__main__.BoardLicenseRoles.test_free_assert_and_premium_overlay) ... skipped 'kraken.core missing'
-test_manifest_is_free (__main__.BoardLicenseRoles.test_manifest_is_free) ... ok
-
-----------------------------------------------------------------------
-Ran 2 tests in 0.000s
-
-OK (skipped=1)

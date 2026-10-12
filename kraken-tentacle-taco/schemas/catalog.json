@@ -1,9 +1,0 @@
-{
-  "name": "taco",
-  "version": "0.1.0",
-  "license": "premium",
-  "author_email": "dev@localhost",
-  "source": "",
-  "description": "Premium local gamification ledger. Inbound events only.",
-  "actions": "ping,policy,set-policy,event,score,give,redeem,catalog,finish,clear"
-}
