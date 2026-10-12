@@ -24,7 +24,7 @@ from typing import Any
 import yaml
 
 from kraken.core import config_schema as cs
-from kraken.core.paths import config_chain, user_kraken
+from kraken.core.paths import config_chain, system_kraken, user_kraken
 
 
 def _deep_merge(base: dict[str, Any], overlay: dict[str, Any]) -> dict[str, Any]:
@@ -66,12 +66,25 @@ class Origin:
 
 
 def scope_of(directory: Path) -> str:
-    system = os.environ.get("KRAKEN_SYSTEM_DIR", "/etc/kraken")
-    if str(directory) == system:
+    # Compare through the one function that knows where the system scope
+    # lives. This used to read the env var directly with a POSIX default, so
+    # on Windows a real system directory (ProgramData\kraken) was reported
+    # as "project" and KRAKEN_SYSTEM_DIR was ignored there entirely.
+    if _same_dir(directory, system_kraken()):
         return "system"
-    if directory == user_kraken():
+    if _same_dir(directory, user_kraken()):
         return "user"
     return "project"
+
+
+def _same_dir(a: Path, b: Path) -> bool:
+    try:
+        ra, rb = a.resolve(), b.resolve()
+    except OSError:
+        ra, rb = a, b
+    if os.name == "nt":
+        return str(ra).lower() == str(rb).lower()
+    return ra == rb
 
 
 def resolve(start: Path | None = None) -> tuple[dict[str, Any], dict[str, Origin]]:

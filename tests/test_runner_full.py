@@ -1,6 +1,8 @@
 from pathlib import Path
 from types import SimpleNamespace
 
+import sys
+
 import pytest
 
 from kraken.core import runner
@@ -181,9 +183,11 @@ def test_invoke_one_in_process_license_check(tmp_path, monkeypatch):
 
 
 def test_invoke_one_binary(tmp_path, monkeypatch):
+    # The binary has to exist on the machine running the test; /usr/bin/true
+    # is a POSIX path and Windows turns it into C:\usr\bin\true.
     _patch_runner(
         monkeypatch,
-        specs={"ext": {"name": "ext", "binary": "/usr/bin/true"}},
+        specs={"ext": {"name": "ext", "binary": sys.executable}},
     )
     monkeypatch.setattr(
         runner,

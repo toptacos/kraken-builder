@@ -34,10 +34,16 @@ def user_home() -> Path:
 
 
 def system_kraken() -> Path:
+    # The override wins on every platform. It used to be POSIX-only, which
+    # made the system scope invisible on Windows -- tests could not point it
+    # anywhere, and an admin could not move it off ProgramData.
+    override = os.environ.get("KRAKEN_SYSTEM_DIR")
+    if override:
+        return Path(override)
     if os.name == "nt":
         base = Path(os.environ.get("PROGRAMDATA", r"C:\ProgramData"))
         return base / "kraken"
-    return Path(os.environ.get("KRAKEN_SYSTEM_DIR", "/etc/kraken"))
+    return Path("/etc/kraken")
 
 
 def user_kraken() -> Path:
@@ -48,9 +54,17 @@ def walk_kraken_dirs(start: Path | None = None) -> list[Path]:
     """Closest project .kraken last so it wins on merge."""
     here = (start or Path.cwd()).resolve()
     found: list[Path] = []
+    seen: set[str] = set()
     for parent in [here, *here.parents]:
         candidate = parent / MARKER
-        if candidate.is_dir():
+        if not candidate.is_dir():
+            continue
+        # Windows paths are case-insensitive, so the same directory can be
+        # reached under two spellings; one entry per directory, not per
+        # spelling, or the chain reports duplicate scopes.
+        key = str(candidate).lower() if os.name == "nt" else str(candidate)
+        if key not in seen:
+            seen.add(key)
             found.append(candidate)
     found.reverse()
     return found

@@ -52,6 +52,27 @@ def main() -> int:
         return _ok(req, {"added": row["host"], "auth": "key" if row["key"] else "none"})
 
     if action == "discover":
+        if os.environ.get("KRAKEN_OFFLINE") == "1":
+            # 0.15s is the *connect* timeout; resolving raspberrypi.local is
+            # not bounded by it, and a CI runner has no such name to answer,
+            # which is how this action used to hang past core's kill time.
+            # Loopback still answers instantly, so probe that and nothing else.
+            offline_hosts = list(p.get("hosts") or [])
+            if not offline_hosts:
+                offline_hosts = [
+                    h.get("host") for h in saved.get("hosts") or [] if h.get("host")
+                ]
+            port = int(p.get("port") or 22)
+            found = [
+                {
+                    "host": str(h),
+                    "port": port,
+                    "reachable": str(h) in {"127.0.0.1", "localhost"}
+                    and _probe(str(h), port),
+                }
+                for h in offline_hosts
+            ]
+            return _ok(req, {"found": found, "method": "offline"})
         candidates = list(p.get("hosts") or [])
         if not candidates:
             candidates = [h.get("host") for h in saved.get("hosts") or [] if h.get("host")]
