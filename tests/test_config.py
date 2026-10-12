@@ -163,11 +163,21 @@ class Resolution(unittest.TestCase):
     @sandbox
     def test_a_partial_file_still_resolves_completely(self, env):
         env.write("user", "data_dir: elsewhere\n")
+        import os
+
+        from kraken.core.paths import config_chain, user_kraken
+        from kraken.core.config_chain import scope_of
+
         merged, origins = cc.resolve()
         self.assertEqual(
             merged["data_dir"],
             "elsewhere",
-            msg="origins=" + str([(o.scope, o.source) for o in origins.values()]),
+            msg="home=%r cwd=%r KRAKEN_HOME=%r chain=%r" % (
+                str(user_kraken()),
+                str(Path.cwd()),
+                os.environ.get("KRAKEN_HOME"),
+                [(scope_of(d), str(d)) for d in config_chain()],
+            ),
         )
         self.assertEqual(merged["log_dir"], "logs", "untouched key keeps its default")
 
