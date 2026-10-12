@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import re
 import shutil
 import subprocess
 import sys
@@ -161,29 +163,77 @@ def _git_url(raw: str) -> str | None:
     return None
 
 
-def install_from_git(url: str, home: Path | None = None) -> dict[str, Any]:
+def _split_ref(raw: str) -> tuple[str, str | None]:
+    """`repo@tag` -> (repo, tag). `@` is a git ref, not a path character.
+
+    This is the docker-image ergonomics: the ref is part of the reference
+    you are installing, exactly like `image:tag`, and core holds you to it.
+    """
+    text = raw.strip()
+    # git@host:org/repo is SCP syntax where @ belongs to the URL, not a tag;
+    # every other form -- a shorthand, an https URL, a file:// mirror -- can
+    # carry @tag, which is the whole point.
+    if "@" not in text or text.startswith("git@"):
+        return text, None
+    base, _, tag = text.rpartition("@")
+    return base, (tag or None)
+
+
+def install_from_git(
+    url: str, home: Path | None = None, ref: str | None = None
+) -> dict[str, Any]:
     clone = tempfile.mkdtemp(prefix="kraken-tentacle-")
-    proc = subprocess.run(
-        ["git", "clone", "--depth", "1", url, clone],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    cmd = ["git", "clone", "--depth", "1"]
+    if ref:
+        # --branch takes a tag or a branch, so `@v1.2.3` and `@main` both
+        # mean what they look like.
+        cmd += ["--branch", ref]
+    cmd += [url, clone]
+    proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if proc.returncode != 0:
-        raise RuntimeError(proc.stderr.strip() or f"git clone failed: {url}")
+        detail = proc.stderr.strip() or f"git clone failed: {url}"
+        if ref:
+            detail = f"{url}@{ref}: {detail}"
+        raise RuntimeError(detail)
     src = Path(clone)
     if not (src / "tentacle.yaml").exists():
         matches = list(src.glob("*/tentacle.yaml"))
         if matches:
             src = matches[0].parent
-    return install_local(src, home=home)
+    installed = install_local(src, home=home)
+    if ref:
+        # The ref you named and the manifest you got must agree when the ref
+        # looks like a version. `@latest` and `@main` stay advisory.
+        wanted = ref.lstrip("vV")
+        have = str(installed.get("version") or "")
+        if re.fullmatch(r"\d+\.\d+\.\d+", wanted) and have and not _same_version(have, wanted):
+            raise RuntimeError(
+                f"{url}@{ref} declares version {have}; "
+                f"install the tag that matches it"
+            )
+        installed["ref"] = ref
+    return installed
+
+
+def _same_version(a: str, b: str) -> bool:
+    from kraken.core.semver import cmp_version
+
+    try:
+        return cmp_version(a, b) == 0
+    except Exception:
+        return a == b
 
 
 def install_any(ref: str, home: Path | None = None) -> dict[str, Any]:
-    git = _git_url(ref)
+    base, tag = _split_ref(ref)
+    git = _git_url(base)
     if git:
-        return install_from_git(git, home=home)
-    return install_local(Path(ref), home=home)
+        return install_from_git(git, home=home, ref=tag)
+    if tag:
+        raise RuntimeError(
+            f"{ref}: @<version> applies to a git reference, not a directory"
+        )
+    return install_local(Path(base), home=home)
 
 
 def spec_by_name(

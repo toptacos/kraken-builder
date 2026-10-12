@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.4.0 — 2026-10-12
+
+### Added
+- **A tentacle declares the versions it needs, and core enforces them.**
+  `requires` now understands toolchains as well as the protocol and core:
+  `requires: {python: ">=3.11", node: ">=18", bash: ">=4"}`. The check runs
+  at `kraken tentacle add` and at every `kraken run`, before your handler
+  spawns, so a missing runtime is a sentence — `geo requires python >=3.11;
+  have 3.10.12` — instead of a traceback inside a language core does not
+  speak. New in `kraken/core/toolchain.py`.
+- **An undeclared requirement is never probed.** `python` is answered from
+  `sys.version_info` without a process; every other tool is shelled out to
+  once per process and cached. A manifest that asks for nothing spawns
+  nothing, which is what keeps the "tiny and efficient" claim honest.
+- **Pinned installs, docker-tag style.** `kraken tentacle add
+  github.com/org/repo@v1.2.3` clones that release; `@main` stays advisory.
+  A tag that disagrees with the manifest inside it is refused
+  (`@v2.0.0 declares version 1.0.0`). Offline mirrors pin the same way
+  (`file:///srv/mirror@v1.2.3`).
+- **Every tentacle repository is tagged** (`toptacos/kraken-tentacle-*`,
+  `v0.1.0`), so the pinning above works against the published set.
+
+### Fixed
+- `@` in a `file://` reference is a version pin, not part of the URL. The
+  splitter excluded every scheme form from parsing, which silently turned
+  `file:///srv/t@v1` into a path install.
+
 ## 0.3.3 — 2026-10-12
 
 ### Performance

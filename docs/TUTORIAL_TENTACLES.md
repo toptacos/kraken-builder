@@ -63,3 +63,20 @@ kraken workflow run examples/workflows/secure-share.yaml
 ```
 
 Encrypts `deploy-token`, stashes the ciphertext by hash, writes a pack the next install can import.
+
+## Pinning and requirements
+
+Install a release the way you pin a docker image:
+
+```bash
+kraken tentacle add github.com/toptacos/kraken-tentacle-store@v0.1.0
+```
+
+Declare the versions a tentacle needs in its manifest and core enforces them
+at install and at run — see `docs/CONTRACT.md`:
+
+```yaml
+requires:
+  python: ">=3.11"
+  core: ">=0.4.0"
+```

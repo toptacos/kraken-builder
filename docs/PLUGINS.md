@@ -46,6 +46,20 @@ actions: [plan, up, status, share, down]
 
 First hit wins. `kraken list` prints `kind` as `in-process` or `binary`.
 
+## Version requirements, either kind
+
+A plugin may declare what it needs; core checks before it spawns or imports:
+
+```yaml
+requires:
+  python: ">=3.11"
+  core: ">=0.4.0"
+```
+
+Bounds use one grammar (`>=`, `~`, `^`, `==`, space-separated AND). An
+undeclared requirement is never probed, so a plugin that asks for nothing
+costs nothing. Full table: `docs/CONTRACT.md`.
+
 ## Shared layers (both kinds)
 
 Same pipeline after the name is resolved:
