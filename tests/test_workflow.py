@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import shutil
 
 import pytest
 import tempfile
@@ -20,6 +21,12 @@ NT_SKIP = pytest.mark.skipif(
 )
 
 
+NO_GO = pytest.mark.skipif(
+    shutil.which("go") is None,
+    reason="needs a go toolchain; the runner image has none",
+)
+
+
 def _install_polyglot_tentacles(tmp_path: Path) -> None:
     """Install all polyglot tentacles to a temporary home."""
     for tentacle_dir in sorted(POLY.iterdir()):
@@ -36,6 +43,7 @@ def test_interpolate_path():
 
 
 @NT_SKIP
+@NO_GO
 def test_polyglot_workflow(tmp_path):
     # Install polyglot tentacles to temp home
     _install_polyglot_tentacles(tmp_path)
@@ -49,6 +57,7 @@ def test_polyglot_workflow(tmp_path):
 
 
 @NT_SKIP
+@NO_GO
 def test_cli_workflow(tmp_path, capsys):
     # Install polyglot tentacles to temp home
     _install_polyglot_tentacles(tmp_path)

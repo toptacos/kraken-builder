@@ -1,3 +1,4 @@
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -17,6 +18,12 @@ from kraken.core.tentacle import (
     installed_dir,
     parse_tentacle_yaml,
     spec_by_name,
+)
+
+
+NT_SKIP = pytest.mark.skipif(
+    os.name == "nt",
+    reason="POSIX-only: the scaffold handler is a sh script",
 )
 
 
@@ -173,7 +180,7 @@ def test_discover_installed_binary_absolute_path(tmp_path):
     src = tentacles_dir / "my-tentacle"
     _write_tentacle_yaml(src, "my-tentacle", binary="/usr/local/bin/myapp")
     result = discover_installed(tmp_path)
-    assert result[0]["binary"] == "/usr/local/bin/myapp"
+    assert result[0]["binary"].replace("\\", "/") == "/usr/local/bin/myapp"
 
 
 def test_discover_installed_binary_relative_path(tmp_path):
@@ -308,7 +315,7 @@ def test_install_local_keeps_absolute_binary(tmp_path):
     _write_tentacle_yaml(src, "my-tentacle", binary="/opt/bin/run.sh")
     home = tmp_path / "home"
     result = install_local(src, home=home)
-    assert result["binary"] == "/opt/bin/run.sh"
+    assert result["binary"].replace("\\", "/") == "/opt/bin/run.sh"
 
 
 def test_install_local_records_lockfile(tmp_path):
@@ -568,6 +575,7 @@ def test_install_any_from_local_git_mirror(tmp_path):
     assert (installed_dir(tmp_path / "home") / "mirrored" / "handler.py").exists()
 
 
+@NT_SKIP
 def test_template_handler_answers_the_envelope(tmp_path):
     """The scaffold every new tentacle starts from must honor the contract.
 

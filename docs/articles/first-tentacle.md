@@ -215,38 +215,18 @@ mkdir -p bad-tool
 sed 's/name: my-tool/name: bad-tool/' my-tool/tentacle.yaml > bad-tool/tentacle.yaml
 sed 's/    sys.exit(0)/    sys.exit(1)/' my-tool/handler.sh > bad-tool/handler.sh
 chmod +x bad-tool/handler.sh
-python3 -m kraken tentacle add bad-tool
-python3 -m kraken run bad-tool explode
+python3 -m kraken tentacle add bad-tool >/dev/null 2>&1
+# The last line of the traceback is the interesting one; the frames above it
+# differ by Python version, so the article shows only the verdict.
+if python3 -m kraken run bad-tool explode >broken.txt 2>&1; then rc=0; else rc=$?; fi
+tail -1 broken.txt
+echo "exit code: $rc"
+exit $rc
 ```
 
 ```output
-{"ok": true, "name": "bad-tool", "root": "<work>/home/.kraken/tentacles/bad-tool", "plan": {"root": "bad-tool", "order": ["bad-tool"], "nodes": {"bad-tool": {"version": "0.1.0", "kind": "binary"}}, "optional_missing": []}}
-  Tests skipped: no tests/ directory
-Traceback (most recent call last):
-  File "<frozen runpy>", line 198, in _run_module_as_main
-  File "<frozen runpy>", line 88, in _run_code
-  File "<repo>/kraken/__main__.py", line 3, in <module>
-    raise SystemExit(main())
-                     ~~~~^^
-  File "<repo>/kraken/core/cli.py", line 493, in main
-    run_named(
-    ~~~~~~~~~^
-        root,
-        ^^^^^
-    ...<4 lines>...
-        home=home,
-        ^^^^^^^^^^
-    )
-    ^
-  File "<repo>/kraken/core/runner.py", line 121, in run_named
-    result = _invoke_one(root, name, action, body, home)
-  File "<repo>/kraken/core/runner.py", line 85, in _invoke_one
-    return invoke_binary(binary, action, payload, timeout=tentacle_timeout(spec))
-  File "<repo>/kraken/core/contract.py", line 119, in invoke_binary
-    raise RuntimeError(
-    ...<2 lines>...
-    )
 RuntimeError: <work>/home/.kraken/tentacles/bad-tool/handler.sh exited 1 on action 'explode': no stderr
+exit code: 1
 ```
 
 A non-zero exit means **transport failure**: core never sees your JSON

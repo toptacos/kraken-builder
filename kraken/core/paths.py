@@ -50,21 +50,40 @@ def user_kraken() -> Path:
     return user_home() / MARKER
 
 
+def _key(path: Path) -> str:
+    text = str(path)
+    return text.lower() if os.name == "nt" else text
+
+
 def walk_kraken_dirs(start: Path | None = None) -> list[Path]:
-    """Closest project .kraken last so it wins on merge."""
+    """Closest project .kraken last so it wins on merge.
+
+    The system and user scopes are first-class entries in the chain already,
+    so they are skipped here. Without that, running from anywhere under the
+    home directory -- which is most invocations -- finds ~/.kraken twice:
+    once as the user scope and again as a "project" scope that outranks it.
+    The same file then appears in the chain twice, `config explain` blames
+    the wrong scope, and a user setting can be silently re-applied by itself.
+    """
     here = (start or Path.cwd()).resolve()
+    reserved = set()
+    for scope in (system_kraken(), user_kraken()):
+        reserved.add(_key(scope))
+        try:
+            reserved.add(_key(scope.resolve()))
+        except OSError:
+            pass
     found: list[Path] = []
     seen: set[str] = set()
     for parent in [here, *here.parents]:
         candidate = parent / MARKER
-        if not candidate.is_dir():
+        if not candidate.is_dir() or _key(candidate) in reserved:
             continue
         # Windows paths are case-insensitive, so the same directory can be
         # reached under two spellings; one entry per directory, not per
         # spelling, or the chain reports duplicate scopes.
-        key = str(candidate).lower() if os.name == "nt" else str(candidate)
-        if key not in seen:
-            seen.add(key)
+        if _key(candidate) not in seen:
+            seen.add(_key(candidate))
             found.append(candidate)
     found.reverse()
     return found

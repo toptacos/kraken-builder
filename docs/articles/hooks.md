@@ -257,46 +257,16 @@ hooks:
       optional: false
       when: ["stamper"]
 EOF
-python3 -m kraken run stamper grow
-rc=$?
+if python3 -m kraken run stamper grow >aborted.txt 2>&1; then rc=0; else rc=$?; fi
+tail -1 aborted.txt
+echo "exit code: $rc"
 cp /tmp/good-config.yaml .kraken/config.yaml
 exit $rc
 ```
 
 ```output
-Traceback (most recent call last):
-  File "<repo>/kraken/core/hooks.py", line 105, in fire_hooks
-    result = invoke(root, name, action, payload)
-  File "<repo>/kraken/core/runner.py", line 86, in _invoke_one
-    raise KeyError(f"arm not loaded: {name}")
-KeyError: 'arm not loaded: does-not-exist'
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "<frozen runpy>", line 198, in _run_module_as_main
-  File "<frozen runpy>", line 88, in _run_code
-  File "<repo>/kraken/__main__.py", line 3, in <module>
-    raise SystemExit(main())
-                     ~~~~^^
-  File "<repo>/kraken/core/cli.py", line 493, in main
-    run_named(
-    ~~~~~~~~~^
-        root,
-        ^^^^^
-    ...<4 lines>...
-        home=home,
-        ^^^^^^^^^^
-    )
-    ^
-  File "<repo>/kraken/core/runner.py", line 112, in run_named
-    fire_hooks(root, "before_run", name, ctx, _invoke_one)
-    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "<repo>/kraken/core/hooks.py", line 115, in fire_hooks
-    raise HookAbort(
-        f"before_run hook '{name}' aborted {target}: {exc}"
-    ) from exc
 kraken.core.hooks.HookAbort: before_run hook 'does-not-exist' aborted stamper: 'arm not loaded: does-not-exist'
+exit code: 1
 ```
 
 `before_run` with `optional: false` is the only combination that aborts the

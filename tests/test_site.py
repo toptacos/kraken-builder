@@ -34,17 +34,17 @@ def test_taxonomy_registry_declares_the_kraken_project():
 
 
 def test_new_pages_are_tagged_and_in_the_sitemap():
-    sitemap = (verify_site.SITE / "sitemap.xml").read_text()
+    sitemap = (verify_site.SITE / "sitemap.xml").read_text(encoding="utf-8")
     for page in ("compare.html", "blog-why-kraken.html"):
-        text = (verify_site.SITE / page).read_text()
+        text = (verify_site.SITE / page).read_text(encoding="utf-8")
         assert 'content="project:kraken"' in text
         assert 'data-taxonomy="project:kraken"' in text
         assert f"https://kraken.topta.co/{page}" in sitemap
 
 
 def test_compare_and_blog_pages_link_each_other():
-    compare = (verify_site.SITE / "compare.html").read_text()
-    blog = (verify_site.SITE / "blog-why-kraken.html").read_text()
+    compare = (verify_site.SITE / "compare.html").read_text(encoding="utf-8")
+    blog = (verify_site.SITE / "blog-why-kraken.html").read_text(encoding="utf-8")
     assert 'href="blog-why-kraken.html"' in compare
     assert 'href="compare.html"' in blog
 

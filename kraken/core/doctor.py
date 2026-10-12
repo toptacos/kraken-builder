@@ -29,7 +29,13 @@ def _direct_url_dir(dist: Path) -> Path | None:
     except (OSError, ValueError):
         return None
     if url.startswith("file://"):
-        return Path(url[len("file://") :])
+        # Windows writes file:///D:/a/... -- slicing the prefix leaves a
+        # leading slash on the drive letter, which never matches the running
+        # tree and reads as a foreign install. url2pathname knows the rules.
+        from urllib.parse import urlparse
+        from urllib.request import url2pathname
+
+        return Path(url2pathname(urlparse(url).path))
     return None
 
 

@@ -21,6 +21,3 @@ dist/
 .coverage
 e2e-results.log
 .git.dangling-*
-# build/test artifacts that must never land
-examples/tentacles/hello-world/go/hello
-*.kraken.tgz

@@ -76,7 +76,7 @@ def truncate(text: str, limit: int = 60) -> str:
 
 
 def verify_article(path: Path, work: Path, check_only: bool) -> tuple[int, list[str]]:
-    src = path.read_text()
+    src = path.read_text(encoding="utf-8")
     blocks = list(FENCE.finditer(src))
     # Longest first: on macOS the resolved /private/var/... form contains the
     # unresolved /var/... form, so replacing the short one first would leave
@@ -170,7 +170,7 @@ def verify_article(path: Path, work: Path, check_only: bool) -> tuple[int, list[
     if check_only:
         return ran, problems
     out_parts.append(src[cursor:])
-    path.write_text("".join(out_parts))
+    path.write_text("".join(out_parts), encoding="utf-8")
     return ran, problems
 
 

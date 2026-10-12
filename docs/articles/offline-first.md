@@ -153,6 +153,8 @@ grep -rn "topta.co" kraken/core/license.py kraken/core/sync.py | head -4
 ```
 
 ```output
+kraken/core/doctor.py:35: from urllib.parse import ...
+kraken/core/doctor.py:36: from urllib.request import ...
 kraken/core/license.py:69: import urllib.error
 kraken/core/license.py:70: import urllib.request
 kraken/core/license.py:139: import urllib.error
@@ -170,7 +172,10 @@ kraken/core/sync.py:1:"""Local session + optional api.topta.co account. No push 
 
 Read that list: `notify` (your webhook, only if you set
 `KRAKEN_NOTIFY_WEBHOOK`), `network` and `sync` (only when a user asks for a
-remote session), and `license`/`billing` (only on `kraken license verify`).
+remote session), `doctor` (inside one function, to decode a PEP 610
+`file://` URL when checking an install), and `license`/`billing` (only on
+`kraken license verify`). None of them run during `kraken run` unless you
+point them at a URL.
 None of them run during `kraken run` unless you point them at a URL. And on
 the tentacle side, the `keeps` tentacle — the one that handles bookmarks and
 secrets — refuses to even *store* anything under a path containing
