@@ -188,7 +188,9 @@ def test_tag_that_disagrees_with_the_manifest_is_refused(tmp_path):
             "-qm",
             "init",
         ],
-        ["git", "tag", "-a", "v2.0.0", "-m", "wrong"],
+        # A lightweight tag: an annotated one needs a git identity, which
+        # exists on a developer box and not necessarily on a CI runner.
+        ["git", "tag", "v2.0.0"],
     ):
         subprocess.run(cmd, cwd=repo, capture_output=True, check=True)
 
