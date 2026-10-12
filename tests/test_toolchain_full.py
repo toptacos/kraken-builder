@@ -30,7 +30,7 @@ def _install(tmp_path: Path, name: str, requires: dict | None) -> dict:
     src.mkdir(parents=True, exist_ok=True)
     body = (
         f'name: {name}\nversion: "0.1.0"\nlicense: free\nruntime: binary\n'
-        "binary: handler.sh\nactions: [ping]\n"
+        "binary: handler.py\nactions: [ping]\n"
     )
     if requires:
         body += "requires:"
@@ -38,11 +38,10 @@ def _install(tmp_path: Path, name: str, requires: dict | None) -> dict:
             body += f'\n  {key}: "{bound}"'
         body += "\n"
     (src / "tentacle.yaml").write_text(body)
-    (src / "handler.sh").write_text(
-        "#!/bin/sh\n"
-        "exec python3 -c 'import json,sys;"
-        "req=json.load(sys.stdin);"
-        "sys.stdout.write(json.dumps({\"v\":1,\"id\":req.get(\"id\"),\"ok\":True}))'\n"
+    (src / "handler.py").write_text(
+        "import json, sys\n"
+        "req = json.load(sys.stdin)\n"
+        "sys.stdout.write(json.dumps({'v': 1, 'id': req.get('id'), 'ok': True}))\n"
     )
     return install_local(src, home=tmp_path / "home")
 
@@ -119,21 +118,21 @@ def test_install_then_resolve_refuses_a_missing_toolchain(tmp_path, monkeypatch)
     `kraken run`."""
     home = tmp_path / "home"
     monkeypatch.setenv("KRAKEN_HOME", str(home))
-    _install(tmp_path, "needs-rust", {"rustc": ">=1.70"})
+    _install(tmp_path, "needs-rust", {"kraken-test-no-such-tool": ">=1.70"})
     with pytest.raises(ResolveError) as excinfo:
         resolve(tmp_path, "needs-rust", home)
-    assert "rustc >=1.70, which is not installed" in str(excinfo.value)
+    assert "requires kraken-test-no-such-tool >=1.70, which is not installed" in str(excinfo.value)
 
 
 def test_run_refuses_with_the_same_sentence(tmp_path, monkeypatch):
     home = tmp_path / "home"
     monkeypatch.setenv("KRAKEN_HOME", str(home))
-    _install(tmp_path, "needs-rust2", {"rustc": ">=1.70"})
+    _install(tmp_path, "needs-rust2", {"kraken-test-no-such-tool": ">=1.70"})
     from kraken.core.runner import run_named
 
     with pytest.raises(ResolveError) as excinfo:
         run_named(tmp_path, "needs-rust2", "ping", home=home)
-    assert "requires rustc >=1.70, which is not installed" in str(excinfo.value)
+    assert "requires kraken-test-no-such-tool >=1.70, which is not installed" in str(excinfo.value)
 
 
 def test_a_satisfied_bound_runs_normally(tmp_path, monkeypatch):
