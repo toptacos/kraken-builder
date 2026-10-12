@@ -1,8 +1,8 @@
 class KrakenCli < Formula
   desc "Local-first CLI plugin runner. One binary. Many tentacles."
   homepage "https://kraken.topta.co"
-  url "https://github.com/toptacos/kraken-builder/archive/refs/tags/v0.3.3.tar.gz"
-  sha256 "0a2d9e1d7c46d65496994c3793bbcb674cf50ff5880e16eb9be6adbfa4f2e1b0"
+  url "https://github.com/toptacos/kraken-builder/archive/refs/tags/v0.4.0.tar.gz"
+  sha256 "e2e22fe8d2b1d789426dead958c20407b59c329b037172d9724d6587952b7204"
   license "MIT"
   head "https://github.com/toptacos/kraken-builder.git", branch: "main"
 
