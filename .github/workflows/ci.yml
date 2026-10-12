@@ -91,8 +91,14 @@ jobs:
         run: |
           export KRAKEN_HOME="$RUNNER_TEMP/kraken-empty"
           mkdir -p "$KRAKEN_HOME"
-          # Must report no_plan and exit non-zero, not raise.
+          # Must report no_plan and exit non-zero, not raise. pipefail is on
+          # under `shell: bash`, so capture the code and assert it.
+          set +e
           python -m kraken up | tee out.json
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "exit code: $rc"
+          [ "$rc" = "2" ]
           grep -q '"code": "no_plan"' out.json
           python -m pytest tests/test_up_verb.py -q
 
