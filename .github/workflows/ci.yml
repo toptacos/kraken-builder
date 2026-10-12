@@ -76,7 +76,14 @@ jobs:
             kraken:
               name: kraken
           YAML
+          # pipefail is on under `shell: bash`, so the pipeline must tolerate
+          # the expected refusal: capture the exit code and assert it.
+          set +e
           python -m kraken up --file plan.yaml --start | tee started.json
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "exit code: $rc"
+          [ "$rc" = "2" ]
           grep -q '"code": "offline"' started.json
       - name: kraken up without a plan exits cleanly
         env:
