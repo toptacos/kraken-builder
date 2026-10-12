@@ -11,6 +11,11 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ['3.11', '3.12']
     runs-on: ${{ matrix.os }}
+    # Steps below use shell heredocs (cat > plan.yaml <<'YAML'), which
+    # PowerShell cannot parse. Git Bash ships on the Windows runner image.
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -71,7 +76,14 @@ jobs:
             kraken:
               name: kraken
           YAML
+          # pipefail is on under `shell: bash`, so the pipeline must tolerate
+          # the expected refusal: capture the exit code and assert it.
+          set +e
           python -m kraken up --file plan.yaml --start | tee started.json
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "exit code: $rc"
+          [ "$rc" = "2" ]
           grep -q '"code": "offline"' started.json
       - name: kraken up without a plan exits cleanly
         env:
@@ -79,7 +91,44 @@ jobs:
         run: |
           export KRAKEN_HOME="$RUNNER_TEMP/kraken-empty"
           mkdir -p "$KRAKEN_HOME"
-          # Must report no_plan and exit non-zero, not raise.
+          # Must report no_plan and exit non-zero, not raise. pipefail is on
+          # under `shell: bash`, so capture the code and assert it.
+          set +e
           python -m kraken up | tee out.json
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "exit code: $rc"
+          [ "$rc" = "2" ]
           grep -q '"code": "no_plan"' out.json
           python -m pytest tests/test_up_verb.py -q
+
+  # Documentation is a test surface here: every command block in
+  # docs/articles/ is executed and its published output must match.
+  # POSIX only -- the articles use shell constructs, and the tentacle
+  # runtimes they invoke (php, ruby, perl, go) are not guaranteed on
+  # Windows runners. The probe-and-skip in the articles is a runtime
+  # courtesy, not a portability claim.
+  articles:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -e .
+      - run: pip install pytest pyyaml
+      - name: Articles still tell the truth
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          KRAKEN_OFFLINE: "1"
+        run: python scripts/verify_articles.py --check
+      - name: Site links and taxonomy hold
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          python scripts/verify_site.py
+          python -m pytest tests/test_site.py -q

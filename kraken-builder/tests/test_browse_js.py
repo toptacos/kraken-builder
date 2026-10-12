@@ -1,3 +1,4 @@
+import pytest
 import os
 from pathlib import Path
 
@@ -9,12 +10,19 @@ from kraken.core.tentacle import install_local
 ROOT = Path(__file__).resolve().parents[1]
 
 
+NT_SKIP = pytest.mark.skipif(
+    os.name == "nt",
+    reason="POSIX-only: needs a shell or exec bits Windows does not have",
+)
+
+
 def test_envelope_kinds():
     e = envelope("text", "hello", url="https://example.com")
     assert unwrap(e)["kind"] == "text"
     assert unwrap({"x": 1})["kind"] == "json"
 
 
+@NT_SKIP
 def test_browse_js_sucker_finish(tmp_path, monkeypatch):
     monkeypatch.setenv("KRAKEN_HOME", str(tmp_path))
     monkeypatch.setenv("KRAKEN_OFFLINE", "1")

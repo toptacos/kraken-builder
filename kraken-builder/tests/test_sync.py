@@ -1,5 +1,5 @@
 from kraken.core.cli import main
-from kraken.core.sync import load_session, login, pin, set_push
+from kraken.core.sync import load_session, login, login_with_sanctum, pin, set_push
 from kraken.core.vanilla import VANILLA
 
 
@@ -38,12 +38,32 @@ def test_stale_and_nic_alert():
 
     sess = {
         "device_id": "dev-1",
-        "devices": [{"id": "dev-1", "name": "old", "last_seen_epoch": 1, "nic": "nic_aaaa"}],
+        "devices": [
+            {"id": "dev-1", "name": "old", "last_seen_epoch": 1, "nic": "nic_aaaa"}
+        ],
     }
     touch_device(sess, "old")
     assert "stale_device_returned" in sess["alerts"]
     assert "nic_changed" in sess["alerts"]
     assert sess["devices"][0]["nic"].startswith("nic_")
+
+
+def test_sanctum_login(tmp_path, monkeypatch):
+    monkeypatch.setenv("KRAKEN_HOME", str(tmp_path))
+    result = login_with_sanctum("sanctum_token_123", "user@example.com", "laptop")
+    assert result["ok"] is True
+    assert result["mode"] == "sanctum"
+    sess = load_session()
+    assert sess["auth_mode"] == "sanctum"
+    assert sess["token"] == "sanctum_token_123"
+    assert sess["email"] == "user@example.com"
+
+
+def test_sanctum_login_requires_token(tmp_path, monkeypatch):
+    monkeypatch.setenv("KRAKEN_HOME", str(tmp_path))
+    result = login_with_sanctum("", "user@example.com")
+    assert result["ok"] is False
+    assert "error" in result
 
 
 def test_vanilla_names():

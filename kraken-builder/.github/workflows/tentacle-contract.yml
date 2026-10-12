@@ -21,19 +21,25 @@ jobs:
           from pathlib import Path
           import yaml
           root = Path("examples/tentacles")
+          # A directory is a tentacle when it carries a manifest. Two entries
+          # under examples/tentacles are containers by design and must not be
+          # treated as tentacles themselves: polyglot/ holds one tentacle per
+          # language, and hello-world/ is the compile-c demo target. rglob
+          # finds the tentacles inside a container, so nothing is skipped that
+          # should be checked; hello-world simply has none, correctly.
+          manifests = sorted(root.rglob("tentacle.yaml"))
+          if not manifests:
+              raise SystemExit("no tentacle.yaml found under examples/tentacles")
           missing = []
-          for d in sorted(p for p in root.iterdir() if p.is_dir() and not p.name.startswith(".")):
-              man = d / "tentacle.yaml"
-              if not man.exists():
-                  missing.append(str(man))
-                  continue
+          for man in manifests:
               data = yaml.safe_load(man.read_text()) or {}
+              d = man.parent
               if not data.get("name"):
                   missing.append(f"{man} missing name")
               binary = data.get("binary") or "handler.py"
               if not (d / binary).exists() and not list(d.glob("handler.*")):
-                  missing.append(f"{d} missing handler")
+                  missing.append(f"{d} missing handler {binary}")
           if missing:
               raise SystemExit("\n".join(missing))
-          print("ok")
+          print(f"ok: {len(manifests)} manifests")
           PY

@@ -45,3 +45,6 @@ venv/
 coverage.xml
 htmlcov/
 junit*.xml
+
+# Tentacles now live in their own repos (toptacos/kraken-tentacle-*).
+kraken-tentacle-*/

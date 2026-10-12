@@ -82,6 +82,14 @@ def sandbox(test):
             cwd = Path.cwd()
             env = Env(tmp)
             env.apply()
+            # KRAKEN_OFFLINE, KRAKEN_DOCKER_CONFIG_URL and KRAKEN_LICENSE_REMOTE
+            # are env-level overrides in _ENV_SOURCE. CI runs the whole suite
+            # with KRAKEN_OFFLINE=1 (offline-first), which silently rewrites
+            # the telemetry setting and breaks "no files -> defaults". Clear
+            # them for the duration; a test that tests an override sets it.
+            envvars = ("KRAKEN_OFFLINE", "KRAKEN_DOCKER_CONFIG_URL", "KRAKEN_LICENSE_REMOTE")
+            for k in envvars:
+                os.environ.pop(k, None)
             try:
                 return test(self, env)
             finally:
@@ -155,8 +163,22 @@ class Resolution(unittest.TestCase):
     @sandbox
     def test_a_partial_file_still_resolves_completely(self, env):
         env.write("user", "data_dir: elsewhere\n")
-        merged, _ = cc.resolve()
-        self.assertEqual(merged["data_dir"], "elsewhere")
+        import os
+
+        from kraken.core.paths import config_chain, user_kraken
+        from kraken.core.config_chain import scope_of
+
+        merged, origins = cc.resolve()
+        self.assertEqual(
+            merged["data_dir"],
+            "elsewhere",
+            msg="home=%r cwd=%r KRAKEN_HOME=%r chain=%r" % (
+                str(user_kraken()),
+                str(Path.cwd()),
+                os.environ.get("KRAKEN_HOME"),
+                [(scope_of(d), str(d)) for d in config_chain()],
+            ),
+        )
         self.assertEqual(merged["log_dir"], "logs", "untouched key keeps its default")
 
     @sandbox
@@ -350,7 +372,14 @@ class Validation(unittest.TestCase):
     def test_problems_name_the_offending_file(self, env):
         env.write("project", "wibble: 1\n")
         problems = cc.validate_config()
-        self.assertTrue(any(str(env.project) in p for p in problems))
+        # The chain reports resolved (long) paths while the env's tmp dir is
+        # spelled in 8.3 short form on the Windows runner; compare the
+        # resolved spelling so one directory's two names still match.
+        want = env.project.resolve().as_posix()
+        self.assertTrue(
+            any(want in p.replace("\\", "/") for p in problems),
+            msg=str(problems),
+        )
 
     def test_every_generated_example_validates(self):
         for scope in ("system", "user", "project"):

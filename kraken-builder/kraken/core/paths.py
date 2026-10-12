@@ -34,23 +34,93 @@ def user_home() -> Path:
 
 
 def system_kraken() -> Path:
+    # The override wins on every platform. It used to be POSIX-only, which
+    # made the system scope invisible on Windows -- tests could not point it
+    # anywhere, and an admin could not move it off ProgramData.
+    override = os.environ.get("KRAKEN_SYSTEM_DIR")
+    if override:
+        return Path(override)
     if os.name == "nt":
         base = Path(os.environ.get("PROGRAMDATA", r"C:\ProgramData"))
         return base / "kraken"
-    return Path(os.environ.get("KRAKEN_SYSTEM_DIR", "/etc/kraken"))
+    return Path("/etc/kraken")
 
 
 def user_kraken() -> Path:
     return user_home() / MARKER
 
 
+def _key(path: Path) -> str:
+    text = str(path)
+    return text.lower() if os.name == "nt" else text
+
+
+def _identity(path: Path) -> tuple[int, int] | None:
+    """(device, inode) for a directory, or None if it cannot be stated.
+
+    Spelling is not identity on Windows: the runner's temp path arrives as
+    the 8.3 short name (C:\\Users\\RUNNER~1\\...) while resolving it yields
+    the long name, so two strings for one directory -- and the chain then
+    treats ~/.kraken as a project scope that outranks the user scope.
+    stat() answers the same for every spelling of the same directory.
+    """
+    try:
+        st = os.stat(path)
+    except OSError:
+        return None
+    return (st.st_dev, st.st_ino)
+
+
 def walk_kraken_dirs(start: Path | None = None) -> list[Path]:
-    """Closest project .kraken last so it wins on merge."""
+    """Closest project .kraken last so it wins on merge.
+
+    The system and user scopes are first-class entries in the chain already,
+    so they are skipped here, and the walk stops at the home directory: a
+    project lives below the home or it is not a project. Both comparisons use
+    stat identity, because the short and long spellings of one Windows path
+    are equal to os.stat and equal to nothing else.
+    """
     here = (start or Path.cwd()).resolve()
+    # Two boundaries, either of which stops the walk: the configured home
+    # (KRAKEN_HOME) and the OS home. On the GitHub Windows runner the temp
+    # path is spelled with an 8.3 short name while resolve() returns the long
+    # one, and stat identity did not bridge that gap there -- so the string
+    # spelling is compared too, normalized per platform.
+    boundary_ids: set[tuple[int, int]] = set()
+    boundary_keys: set[str] = set()
+    for home in (user_home(), Path.home()):
+        try:
+            boundary_keys.add(_key(home))
+        except (OSError, RuntimeError):
+            continue
+        ident = _identity(home)
+        if ident is not None:
+            boundary_ids.add(ident)
+    reserved_ids = {
+        ident
+        for ident in (_identity(system_kraken()), *boundary_ids)
+        if ident is not None
+    }
+    reserved_keys = {_key(system_kraken()), _key(user_kraken())}
     found: list[Path] = []
+    seen: set[str] = set()
     for parent in [here, *here.parents]:
+        ident = _identity(parent)
+        if ident is not None and ident in boundary_ids:
+            break
+        if _key(parent) in boundary_keys:
+            break
         candidate = parent / MARKER
-        if candidate.is_dir():
+        if not candidate.is_dir():
+            continue
+        candidate_id = _identity(candidate)
+        if candidate_id is not None and candidate_id in reserved_ids:
+            continue
+        if _key(candidate) in reserved_keys:
+            continue
+        key = _key(candidate)
+        if key not in seen:
+            seen.add(key)
             found.append(candidate)
     found.reverse()
     return found

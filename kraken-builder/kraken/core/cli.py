@@ -3,24 +3,65 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
-from kraken.core.doctor import inspect
-from kraken.core.license import (
-    LicenseError,
-    load_store,
-    set_key,
-    upgrade,
-    verify_remote,
-)
+# `first_run_init` stays a real module-level import: it runs on every
+# invocation and its module (paths) is stdlib-light. Everything else below is
+# resolved on first use through _LAZY/__getattr__ -- a top-level import here
+# charged every invocation, `kraken --help` included, for license (urllib),
+# runner, tentacle, and the workflow thread pool. Resolution also caches into
+# globals(), so `monkeypatch.setattr("kraken.core.cli.inspect", ...)` still
+# replaces the name the handler calls.
 from kraken.core.paths import ensure_user_layout, first_run_init
-from kraken.core.queue import Job, WorkflowQueue
-from kraken.core.resolve import ResolveError, resolve
-from kraken.core.runner import in_process_registry, list_all, run_named
-from kraken.core.tentacle import discover_installed, install_any
-from kraken.core.workflow import WorkflowError, load_workflow, run_workflow
+
+#: module attribute -> module that defines it
+_LAZY: dict[str, str] = {
+    "inspect": "kraken.core.doctor",
+    "in_process_registry": "kraken.core.runner",
+    "install_any": "kraken.core.tentacle",
+    "list_all": "kraken.core.runner",
+    "resolve": "kraken.core.resolve",
+    "run_named": "kraken.core.runner",
+    "run_workflow": "kraken.core.workflow",
+    "ResolveError": "kraken.core.resolve",
+    "LicenseError": "kraken.core.license",
+    "WorkflowError": "kraken.core.workflow",
+    "load_store": "kraken.core.license",
+    "set_key": "kraken.core.license",
+    "upgrade": "kraken.core.license",
+    "verify_remote": "kraken.core.license",
+    "load_workflow": "kraken.core.workflow",
+    "discover_installed": "kraken.core.tentacle",
+    "Job": "kraken.core.queue",
+    "WorkflowQueue": "kraken.core.queue",
+}
+
+
+def __getattr__(name: str) -> Any:
+    """Attribute access from outside this module (`kraken.core.cli.inspect`).
+
+    Note: Python does not run this for bare-name lookups inside this module --
+    those read globals() directly -- so handlers call _resolve() to populate
+    the names they use. It skips anything already bound, which is what keeps
+    monkeypatch.setattr("kraken.core.cli.inspect", ...) effective.
+    """
+    module = _LAZY.get(name)
+    if module is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    resolved = getattr(importlib.import_module(module), name)
+    globals()[name] = resolved  # cache; a later monkeypatch replaces it
+    return resolved
+
+
+def _resolve(*names: str) -> None:
+    g = globals()
+    for name in names:
+        if name not in g:
+            g[name] = __getattr__(name)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -113,7 +154,9 @@ def main(argv: list[str] | None = None) -> int:
     cfg_sub.add_parser("path", help="the config chain, in order")
     cfg_sub.add_parser("validate", help="check every file in the chain")
     cfg_init = cfg_sub.add_parser("init", help="write a commented example")
-    cfg_init.add_argument("--scope", default="user", choices=["system", "user", "project"])
+    cfg_init.add_argument(
+        "--scope", default="user", choices=["system", "user", "project"]
+    )
 
     up_p = sub.add_parser(
         "up",
@@ -199,6 +242,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
     if args.cmd == "list":
+        _resolve("list_all")
         for row in list_all(root, home=home):
             actions = ",".join(row.get("actions") or [])
             print(
@@ -208,11 +252,13 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.cmd == "doctor":
+        _resolve("inspect")
         report = inspect(root)
         print(json.dumps(report, indent=2))
         return 0 if report["ok"] else 2
 
     if args.cmd == "monitor":
+        _resolve("run_named")
         payload = {"root": str(root)}
         snap = run_named(root, "monitor", "snapshot", payload, home=home)
         if args.url:
@@ -223,6 +269,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if snap.get("ok") else 2
 
     if args.cmd == "workflow":
+        _resolve("WorkflowError", "load_workflow", "run_workflow", "ResolveError", "LicenseError")
         try:
             spec = load_workflow(args.file)
             print(json.dumps(run_workflow(root, spec, home=home), default=str))
@@ -281,6 +328,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.cmd == "demo":
+        _resolve("run_named", "ResolveError", "LicenseError")
         try:
             print(
                 json.dumps(
@@ -314,7 +362,10 @@ def main(argv: list[str] | None = None) -> int:
                 json.dumps(
                     {
                         "ok": False,
-                        "error": {"code": "unknown_action", "message": f"config {action}"},
+                        "error": {
+                            "code": "unknown_action",
+                            "message": f"config {action}",
+                        },
                     }
                 )
             )
@@ -324,7 +375,11 @@ def main(argv: list[str] | None = None) -> int:
         # terminal, success or failure. Only a human at a prompt gets the text
         # form. An error must not silently switch formats for a script.
         if not _sys.stdout.isatty():
-            print(json.dumps({k: v for k, v in payload.items() if k != "text"}, default=str))
+            print(
+                json.dumps(
+                    {k: v for k, v in payload.items() if k != "text"}, default=str
+                )
+            )
         else:
             print(payload.get("text") or json.dumps(payload, default=str))
         return code
@@ -361,11 +416,13 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if result.get("ok") else 2
 
     if args.cmd == "self":
+        _resolve("inspect")
         report = inspect(root)
         print(json.dumps({"ok": report["ok"], "plan": report}, indent=2))
         return 0 if report["ok"] else 2
 
     if args.cmd == "tentacle":
+        _resolve("discover_installed", "install_any", "resolve", "ResolveError")
         if args.ten_cmd == "list":
             print(json.dumps(discover_installed(home), indent=2))
             return 0
@@ -394,6 +451,7 @@ def main(argv: list[str] | None = None) -> int:
                 return 2
 
     if args.cmd == "license":
+        _resolve("load_store", "set_key", "upgrade", "verify_remote", "LicenseError")
         store = load_store()
         if args.lic_cmd == "status":
             print(json.dumps(store, indent=2))
@@ -427,6 +485,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
     payload = json.loads(args.payload)
+    _resolve("run_named", "in_process_registry", "Job", "WorkflowQueue", "ResolveError", "LicenseError")
     try:
         if args.cmd == "run":
             print(

@@ -146,7 +146,13 @@ def install_local(src: Path, home: Path | None = None) -> dict[str, Any]:
 
 def _git_url(raw: str) -> str | None:
     text = raw.strip()
-    if text.startswith("https://") or text.startswith("git@"):
+    # file:// is the offline story: an air-gapped Pi installs from a local
+    # or LAN mirror, and `kraken tentacle add file:///srv/tentacles/geo`
+    # used to fall through to a path install and fail with "no tentacle.yaml
+    # in file:/srv/...".
+    if text.startswith(
+        ("https://", "http://", "git://", "ssh://", "file://")
+    ) or text.startswith("git@"):
         return text
     if text.startswith("github.com/"):
         return "https://" + text

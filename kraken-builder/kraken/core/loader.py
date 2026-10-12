@@ -5,8 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
-import yaml
-
 from kraken.core.schema import REQUIRED_KEYS, ArmManifest
 
 
@@ -16,6 +14,8 @@ def default_arm_roots(repo_root: Path | None = None) -> list[Path]:
 
 
 def parse_manifest(path: Path) -> ArmManifest:
+    import yaml
+
     data = yaml.safe_load(path.read_text()) or {}
     missing = [k for k in REQUIRED_KEYS if k not in data]
     if missing:

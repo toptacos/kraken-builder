@@ -13,6 +13,13 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+
+NT_SKIP = pytest.mark.skipif(
+    os.name == "nt",
+    reason="POSIX-only: needs a shell or exec bits Windows does not have",
+)
+
+
 @pytest.mark.skipif(os.name == "nt", reason="POSIX wrapper")
 def test_wrapper_speaks_kraken_not_python_module(tmp_path):
     wrapper = ROOT / "scripts" / "kraken"
@@ -93,6 +100,7 @@ def assert_resolved(out):
     assert json.loads(out.stdout)["plan"]["checks"]
 
 
+@NT_SKIP
 def test_launcher_resolves_pointer_file(tmp_path):
     """The pointer written by install.sh is what makes a moved checkout fixable
     with one env var instead of a reinstall."""
@@ -102,6 +110,7 @@ def test_launcher_resolves_pointer_file(tmp_path):
     assert_resolved(run_wrapper({}, "self", "plan", home=home))
 
 
+@NT_SKIP
 def test_launcher_honours_kraken_src_over_a_stale_pointer(tmp_path):
     """A pointer written before a checkout moved must not win over an explicit
     KRAKEN_SRC — that is the one-line repair this whole change exists for."""
@@ -120,6 +129,7 @@ def test_launcher_never_bakes_in_an_absolute_path():
     assert "KRAKEN_SRC" in text
 
 
+@NT_SKIP
 def test_launcher_prints_a_fix_when_source_is_gone(tmp_path):
     """A dead source must produce a named remedy, not a python traceback."""
     home = tmp_path / "home"
@@ -197,6 +207,7 @@ def test_install_sh_warns_when_it_changes_which_checkout_wins(tmp_path):
     assert "already pointed at" not in again.stdout + again.stderr
 
 
+@NT_SKIP
 def test_install_sh_works_when_piped_from_curl(tmp_path):
     """The README installs with `curl … | sh`, where `$0` is `sh` and there is
     no script directory next to it. Deriving the launcher from `$0` produced
@@ -329,6 +340,7 @@ def test_doctor_does_not_call_a_symlinked_pointer_stale(tmp_path):
     assert not _same_dir("/nonexistent/xyz", real)
 
 
+@NT_SKIP
 def test_install_pointer_survives_a_symlinked_home(tmp_path):
     """install.sh writes the pointer with whatever SRC the user passed. When
     that is a symlinked path, doctor must still call it current."""

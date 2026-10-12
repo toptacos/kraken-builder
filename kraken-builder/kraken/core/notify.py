@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import os
-import urllib.request
 from typing import Any
 
 
@@ -15,11 +14,17 @@ def notify_stdout(event: str, payload: dict[str, Any]) -> None:
 
 
 def notify_webhook(event: str, payload: dict[str, Any]) -> None:
+    import urllib.request
+
     url = os.environ.get("KRAKEN_NOTIFY_WEBHOOK")
     if not url:
         return
-    body = json.dumps({"event": event, "payload": payload, "product": "kraken"}).encode()
-    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json"}, method="POST")
+    body = json.dumps(
+        {"event": event, "payload": payload, "product": "kraken"}
+    ).encode()
+    req = urllib.request.Request(
+        url, data=body, headers={"Content-Type": "application/json"}, method="POST"
+    )
     try:
         urllib.request.urlopen(req, timeout=4)
     except OSError:
@@ -28,6 +33,8 @@ def notify_webhook(event: str, payload: dict[str, Any]) -> None:
 
 def notify_ntfy(event: str, payload: dict[str, Any]) -> None:
     """Free: public ntfy.sh or your own ntfy container. No Firebase."""
+    import urllib.request
+
     topic = os.environ.get("KRAKEN_NTFY_TOPIC")
     if not topic:
         return

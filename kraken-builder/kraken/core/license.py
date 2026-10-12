@@ -9,14 +9,23 @@ from __future__ import annotations
 
 import json
 import os
-import urllib.error
-import urllib.request
 from pathlib import Path
 from typing import Any
 
 from kraken.core.paths import ensure_user_layout
 
 DEFAULT_API = "https://api.topta.co"
+
+#: Plan slugs that exist in the TopTacos API's BillingSeeder.
+#: "beta" is the free tier; the rest require Stripe checkout.
+PLAN_SLUGS: dict[str, str] = {
+    "beta": "Free tier — no Stripe checkout",
+    "kraken-starter": "$19/mo — one device, 0600 keys, default deny",
+    "kraken-pro": "$49/mo — five devices, org API keys, email support",
+    "kraken-enterprise": "$149/mo — unlimited devices, priority support",
+}
+
+DEFAULT_PLAN = "beta"
 
 
 class LicenseError(PermissionError):
@@ -49,9 +58,21 @@ def save_store(store: dict[str, Any], home: Path | None = None) -> Path:
 
 
 def issue_remote(
-    tentacle: str, plan: str = "beta", api_base: str | None = None, email: str = ""
+    tentacle: str,
+    plan: str = DEFAULT_PLAN,
+    api_base: str | None = None,
+    email: str = "",
 ) -> dict[str, Any]:
     """Ask the control plane for a key. Offline tests mock this."""
+    # urllib is imported here, not at module top: it drags in http.client,
+    # email.parser, and logging (~40 ms) that `kraken run` never uses.
+    import urllib.error
+    import urllib.request
+
+    if plan not in PLAN_SLUGS:
+        raise LicenseError(
+            f"unknown plan '{plan}'. Valid plans: {', '.join(PLAN_SLUGS)}"
+        )
     base = (api_base or os.environ.get("KRAKEN_API_BASE") or DEFAULT_API).rstrip("/")
     url = f"{base}/api/kraken/licenses/issue"
     body = json.dumps(
@@ -78,8 +99,12 @@ def issue_remote(
 
 
 def upgrade(
-    tentacle: str, plan: str = "beta", email: str = "", home: Path | None = None
+    tentacle: str, plan: str = DEFAULT_PLAN, email: str = "", home: Path | None = None
 ) -> dict[str, Any]:
+    if plan not in PLAN_SLUGS:
+        raise LicenseError(
+            f"unknown plan '{plan}'. Valid plans: {', '.join(PLAN_SLUGS)}"
+        )
     issued = issue_remote(tentacle, plan=plan, email=email)
     set_key(tentacle, str(issued["key"]), home=home)
     store = load_store(home)
@@ -111,6 +136,9 @@ def has_local_key(tentacle: str, home: Path | None = None) -> bool:
 def verify_remote(
     tentacle: str, key: str, api_base: str | None = None, timeout: int = 8
 ) -> dict[str, Any]:
+    import urllib.error
+    import urllib.request
+
     base = (api_base or os.environ.get("KRAKEN_API_BASE") or DEFAULT_API).rstrip("/")
     url = f"{base}/api/kraken/licenses/verify"
     body = json.dumps({"tentacle": tentacle, "key": key, "product": "kraken"}).encode()

@@ -6,11 +6,8 @@ with $step_id or $step_id.result.field.
 
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
-
-import yaml
 
 from kraken.core.notify import emit
 from kraken.core.runner import run_named
@@ -21,6 +18,8 @@ class WorkflowError(ValueError):
 
 
 def load_workflow(path: Path) -> dict[str, Any]:
+    import yaml
+
     data = yaml.safe_load(path.read_text()) or {}
     if not isinstance(data, dict) or "steps" not in data:
         raise WorkflowError(f"{path} needs a steps list")
@@ -47,13 +46,21 @@ def interpolate(value: Any, results: dict[str, Any]) -> Any:
     return value
 
 
-def _run_step(root: Path, step: dict[str, Any], results: dict[str, Any], home: Path | None = None) -> dict[str, Any]:
+def _run_step(
+    root: Path, step: dict[str, Any], results: dict[str, Any], home: Path | None = None
+) -> dict[str, Any]:
     if "parallel" in step:
+        # concurrent.futures pulls logging and dataclasses (~40 ms) that a
+        # sequential workflow never touches, so it enters with the branch
+        # that needs it.
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
         kids = list(step["parallel"] or [])
         out: dict[str, Any] = {}
         with ThreadPoolExecutor(max_workers=max(1, len(kids))) as pool:
             futs = {
-                pool.submit(_run_step, root, child, results, home): child.get("id") or str(i)
+                pool.submit(_run_step, root, child, results, home): child.get("id")
+                or str(i)
                 for i, child in enumerate(kids)
             }
             for fut in as_completed(futs):
@@ -65,10 +72,19 @@ def _run_step(root: Path, step: dict[str, Any], results: dict[str, Any], home: P
     if not name:
         raise WorkflowError(f"step {step.get('id')} missing tentacle")
     payload = interpolate(step.get("payload") or {}, results)
-    return run_named(root, str(name), str(action), payload, compose=bool(step.get("compose")), home=home)
+    return run_named(
+        root,
+        str(name),
+        str(action),
+        payload,
+        compose=bool(step.get("compose")),
+        home=home,
+    )
 
 
-def run_workflow(root: Path, spec: dict[str, Any], home: Path | None = None) -> dict[str, Any]:
+def run_workflow(
+    root: Path, spec: dict[str, Any], home: Path | None = None
+) -> dict[str, Any]:
     results: dict[str, Any] = {}
     for i, step in enumerate(spec.get("steps") or []):
         sid = str(step.get("id") or f"step{i}")

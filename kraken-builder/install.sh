@@ -1,6 +1,10 @@
 #!/bin/sh
 # Quick install. Puts `kraken` on PATH. MIT core: https://github.com/toptacos/kraken-builder
 #
+# CANONICAL SOURCE: This file is the canonical installer. The copy in
+# toptaco-monorepo/applications/kraken/public/install.sh must stay in sync.
+# Run scripts/check-installer.sh to verify.
+#
 # Deliberately no `pip install`. A pip console script hardcodes two absolute
 # paths: the interpreter in its shebang, and — for `pip install -e .` — the
 # checkout location in an editable finder. Move or rename the repo and you get
