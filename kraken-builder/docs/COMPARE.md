@@ -90,6 +90,15 @@ If you want a model to drive Chrome, that is a tentacle you write (`browse-js` w
 - Git-native CI UI (GitHub Actions)
 - Deciding the next step for you (agents)
 
+## Measured, on the page
+
+The numbers behind the rows above are on the comparison page:
+<https://kraken.topta.co/compare.html>. The benchmark table there is
+produced by `scripts/bench_alternatives.py` and `scripts/bench_contract.py`
+(method, before/after, and the honest "where the time goes" in
+`docs/BENCHMARKS.md`). Worked examples with executed output are in
+`docs/articles/`, each re-verified in CI by `scripts/verify_articles.py`.
+
 ## One-line positioning
 
 **Kraken is closer to a typed `make` that can run any language and refuse dangerous verbs until you grant them — not closer to n8n, Zapier, or Terraform.**

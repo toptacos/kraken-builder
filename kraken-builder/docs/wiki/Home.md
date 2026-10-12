@@ -6,6 +6,8 @@ Lean device runner. Plugins are tentacles. The marketing site is not the CLI.
 |---|---|
 | [Architecture](../ARCHITECTURE.md) | Planes, discovery, notify |
 | [Tentacles](Tentacles.md) | Plugin contract, add, run |
+| [Articles](../articles/README.md) | Worked examples, output executed in CI |
+| [Comparison](../COMPARE.md) | vs make, n8n, Zapier, Terraform — measured |
 | [Licenses](../LICENSES.md) | Premium keys and api.topta.co |
 | [`.kraken`](../DOT_KRAKEN.md) | Config chain |
 | [CLI](CLI.md) | Commands |
