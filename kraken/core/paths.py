@@ -81,21 +81,42 @@ def walk_kraken_dirs(start: Path | None = None) -> list[Path]:
     are equal to os.stat and equal to nothing else.
     """
     here = (start or Path.cwd()).resolve()
-    home_id = _identity(user_home())
+    # Two boundaries, either of which stops the walk: the configured home
+    # (KRAKEN_HOME) and the OS home. On the GitHub Windows runner the temp
+    # path is spelled with an 8.3 short name while resolve() returns the long
+    # one, and stat identity did not bridge that gap there -- so the string
+    # spelling is compared too, normalized per platform.
+    boundary_ids: set[tuple[int, int]] = set()
+    boundary_keys: set[str] = set()
+    for home in (user_home(), Path.home()):
+        try:
+            boundary_keys.add(_key(home))
+        except (OSError, RuntimeError):
+            continue
+        ident = _identity(home)
+        if ident is not None:
+            boundary_ids.add(ident)
     reserved_ids = {
-        ident for ident in (_identity(system_kraken()), home_id) if ident is not None
+        ident
+        for ident in (_identity(system_kraken()), *boundary_ids)
+        if ident is not None
     }
+    reserved_keys = {_key(system_kraken()), _key(user_kraken())}
     found: list[Path] = []
     seen: set[str] = set()
     for parent in [here, *here.parents]:
         ident = _identity(parent)
-        if ident is not None and ident == home_id:
+        if ident is not None and ident in boundary_ids:
+            break
+        if _key(parent) in boundary_keys:
             break
         candidate = parent / MARKER
         if not candidate.is_dir():
             continue
         candidate_id = _identity(candidate)
         if candidate_id is not None and candidate_id in reserved_ids:
+            continue
+        if _key(candidate) in reserved_keys:
             continue
         key = _key(candidate)
         if key not in seen:
