@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kraken-cli"
-version = "0.3.1"
+version = "0.3.3"
 description = "Open-source MIT CLI plugin runner. One binary. Many tentacles."
 readme = "README.md"
 license = { text = "MIT" }

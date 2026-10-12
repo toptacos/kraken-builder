@@ -1,5 +1,67 @@
 # Changelog
 
+## 0.3.3 — 2026-10-12
+
+### Performance
+- **CLI import cost cut 6x.** `kraken/core/__init__.py` re-exported license
+  (urllib), loader (yaml), runner, and tentacle at package import, so every
+  entry point — `kraken --help` included — paid for an HTTP client and a
+  thread pool it never used. Re-exports now resolve on first use (PEP 562)
+  and `cli.py` resolves per-command names through `_resolve()`, which skips
+  names already bound so `monkeypatch.setattr` still works. Measured:
+  `import kraken.core.cli` 372.6ms → 61.8ms.
+- **One config parse per file.** `config.load_yaml` caches by (path, mtime,
+  size); a single `kraken run` used to parse the same three-scope chain
+  three or four times.
+- **Homebrew install is 66x smaller.** The formula ships `examples/tentacles`
+  but no longer the hello-world demo's vendored rust/go toolchains: 33.3MB →
+  0.5MB of libexec.
+
+### Fixed
+- **The system config scope did not exist on Windows.** `system_kraken()`
+  branched on `os.name` before reading any override, so `KRAKEN_SYSTEM_DIR`
+  was ignored there and a real system directory was labelled `project`.
+- **The config walk climbed past the home directory.** A `.kraken` above the
+  home — a CI runner's own ~/.kraken, /usr/local's — became a *project*
+  scope that outranks user. The walk now stops at the home, and compares by
+  stat identity so a directory's short and long Windows spellings are one
+  directory.
+- **`kraken tentacle add file:///...` fell through to a path install** and
+  failed with `no tentacle.yaml in file:/srv/...`. `git://`, `ssh://`, and
+  `http://` are recognized too — the offline/air-gapped install path.
+- **The `_template` scaffold could not read its request.** It ran its python
+  as `python3 - <<'PY'`, which makes the heredoc the script *and* stdin, so a
+  new tentacle answered `id: null` with canned data.
+- **doctor flags an editable install that points at the running tree.** That
+  is what the documented dev setup and CI do; only a genuinely foreign
+  install fails now.
+- **`kraken run` may return extra hook keys in the response** — unchanged
+  behavior, but the tentacle-contract CI check no longer counts container
+  directories (`polyglot/`, `hello-world/`) as tentacles, which had failed
+  every push since v0.3.1.
+
+### Added
+- **`docs/articles/`** — four worked articles (first tentacle, polyglot,
+  hooks, offline-first) whose command blocks are executed by
+  `scripts/verify_articles.py`; CI fails if a published output drifts.
+- **`website/compare.html` and `website/blog-why-kraken.html`** — the
+  comparison page with reproducible benchmarks, and the why-Kraken post
+  (payload for blog.topta.co in `scripts/publish-journal.sh`).
+- **A `project` taxonomy** for internal projects, term `kraken`, in
+  `website/data/taxonomy.json`; `scripts/verify_site.py` and
+  `tests/test_site.py` keep links, tags, and the sitemap honest.
+- **`scripts/bench_alternatives.py`, `scripts/bench_contract.py`** and
+  `docs/BENCHMARKS.md` — wall time, peak RSS, and install size against the
+  alternatives, by round-robin so machine load cancels.
+
+### Tests
+- The suite is hermetic now: the config sandbox clears the env-source
+  overrides CI sets (`KRAKEN_OFFLINE`), the demo tests install vanilla into a
+  tmp home, and POSIX-only tests (shell tentacles, compiled fixtures, the
+  `curl | sh` launcher, exec bits) declare it instead of failing on Windows.
+  The full matrix — ubuntu, macOS, Windows on 3.11 and 3.12 — is green for
+  the first time.
+
 ## 0.3.1 — 2026-10-01
 
 ### Fixed
