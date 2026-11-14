@@ -65,8 +65,16 @@ def _resolve(*names: str) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
+    from kraken import __version__
+
     parser = argparse.ArgumentParser(prog="kraken", description="Kraken core")
     parser.add_argument("--root", type=Path, default=Path.cwd())
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"kraken {__version__}",
+        help="show the kraken version and exit",
+    )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     init_p = sub.add_parser("init", help="create ~/.kraken layout (or --home)")
@@ -196,6 +204,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     self_sub = self_p.add_subparsers(dest="self_cmd", required=True)
     self_sub.add_parser("plan")
+
+    help_p = sub.add_parser("help", help="show help for kraken commands")
+    help_p.add_argument("command", nargs="?", help="specific command to show help for")
 
     args = parser.parse_args(argv)
     root = args.root.resolve()
@@ -420,6 +431,19 @@ def main(argv: list[str] | None = None) -> int:
         report = inspect(root)
         print(json.dumps({"ok": report["ok"], "plan": report}, indent=2))
         return 0 if report["ok"] else 2
+
+    if args.cmd == "help":
+        if args.command:
+            # Show help for a specific subcommand
+            parser_obj = sub.choices.get(args.command)
+            if parser_obj is not None:
+                parser_obj.print_help()
+                return 0
+            print(f"kraken: no such command: {args.command}", file=sys.stderr)
+            return 2
+        # Print general help
+        parser.print_help()
+        return 0
 
     if args.cmd == "tentacle":
         _resolve("discover_installed", "install_any", "resolve", "ResolveError")

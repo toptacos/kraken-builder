@@ -1,6 +1,8 @@
 # CLI
 
 ```text
+kraken --version
+kraken help [COMMAND]
 kraken init [--home DIR]
 kraken vanilla
 kraken demo [--ip 1.1.1.1]
