@@ -1,0 +1,7 @@
+name: berth
+version: "0.1.0"
+entrypoint: arms.berth.handler:handle
+description: Berth planning arm — writes a shared-network compose plan for `kraken up`.
+triggers: [manual]
+actions: [up, plan]
+license: free
