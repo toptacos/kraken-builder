@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.3 — 2026-11-14
+
+### Added
+- **`kraken help`** — prints the full command reference. `kraken help <command>` shows help for a specific subcommand (e.g. `kraken help run`).
+- **`kraken --version`** — prints `kraken <version>` and exits. Version is read from `kraken.__version__`, the single source of truth.
+
+### Tests
+- **Leak scan** — `scripts/leak-scan.py` checks test artifacts for exposed secrets (API keys, private keys).
+- **Security E2E** — `tests/test_live_auth_e2e.py` validates auth/sql-injection/XSS protections against api.topta.co.
+
 ## 0.4.2 — 2026-11-14
 
 ### Added
