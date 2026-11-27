@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- **`kraken init --env`** writes a plan-only compose workstation
+  (`.kraken/config.yaml`, `compose.yaml`, `project.yaml`) from
+  `examples/environments/compose/`. Loopback binds, `docker.public: false`.
+  `--dir` selects the destination; `--force` overwrites. `kraken up` without
+  `--start` remains the next command. AGENTS.md documents the mycelium
+  pairing.
+
 ## 0.4.0 — 2026-10-12
 
 ### Added

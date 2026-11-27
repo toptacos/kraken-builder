@@ -1,0 +1,16 @@
+# Reef workstation — mycelium orchestrates; Kraken is the hands.
+# Isolated via --workspace / --home. Tokens stay in the environment.
+
+backend = "local"
+model = "local:qwen3:0.6b"
+verbose = false
+
+[backends.local]
+kind = "ollama"
+base_url = "http://127.0.0.1:11434"
+default_model = "qwen3:0.6b"
+models = ["qwen3:0.6b"]
+
+[commands]
+allow = ["kraken", "k", "uv", "python", "python3", "git", "ollama", "docker", "mcy"]
+timeout_s = 120

@@ -1,0 +1,19 @@
+# Plan-only environment. Loopback publishes. Do not put secrets here.
+# `kraken up --file compose.yaml` prints the plan. Pass --start only when you mean it.
+services:
+  panel:
+    image: nginx:alpine
+    networks:
+      - kraken
+    ports:
+      - "127.0.0.1:18181:80"
+  cache:
+    image: redis:7-alpine
+    networks:
+      - kraken
+    ports:
+      - "127.0.0.1:16379:6379"
+networks:
+  kraken:
+    name: kraken
+    driver: bridge

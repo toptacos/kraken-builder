@@ -86,6 +86,23 @@ Thirteen settings, all typed and validated. Committed examples live in
 `examples/config/`, generated from the same function `config init` uses.
 Full reference: [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
 
+## Local workstation
+
+Kraken plans compose. mycelium (optional) runs the shift. Isolated homes.
+Docker is plan-only. This is a laptop toolkit, not production serving.
+
+```bash
+kraken init --env
+kraken up --file compose.yaml
+```
+
+`--env` copies `examples/environments/compose/` (loopback nginx + redis,
+`docker.public: false`). Do not pass `--start` unless you mean to create
+containers. The full mycelium-driven recipe is
+`examples/04-kraken-compose/` in [toptacos/mycelium](https://github.com/toptacos/mycelium).
+
+Suggested prompt: "Plan my local stack (no containers)".
+
 ## `kraken up` — the shared network
 
 Core owns one Docker network, named `kraken`. Arms only *plan*; core runs it.
