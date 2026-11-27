@@ -1,7 +1,7 @@
 # CLI
 
 ```text
-kraken init [--home DIR]
+kraken init [--home DIR] [--env] [--dir DIR] [--force]
 kraken vanilla
 kraken demo [--ip 1.1.1.1]
 kraken doctor

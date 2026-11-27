@@ -1,0 +1,35 @@
+# Project-scope Kraken config. Wins over user/system for runs from this tree.
+# No secrets. Default-deny grants. Docker plan-only unless the operator starts it.
+version: 1
+
+allow:
+  tunnel: false
+  remote_config: false
+  scourge: false
+  llm: false
+  expose: false
+
+policy:
+  default: deny
+  grants: []
+  network: kraken
+
+docker:
+  enabled: false
+  name: kraken
+  driver: bridge
+  public: false
+  provider: local
+
+notify:
+  channels:
+    - stdout
+  on_success: true
+  on_error: true
+
+telemetry:
+  enabled: false
+
+license:
+  api_base: https://api.topta.co
+  remote: false

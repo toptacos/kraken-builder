@@ -69,8 +69,27 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--root", type=Path, default=Path.cwd())
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    init_p = sub.add_parser("init", help="create ~/.kraken layout (or --home)")
+    init_p = sub.add_parser(
+        "init",
+        help="create ~/.kraken layout (or --home); --env writes a plan-only compose workstation",
+    )
     init_p.add_argument("--home", type=Path, default=None)
+    init_p.add_argument(
+        "--env",
+        action="store_true",
+        help="write .kraken/config.yaml, compose.yaml, and project.yaml into --dir",
+    )
+    init_p.add_argument(
+        "--dir",
+        type=Path,
+        default=Path("."),
+        help="destination for --env (default: cwd)",
+    )
+    init_p.add_argument(
+        "--force",
+        action="store_true",
+        help="overwrite existing --env files",
+    )
 
     sub.add_parser("list", help="list in-process arms and configured binaries")
     sub.add_parser("doctor", help="check layout, protocol, and dependency plans")
@@ -210,7 +229,14 @@ def main(argv: list[str] | None = None) -> int:
     first_run_init(home)
 
     if args.cmd == "init":
-        print(str(ensure_user_layout(args.home)))
+        layout = ensure_user_layout(args.home)
+        if args.env:
+            from kraken.core.env_init import write_env_workstation
+
+            result = write_env_workstation(args.dir, force=args.force)
+            print(json.dumps(result, default=str))
+            return 0 if result.get("ok") else 2
+        print(str(layout))
         return 0
 
     if args.cmd == "instance":

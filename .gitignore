@@ -23,3 +23,5 @@ e2e-results.log
 .git.dangling-*
 examples/tentacles/hello-world/go/hello
 .kraken/
+!examples/environments/compose/.kraken/
+!examples/environments/compose/.kraken/config.yaml

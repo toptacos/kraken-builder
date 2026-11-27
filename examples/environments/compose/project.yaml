@@ -1,0 +1,18 @@
+# Environment intent. Berth's in-process arm currently writes a stock
+# nginx panel plan; `kraken up --file compose.yaml` uses this tree's compose.
+name: reef
+command: up
+network:
+  name: kraken
+  driver: bridge
+services:
+  panel:
+    image: nginx:alpine
+    ports: ["127.0.0.1:18181:80"]
+  cache:
+    image: redis:7-alpine
+    ports: ["127.0.0.1:16379:6379"]
+hooks:
+  after_up: []
+  after_down: []
+third_party: []
